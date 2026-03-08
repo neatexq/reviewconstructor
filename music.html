@@ -1014,9 +1014,14 @@ function buildQueries(q){
 }
 
 async function itunesSearch(query,entity,limit=8){
-  const url=`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=${entity}&limit=${limit}&lang=ru_RU`;
-  const d=await(await fetch(url)).json();
-  return d?.results||[];
+  const url=`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=${entity}&limit=${limit}&country=us`;
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),8000);
+  try{
+    const r=await fetch(url,{signal:ctrl.signal,mode:'cors'});
+    const d=await r.json();
+    return d?.results||[];
+  }finally{clearTimeout(t)}
 }
 
 function itunesArt(url,size=300){return url?url.replace('100x100bb',size+'x'+size+'bb'):''}
@@ -1041,7 +1046,9 @@ async function searchTrack(){
     items.forEach(t=>{
       const div=document.createElement('div');div.className='ri';
       div.innerHTML=`<img src="${itunesArt(t.artworkUrl100,60)}" onerror="this.style.opacity=0"><div><b>${t.trackName||'—'}</b><span>${t.artistName} — ${t.collectionName||''}</span></div>`;
-      div.onclick=()=>pickTrack(t);res.appendChild(div);
+      const pick=()=>pickTrack(t);
+      div.addEventListener('touchstart',e=>{e.preventDefault();pick()},{passive:false});
+      div.onclick=pick;res.appendChild(div);
     });
   }catch(e){res.innerHTML='<div class="ri" style="color:#e63946">Ошибка сети. Попробуй ещё раз.</div>'}
 }
@@ -1088,7 +1095,9 @@ async function searchAlbum(){
     items.forEach(a=>{
       const div=document.createElement('div');div.className='ri';
       div.innerHTML=`<img src="${itunesArt(a.artworkUrl100,60)}" onerror="this.style.opacity=0"><div><b>${a.collectionName||'—'}</b><span>${a.artistName} · ${a.releaseDate?.slice(0,4)||''} ${a.trackCount?'· '+a.trackCount+' тр.':''}</span></div>`;
-      div.onclick=()=>pickAlbum(a);res.appendChild(div);
+      const pick=()=>pickAlbum(a);
+      div.addEventListener('touchstart',e=>{e.preventDefault();pick()},{passive:false});
+      div.onclick=pick;res.appendChild(div);
     });
   }catch(e){res.innerHTML='<div class="ri" style="color:#e63946">Ошибка сети.</div>'}
 }
@@ -1103,7 +1112,9 @@ async function pickAlbum(a){
   if(bigArt)document.getElementById('alCoverImg').src=bigArt;
   try{
     const lu=`https://itunes.apple.com/lookup?id=${a.collectionId}&entity=song`;
-    const ld=await(await fetch(lu)).json();
+    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);
+    const ld=await(await fetch(lu,{signal:ctrl.signal,mode:'cors'})).json();
+    clearTimeout(t);
     const songs=(ld?.results||[]).filter(r=>r.wrapperType==='track').slice(0,9);
     tlRows=[];document.getElementById('tlInputs').innerHTML='';
     songs.forEach(s=>addTlRow(s.trackName||'',''));
