@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Конструктор · Кино</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=UnifrakturMaguntia&family=Courier+Prime:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
 <style>
 :root{--accent:#e74c3c}
@@ -216,6 +216,10 @@ textarea{resize:vertical}
 .outro-news-qr{width:100px;height:100px;background:#2a1a0a;border-radius:4px;padding:7px;display:flex;align-items:center;justify-content:center}
 .outro-news-qr img{width:100%;height:100%;border-radius:2px;filter:invert(1)}
 .outro-news-nick{font-family:'Courier Prime',monospace;font-size:11px;color:#8a7a6a;letter-spacing:2px}
+/* Glass fallback for html2canvas export (no backdrop-filter) */
+.card-wrapper.pm-glass-export .tech-box{background:rgba(255,255,255,0.18)!important;border:1px solid rgba(255,255,255,0.4)!important;box-shadow:0 4px 20px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.6)!important}
+.card-wrapper.pm-glass-export .opinion-area{background:rgba(255,255,255,0.14)!important;border:1px solid rgba(255,255,255,0.3)!important;box-shadow:0 8px 32px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.45)!important}
+.card-wrapper.pm-glass-export .pnl-glass{background:rgba(255,255,255,0.16)!important;border:1px solid rgba(255,255,255,0.3)!important}
 
 /* ─── MOBILE ─── */
 .card-outer{flex-shrink:0;align-self:flex-start}
@@ -812,7 +816,7 @@ function renderLib(){
     const t=document.createElement('div');t.className='lt';
     if(Object.values(bgState).some(b=>b.idx===i))t.classList.add('selbg');
     t.innerHTML=`<img src="${src}"><div class="ldel" onclick="event.stopPropagation();delLib(${i})">✕</div>`;
-    t.onclick=()=>{setBgFor(mode,i);if(mode==='film'){document.getElementById('fPoster').src=src}else if(mode==='series'){document.getElementById('sPoster').src=src}};
+    t.onclick=()=>{setBgFor(mode,i)};
     g.appendChild(t);
   });
   const a=document.createElement('div');a.className='ladd';a.textContent='＋';a.onclick=()=>document.getElementById('libIn').click();g.appendChild(a);
@@ -891,7 +895,9 @@ async function doSearch(type){
       const year=(item.release_date||item.first_air_date||'').slice(0,4);
       const img=item.poster_path?`https://image.tmdb.org/t/p/w92${item.poster_path}`:'';
       div.innerHTML=`<img src="${img}" onerror="this.style.display='none'"><div><b>${title}</b><span>${year}</span></div>`;
-      div.onclick=()=>type==='film'?pickFilm(item.id):pickSeries(item.id);
+      const pick=()=>type==='film'?pickFilm(item.id):pickSeries(item.id);
+      div.addEventListener('touchstart',e=>{e.preventDefault();pick()},{passive:false});
+      div.onclick=pick;
       res.appendChild(div);
     });
   }catch(e){res.innerHTML='<div class="ri" style="color:#e74c3c">Ошибка. Проверь соединение.</div>'}
@@ -1131,22 +1137,22 @@ function updQr(){
 /* SAVE + GALLERY */
 function save(){
   const c=document.getElementById('card');
-  html2canvas(c,{scale:2,useCORS:true,allowTaint:false,backgroundColor:null,logging:false}).then(cv=>{
-    const dataUrl=cv.toDataURL('image/png');
+  htmlToImage.toPng(c,{pixelRatio:2,cacheBust:true}).then(dataUrl=>{
     const a=document.createElement('a');a.href=dataUrl;a.download=`kino_${mode}_${Date.now()}.png`;a.click();
-    // Save compressed thumbnail to gallery
     try{
-      const th=document.createElement('canvas');
-      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
-      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
-      const thumb=th.toDataURL('image/jpeg',0.75);
-      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
-      const labels={intro:'Кино · Начало',film:'Кино · Фильм',series:'Кино · Сериал',outro:'Кино · Конец'};
-      items.unshift({thumb,type:labels[mode]||'Кино',date:new Date().toLocaleDateString('ru-RU')});
-      if(items.length>50)items.pop();
-      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+      const img=new Image();img.onload=()=>{
+        const th=document.createElement('canvas');
+        const scale=200/c.offsetWidth;th.width=200;th.height=Math.round(c.offsetHeight*scale);
+        th.getContext('2d').drawImage(img,0,0,th.width,th.height);
+        const thumb=th.toDataURL('image/jpeg',0.75);
+        const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+        const labels={intro:'Кино · Начало',film:'Кино · Фильм',series:'Кино · Сериал',outro:'Кино · Конец'};
+        items.unshift({thumb,type:labels[mode]||'Кино',date:new Date().toLocaleDateString('ru-RU')});
+        if(items.length>50)items.pop();
+        localStorage.setItem('reviews_gallery',JSON.stringify(items));
+      };img.src=dataUrl;
     }catch(e){console.warn('Gallery save failed:',e)}
-  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+  }).catch(err=>{console.error(err);alert('Ошибка экспорта. Используй Chrome.');});
 }
 
 /* AUTOSAVE */
