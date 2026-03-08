@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Музыка-Конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Unbounded:wght@700;900&family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--acc:#e63946;--acc2:#f4a261;--bg:#111;--bg2:#1a1a1a;--bg3:#222;--bor:#2e2e2e;--txt:#e8e8e8;--txt2:#888}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);display:flex;gap:20px;padding:20px;justify-content:center;min-height:100vh;color:var(--txt)}
+
+.ctrl{width:420px;background:var(--bg2);border:1px solid var(--bor);padding:16px;border-radius:12px;display:flex;flex-direction:column;gap:8px;max-height:97vh;overflow-y:auto;align-self:flex-start;flex-shrink:0}
+.ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.ctrl-head{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;color:#fff;border-bottom:3px solid var(--acc);padding-bottom:8px;margin-bottom:2px}
+h4{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;padding-bottom:3px;border-bottom:1px solid var(--bor);margin-top:4px;font-family:'Space Mono',monospace}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:12px;font-family:'Space Mono',monospace;color:var(--txt);outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+select option{background:var(--bg)}
+textarea{resize:vertical;min-height:75px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.tabs{display:flex;gap:4px}
+.tab{flex:1;padding:7px 3px;border:1px solid var(--bor);border-radius:7px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .2s;text-align:center;font-family:'Space Mono',monospace}
+.tab.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.sec{display:none;flex-direction:column;gap:7px}
+.sec.show{display:flex}
+
+.sbrow{display:flex;gap:4px;flex-wrap:wrap}
+.sb{padding:5px 10px;border:1px solid var(--bor);border-radius:5px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Space Mono',monospace;letter-spacing:.3px}
+.sb.active{border-color:var(--acc);color:var(--acc);background:rgba(230,57,70,.08)}
+
+.tblock{background:var(--bg);border:1px solid var(--bor);padding:8px;border-radius:7px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.tg label{font-size:10px;display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 4px;border-radius:4px;color:#aaa;letter-spacing:.2px}
+.tg label:hover{background:rgba(255,255,255,.03)}
+.tg input[type=checkbox]{accent-color:var(--acc);width:12px;height:12px}
+
+.srow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--bor);padding:7px 10px;border-radius:7px}
+.srow label{font-size:9px;color:var(--txt2);min-width:42px;letter-spacing:.3px;text-transform:uppercase}
+.stog{padding:2px 9px;border:1px solid var(--bor);border-radius:4px;background:var(--bg2);font-size:10px;font-weight:700;cursor:pointer;color:var(--txt2);font-family:'Space Mono',monospace;transition:all .2s}
+.stog.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.cs{width:20px;height:20px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.cs.active{border-color:#fff;transform:scale(1.25)}
+
+.lib-grid{display:flex;flex-wrap:wrap;gap:6px;background:var(--bg);padding:7px;border-radius:8px;border:1px solid var(--bor)}
+.lt{position:relative;width:52px;height:52px;cursor:pointer;border:2px solid transparent;border-radius:7px;overflow:hidden;transition:border-color .15s;flex-shrink:0}
+.lt img{width:100%;height:100%;object-fit:cover;display:block}
+.lt:hover{border-color:#3498db}.lt.sel{border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc)}
+.ldel{position:absolute;top:1px;right:1px;width:14px;height:14px;background:rgba(230,57,70,.9);border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}
+.lt:hover .ldel{opacity:1}
+.ladd{width:52px;height:52px;border:2px dashed var(--bor);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#444;transition:all .15s;flex-shrink:0}
+.ladd:hover{border-color:#3498db;color:#3498db}
+.usebtns{display:flex;gap:5px;flex-wrap:wrap}
+.ubtn{padding:4px 9px;border:1px solid var(--bor);border-radius:5px;background:var(--bg);font-size:10px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;color:var(--txt2);font-family:'Space Mono',monospace;transition:all .15s}
+.ubtn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+
+.rrow{display:flex;align-items:center;gap:7px}
+.rrow label{font-size:9px;color:var(--txt2);min-width:70px;flex-shrink:0;letter-spacing:.3px;text-transform:uppercase}
+.rrow input[type=range]{flex:1;accent-color:var(--acc)}
+.rval{font-size:10px;font-weight:700;min-width:34px;color:var(--txt)}
+
+.btn{width:100%;padding:7px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3);color:var(--txt2);font-family:'Space Mono',monospace;letter-spacing:.3px;transition:all .2s;border:1px solid var(--bor)}
+.btn:hover{background:var(--bor);color:var(--txt)}
+.savebtn{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff!important;padding:12px;margin-top:4px;font-size:13px;letter-spacing:2px}
+.savebtn:hover{background:#c02f3a!important}
+.delbtn{background:var(--bg)!important;border-color:var(--acc)!important;color:var(--acc)!important}
+
+#trRes,#alRes{background:var(--bg);border:1px solid var(--bor);display:none;position:absolute;left:0;right:0;top:100%;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.7);border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto}
+.ri{padding:10px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:11px;display:flex;align-items:center;gap:9px;color:#bbb;-webkit-tap-highlight-color:rgba(230,57,70,.2);user-select:none}
+.ri:hover{background:var(--bg2)}
+.ri img{width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#333}
+.ri b{display:block;color:#ddd;font-size:11px}
+.ri span{font-size:10px;color:#666}
+
+/* CARD */
+.card-wrap{width:600px;height:600px;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7);flex-shrink:0;align-self:flex-start}
+.view{position:absolute;inset:0;display:none;flex-direction:column;z-index:2}
+.view.show{display:flex}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;display:none}
+.card-dim{position:absolute;inset:0;z-index:1;pointer-events:none;display:none}
+.top-stripe{position:absolute;top:0;left:0;right:0;height:6px;z-index:30;display:none}
+
+/* THEMES — DARK */
+.th-dark{background:#0c0c0c}
+.th-dark .ct-eyebrow{color:rgba(255,255,255,.25);letter-spacing:4px}
+.th-dark .ct-title{color:#fff}
+.th-dark .ct-artist{color:rgba(255,255,255,.5)}
+.th-dark .ct-tag{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45)}
+.th-dark .ct-infobox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.th-dark .ct-infobox b{color:rgba(255,255,255,.25)}
+.th-dark .ct-infobox span{color:rgba(255,255,255,.7)}
+.th-dark .ct-review{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.th-dark .ct-review-lbl{color:rgba(255,255,255,.3)}
+.th-dark .ct-review-txt{color:rgba(255,255,255,.85)}
+.th-dark .ct-extra{color:rgba(255,255,255,.6);border-top-color:rgba(255,255,255,.08)}
+.th-dark .ct-footer-nick{color:rgba(255,255,255,.2)}
+.th-dark .ct-footer-date{color:rgba(255,255,255,.2)}
+.th-dark .ct-tl-item{color:rgba(255,255,255,.55);border-bottom-color:rgba(255,255,255,.05)}
+.th-dark .ct-tl-item.highlight{color:#fff}
+.th-dark .ct-score-num{fill:#fff}
+.th-dark .ct-score-ring-bg{stroke:rgba(255,255,255,.08)}
+.th-dark .al-score-big{color:var(--acc)}
+.th-dark .tl-head{color:rgba(255,255,255,.25)}
+
+/* THEMES — LIGHT */
+.th-light{background:#f7f2eb}
+.th-light .ct-eyebrow{color:rgba(0,0,0,.3);letter-spacing:4px}
+.th-light .ct-title{color:#111}
+.th-light .ct-artist{color:rgba(0,0,0,.45)}
+.th-light .ct-tag{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);color:rgba(0,0,0,.5)}
+.th-light .ct-infobox{background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.th-light .ct-infobox b{color:rgba(0,0,0,.3)}
+.th-light .ct-infobox span{color:#222}
+.th-light .ct-review{background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.th-light .ct-review-lbl{color:#999}
+.th-light .ct-review-txt{color:#1a1a1a}
+.th-light .ct-extra{color:#555;border-top-color:rgba(0,0,0,.08)}
+.th-light .ct-footer-nick{color:rgba(0,0,0,.22)}
+.th-light .ct-footer-date{color:rgba(0,0,0,.22)}
+.th-light .ct-tl-item{color:rgba(0,0,0,.55);border-bottom-color:rgba(0,0,0,.07)}
+.th-light .ct-tl-item.highlight{color:#111}
+.th-light .ct-score-num{fill:#111}
+.th-light .ct-score-ring-bg{stroke:rgba(0,0,0,.08)}
+.th-light .al-score-big{color:var(--acc)}
+.th-light .tl-head{color:rgba(0,0,0,.3)}
+
+/* THEMES — PAPER */
+.th-paper{background:#ece5d0!important}
+.th-paper .ct-eyebrow{color:#8a7a5a;letter-spacing:4px;font-family:'Space Mono',monospace}
+.th-paper .ct-title{color:#1a1005;font-family:'Playfair Display',serif!important;font-style:italic}
+.th-paper .ct-artist{color:#5a4a2a}
+.th-paper .ct-tag{background:#d8d0b0;border:1px solid #8a7a5a;color:#5a4a2a}
+.th-paper .ct-infobox{background:#e4ddc4!important;border:1px solid #8a7a5a!important;box-shadow:2px 2px 0 rgba(42,26,5,.2)}
+.th-paper .ct-infobox b{color:#8a7a5a}
+.th-paper .ct-infobox span{color:#1a1005}
+.th-paper .ct-review{background:#e8e2cc!important;border:1px solid #8a7a5a!important;box-shadow:2px 2px 0 rgba(42,26,5,.2)}
+.th-paper .ct-review-lbl{color:#8a7a5a;letter-spacing:2px}
+.th-paper .ct-review-txt{color:#1a1005}
+.th-paper .ct-extra{color:#5a4a2a;border-top-color:rgba(42,26,5,.12)}
+.th-paper .ct-footer-nick,.th-paper .ct-footer-date{color:#8a7a5a}
+.th-paper .ct-tl-item{color:#5a4a2a;border-bottom-color:rgba(42,26,5,.12)}
+.th-paper .ct-tl-item.highlight{color:#1a1005}
+.th-paper .ct-score-num{fill:#1a1005}
+.th-paper .ct-score-ring-bg{stroke:rgba(42,26,5,.12)}
+.th-paper .al-score-big{color:var(--acc)}
+.th-paper .tl-head{color:#8a7a5a}
+.th-paper .cover-art,.th-paper .album-cover-art{border:2px solid #8a7a5a;box-shadow:4px 4px 0 rgba(42,26,5,.2);filter:sepia(20%)}
+
+/* THEMES — CUSTOM */
+.th-custom .ct-eyebrow{color:rgba(255,255,255,.3);letter-spacing:4px}
+.th-custom .ct-title{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.th-custom .ct-artist{color:rgba(255,255,255,.55)}
+.th-custom .ct-tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55)}
+.th-custom .ct-infobox{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1)}
+.th-custom .ct-infobox b{color:rgba(255,255,255,.28)}
+.th-custom .ct-infobox span{color:rgba(255,255,255,.8)}
+.th-custom .ct-review{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1)}
+.th-custom .ct-review-lbl{color:rgba(255,255,255,.35)}
+.th-custom .ct-review-txt{color:rgba(255,255,255,.88)}
+.th-custom .ct-extra{color:rgba(255,255,255,.6);border-top-color:rgba(255,255,255,.1)}
+.th-custom .ct-footer-nick,.th-custom .ct-footer-date{color:rgba(255,255,255,.2)}
+.th-custom .ct-tl-item{color:rgba(255,255,255,.55);border-bottom-color:rgba(255,255,255,.07)}
+.th-custom .ct-tl-item.highlight{color:#fff}
+.th-custom .ct-score-num{fill:#fff}
+.th-custom .ct-score-ring-bg{stroke:rgba(255,255,255,.1)}
+.th-custom .al-score-big{color:var(--acc)}
+.th-custom .tl-head{color:rgba(255,255,255,.3)}
+
+/* glass panels */
+.pm-glass .ct-infobox{background:rgba(255,255,255,.1)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;border:1px solid rgba(255,255,255,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)!important}
+.pm-glass .ct-review{background:rgba(255,255,255,.08)!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)!important}
+
+/* ── TRACK VIEW ── */
+.track-view{padding:26px 28px 22px;display:flex;flex-direction:column;height:100%;gap:10px}
+.tr-header{display:flex;gap:18px;align-items:flex-start;flex-shrink:0}
+.cover-zone{position:relative;flex-shrink:0}
+.cover-art{width:170px;height:170px;object-fit:cover;display:block;background:#1a1a1a}
+.vinyl-disc{position:absolute;right:-38px;top:50%;transform:translateY(-50%);width:116px;height:116px;border-radius:50%;background:conic-gradient(#0d0d0d 0%,#1a1a1a 8%,#0d0d0d 12%,#1a1a1a 20%,#0d0d0d 25%,#1a1a1a 33%,#0d0d0d 38%,#1a1a1a 46%,#0d0d0d 50%,#1a1a1a 58%,#0d0d0d 62%,#1a1a1a 70%,#0d0d0d 75%,#1a1a1a 83%,#0d0d0d 88%,#1a1a1a 96%,#0d0d0d 100%);box-shadow:0 4px 24px rgba(0,0,0,.7),inset 0 0 0 18px rgba(255,255,255,.02);display:none;z-index:5}
+.vinyl-disc::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50%,#111 0%,transparent 38%),conic-gradient(rgba(255,255,255,.04) 0deg,rgba(255,255,255,.01) 90deg,rgba(255,255,255,.04) 180deg,rgba(255,255,255,.01) 270deg)}
+.vinyl-disc::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#e63946;box-shadow:0 0 0 3px #0d0d0d}
+.tr-meta{flex:1;display:flex;flex-direction:column;gap:5px;padding-top:2px;min-width:0}
+.ct-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase}
+.ct-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:.93;letter-spacing:1px;word-break:break-word}
+.ct-artist{font-family:'Playfair Display',serif;font-style:italic;font-size:16px}
+.ct-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:1px}
+.ct-tag{font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace}
+.score-area{display:flex;align-items:center;gap:10px;margin-top:3px}
+.score-ring svg{width:68px;height:68px}
+.ct-score-ring-bg{fill:none;stroke-width:7}
+.ct-score-ring-fill{fill:none;stroke-width:7;stroke-linecap:round;stroke-dasharray:201.1;stroke-dashoffset:201.1;transform-origin:50% 50%;transform:rotate(-90deg)}
+.ct-score-num{font-family:'Bebas Neue',sans-serif;font-size:24px;dominant-baseline:middle;text-anchor:middle}
+.stars-col{display:flex;flex-direction:column;gap:2px}
+.stars-row{display:flex;align-items:center}
+.score-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase}
+
+.ct-infobox{padding:9px 12px;border-radius:7px;display:grid;grid-template-columns:1fr 1fr;gap:5px;flex-shrink:0}
+.ct-infobox .ic{display:flex;flex-direction:column;gap:1px}
+.ct-infobox b{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;display:block;font-family:'Space Mono',monospace}
+.ct-infobox span{font-size:10px;font-family:'Space Mono',monospace;line-height:1.4}
+.ct-review{border-radius:9px;padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}
+.ct-review-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;flex-shrink:0}
+.ct-review-txt{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;line-height:1.45;flex:1;overflow:hidden;white-space:pre-wrap}
+.rv-font-bebas .ct-review-txt{font-family:'Bebas Neue',sans-serif;font-style:normal;letter-spacing:1px;line-height:1.2}
+.rv-font-mono .ct-review-txt{font-family:'Space Mono',monospace;font-style:normal;font-size:11px;line-height:1.55}
+.rv-font-cormorant .ct-review-txt{font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.6}
+.rv-font-montserrat .ct-review-txt{font-family:'Montserrat',sans-serif;font-style:normal;font-size:12px;line-height:1.5}
+.ct-extra{font-family:'Space Mono',monospace;font-size:9px;border-top:1px solid;padding-top:7px;display:none;flex-direction:column;gap:3px;flex-shrink:0;margin-top:3px}
+.ct-extra .erow{display:flex;justify-content:space-between}
+.ct-footer{display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0}
+.ct-footer-nick{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px}
+.ct-footer-date{font-family:'Space Mono',monospace;font-size:9px;margin-top:2px;letter-spacing:1px}
+
+/* ── ALBUM VIEW ── */
+.album-view{padding:26px 28px 22px;display:flex;flex-direction:column;height:100%;gap:10px}
+.al-top{display:flex;gap:18px;flex-shrink:0}
+.album-cover-art{width:200px;height:200px;object-fit:cover;flex-shrink:0;display:block;background:#1a1a1a}
+.al-info{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.al-body{display:flex;gap:14px;flex:1;min-height:0}
+.tl-col{width:200px;flex-shrink:0;display:flex;flex-direction:column}
+.tl-head{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:6px}
+.ct-tl-item{font-family:'Space Mono',monospace;font-size:9px;padding:4px 0;border-bottom:1px solid;display:flex;gap:5px;align-items:baseline}
+.tl-n{font-size:7px;opacity:.3;min-width:16px;flex-shrink:0}
+.tl-name{flex:1;line-height:1.3}
+.tl-mark{font-size:8px;color:var(--acc);flex-shrink:0}
+.al-right{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0}
+.al-score-big{font-family:'Bebas Neue',sans-serif;font-size:82px;line-height:.85;flex-shrink:0}
+.al-score-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.25)}
+
+/* ══ INTRO/OUTRO — fixed 600x600 ══ */
+.io-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:44px;z-index:2}
+
+/* dark */
+.io-dk-bg{position:absolute;inset:0;background:#090909;z-index:0}
+.io-dk-deco{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(230,57,70,.1) 0%,transparent 55%);z-index:0}
+.io-dk-note{position:absolute;font-size:240px;font-family:'Bebas Neue',sans-serif;color:rgba(255,255,255,.02);letter-spacing:-10px;top:50%;left:50%;transform:translate(-50%,-52%);pointer-events:none;z-index:1;user-select:none}
+.io-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--acc);text-transform:uppercase;position:relative;z-index:2}
+.io-title{font-family:'Bebas Neue',sans-serif;font-size:66px;line-height:.9;color:#fff;letter-spacing:3px;position:relative;z-index:2}
+.io-title em{display:block;-webkit-text-stroke:2px var(--acc);color:transparent;font-style:normal}
+.io-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.4);max-width:320px;line-height:1.6;position:relative;z-index:2}
+.io-badge{background:var(--acc);color:#fff;padding:7px 20px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;border-radius:3px;position:relative;z-index:2}
+.io-div{width:40px;height:2px;background:var(--acc);position:relative;z-index:2}
+.io-nick{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.18);letter-spacing:2px;position:relative;z-index:2}
+.io-icons{font-size:22px;opacity:.08;letter-spacing:12px;position:relative;z-index:2}
+
+/* light */
+.io-lt-bg{position:absolute;inset:0;background:linear-gradient(150deg,#f7f2eb,#e8e2d8);z-index:0}
+.io-lt-deco{position:absolute;top:0;left:0;right:0;height:6px;z-index:1}
+.io-lt-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:#aaa;text-transform:uppercase;position:relative;z-index:2}
+.io-lt-title{font-family:'Bebas Neue',sans-serif;font-size:66px;line-height:.9;color:#111;letter-spacing:3px;position:relative;z-index:2}
+.io-lt-title em{display:block;color:var(--acc);font-style:normal}
+.io-lt-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:#888;max-width:320px;line-height:1.6;position:relative;z-index:2}
+.io-lt-badge{background:#111;color:#fff;padding:7px 20px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;position:relative;z-index:2}
+.io-lt-div{width:40px;height:2px;background:var(--acc);position:relative;z-index:2}
+.io-lt-nick{font-family:'Space Mono',monospace;font-size:10px;color:#c0b8b0;letter-spacing:2px;position:relative;z-index:2}
+.io-lt-icons{font-size:22px;opacity:.12;letter-spacing:12px;position:relative;z-index:2}
+
+/* paper */
+.io-pp-bg{position:absolute;inset:0;background:#ece5d0;z-index:0}
+.io-pp-stripe{position:absolute;top:0;left:0;right:0;height:7px;background:repeating-linear-gradient(90deg,#1a1005 0,#1a1005 7px,transparent 7px,transparent 14px);z-index:1}
+.io-pp-stripe-b{position:absolute;bottom:0;left:0;right:0;height:7px;background:repeating-linear-gradient(90deg,#1a1005 0,#1a1005 7px,transparent 7px,transparent 14px);z-index:1}
+.io-pp-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:#8a7a5a;text-transform:uppercase;position:relative;z-index:2}
+.io-pp-title{font-family:'Playfair Display',serif;font-size:56px;line-height:.95;color:#1a1005;font-style:italic;position:relative;z-index:2}
+.io-pp-title span.acc{color:var(--acc)}
+.io-pp-sub{font-family:'Cormorant Garamond',serif;font-size:15px;color:#5a4a2a;max-width:340px;line-height:1.6;border-top:1px solid #8a7a5a;border-bottom:1px solid #8a7a5a;padding:7px 0;width:80%;position:relative;z-index:2}
+.io-pp-badge{background:#1a1005;color:#ece5d0;padding:7px 18px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;position:relative;z-index:2}
+.io-pp-div{width:50%;height:1px;background:#8a7a5a;position:relative;z-index:2}
+.io-pp-nick{font-family:'Space Mono',monospace;font-size:9px;color:#8a7a5a;letter-spacing:2px;position:relative;z-index:2}
+.io-pp-icons{font-size:22px;opacity:.15;letter-spacing:10px;position:relative;z-index:2}
+
+/* custom */
+.io-cu-inner{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pnl-solid{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.pnl-glass{background:rgba(255,255,255,.1);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+
+/* OUTRO specific */
+.outro-tgname{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;color:#2AABEE;position:relative;z-index:2}
+.outro-qr{width:90px;height:90px;background:#fff;border-radius:8px;padding:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2}
+.outro-qr img{width:100%;height:100%;border-radius:3px}
+.outro-qr-dark{width:90px;height:90px;background:#1a1005;border-radius:4px;padding:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2}
+.outro-qr-dark img{width:100%;height:100%;filter:invert(1)}
+
+/* ─── MOBILE ─── */
+.card-outer{flex-shrink:0;align-self:flex-start}
+@media(hover:none){.ldel{opacity:1!important}}
+@media(max-width:900px){
+  body{flex-direction:column;align-items:stretch;padding:12px;gap:14px;min-height:auto}
+  .ctrl{width:100%;max-height:none;overflow-y:visible;border-radius:12px;align-self:auto}
+  .card-outer{align-self:center;width:100%;display:flex;justify-content:center}
+  .card-wrap{transform-origin:top center}
+}
+@media(max-width:640px){
+  .tab{font-size:10px;padding:10px 3px}
+  .btn{padding:11px;font-size:13px}
+  .savebtn{padding:14px!important;font-size:14px!important}
+  input[type=text],input[type=number],input[type=date],textarea,select{
+    font-size:16px!important;
+    padding:9px 11px
+  }
+  h4{font-size:9px;padding-bottom:5px;margin-top:6px}
+  .sbtn{padding:8px 12px;font-size:11px}
+  .card-outer{overflow:visible}
+  .card-wrap{
+    transform:scale(var(--card-scale,0.55));
+    transform-origin:top center;
+    margin-bottom:calc((600px * var(--card-scale,0.55)) - 600px)
+  }
+}
+</style>
+</head>
+<body>
+<div class="ctrl">
+  <div class="ctrl-head" style="display:flex;align-items:center;gap:10px">
+  <a href="index.html" style="font-size:16px;text-decoration:none;color:var(--txt2);border:1px solid var(--bor);border-radius:5px;padding:2px 8px;transition:all .15s;font-family:Space Mono,monospace" title="На главную">←</a>
+  🎵 МУЗЫКА-КОНСТРУКТОР
+</div>
+  <div class="tabs">
+    <button class="tab" onclick="setMode('intro')">▶ Начало</button>
+    <button class="tab active" onclick="setMode('track')">🎵 Трек</button>
+    <button class="tab" onclick="setMode('album')">💿 Альбом</button>
+    <button class="tab" onclick="setMode('outro')">◀ Конец</button>
+  </div>
+
+  <!-- INTRO -->
+  <div class="sec" id="sec-intro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="introSB">
+      <button class="sb" onclick="setIntroStyle('light')">☀️ Светлый</button>
+      <button class="sb active" onclick="setIntroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setIntroStyle('paper')">📰 Газета</button>
+      <button class="sb" onclick="setIntroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="iCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="iCustBtns"></div>
+      <div id="iCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="iBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="iBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="iDim" min="0" max="90" value="45" oninput="upd()"><span class="rval" id="iDimV">45%</span></div>
+        <h4>Панель</h4>
+        <div class="sbrow"><button class="sb active" id="iPnlS" onclick="setIntroPnl('solid')">▪ Тёмная</button><button class="sb" id="iPnlG" onclick="setIntroPnl('glass')">🫧 Glass</button><button class="sb" id="iPnlN" onclick="setIntroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('intro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stIntro" onclick="togS('intro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e63946,#f4a261)" onclick="setSC('intro','warm',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('intro','cool',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#2ecc71,#1abc9c)" onclick="setSC('intro','teal',this)"></div>
+      <div class="cs" style="background:#e63946" onclick="setSC('intro','red',this)"></div>
+      <div class="cs" style="background:rgba(255,255,255,.4)" onclick="setSC('intro','whi',this)"></div>
+    </div>
+    <h4>Тип заставки</h4>
+    <select id="introType" onchange="introTC()">
+      <option value="0">Оценки музыки</option>
+      <option value="1">Треки недели</option>
+      <option value="2">Альбом месяца</option>
+      <option value="3">Новинки</option>
+      <option value="c">✏️ Свой текст →</option>
+    </select>
+    <input type="text" id="ic1" placeholder="Строка 1..." oninput="upd()" style="display:none">
+    <input type="text" id="ic2" placeholder="Строка 2 (акцент)..." oninput="upd()" style="display:none">
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="iEl" checked onchange="upd()"> Метка</label>
+      <label><input type="checkbox" id="iSb" checked onchange="upd()"> Подзаголовок</label>
+      <label><input type="checkbox" id="iBg" checked onchange="upd()"> Бейдж</label>
+      <label><input type="checkbox" id="iIc" checked onchange="upd()"> Иконки 🎵</label>
+      <label><input type="checkbox" id="iNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="iDvEl" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Текст</h4>
+    <input type="text" id="iSubTxt" value="Честная музыкальная критика" oninput="upd()">
+    <input type="text" id="iBgTxt" value="Слушаем 🎧" oninput="upd()">
+    <input type="text" id="iNkTxt" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- TRACK -->
+  <div class="sec show" id="sec-track">
+    <h4>Стиль карточки</h4>
+    <div class="sbrow" id="trSB">
+      <button class="sb active" onclick="setTrStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setTrStyle('light')">☀️ Светлый</button>
+      <button class="sb" onclick="setTrStyle('paper')">📰 Газета</button>
+      <button class="sb" onclick="setTrStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="trCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="trCustBtns"></div>
+      <div id="trCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="trBlur" min="0" max="20" value="4" oninput="upd()"><span class="rval" id="trBlurV">4px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="trDim" min="0" max="90" value="40" oninput="upd()"><span class="rval" id="trDimV">40%</span></div>
+        <div class="rrow"><label>Насыщ.</label><input type="range" id="trSat" min="0" max="200" value="110" oninput="upd()"><span class="rval" id="trSatV">110%</span></div>
+        <h4>Подложки</h4>
+        <div class="sbrow"><button class="sb active" id="trPnlS" onclick="setTrPnl('solid')">▪ Тёмные</button><button class="sb" id="trPnlG" onclick="setTrPnl('glass')">🫧 Glass</button></div>
+        <div class="rrow"><label>Прозрачность</label><input type="range" id="trPnlOp" min="10" max="95" value="65" oninput="upd()"><span class="rval" id="trPnlOpV">65%</span></div>
+        <button class="btn delbtn" onclick="clearBg('track')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stTrack" onclick="togS('track')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e63946,#f4a261)" onclick="setSC('track','warm',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('track','cool',this)"></div>
+      <div class="cs" style="background:#e63946" onclick="setSC('track','red',this)"></div>
+      <div class="cs" style="background:#f4a261" onclick="setSC('track','amb',this)"></div>
+    </div>
+    <h4>1. Поиск трека</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="trQ" placeholder="Трек или исполнитель..." onkeydown="if(event.key==='Enter')searchTrack()">
+      <button class="btn" onclick="searchTrack()" style="width:42px;padding:0;font-size:14px;flex-shrink:0">🔍</button>
+      <div id="trRes"></div>
+    </div>
+    <h4>2. Обложка из библиотеки</h4>
+    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи фото в библиотеку ↓ и нажми на него — оно станет обложкой трека</div>
+    <h4>3. Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="cVin" checked onchange="upd()"> Виниловый диск</label>
+      <label><input type="checkbox" id="cTag" checked onchange="upd()"> Теги жанра</label>
+      <label><input type="checkbox" id="cRing" checked onchange="upd()"> Кольцо оценки</label>
+      <label><input type="checkbox" id="cExS" onchange="upd()"> Доп. оценки</label>
+      <label><input type="checkbox" id="cAlb" checked onchange="upd()"> Альбом</label>
+      <label><input type="checkbox" id="cYrl" checked onchange="upd()"> Год / Лейбл</label>
+      <label><input type="checkbox" id="cGnr" checked onchange="upd()"> Жанр в инфо</label>
+      <label><input type="checkbox" id="cDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>4. Система оценок</h4>
+    <div class="sbrow" id="scoreSysSB">
+      <button class="sb active" onclick="setScoreSys('10')">1–10</button>
+      <button class="sb" onclick="setScoreSys('5')">1–5</button>
+    </div>
+    <h4>5. Отображение оценки</h4>
+    <div class="sbrow" id="scoreDispSB">
+      <button class="sb active" onclick="setScoreDisp('both')">Кольцо + ⭐</button>
+      <button class="sb" onclick="setScoreDisp('ring')">Только кольцо</button>
+      <button class="sb" onclick="setScoreDisp('stars')">Только ⭐</button>
+      <button class="sb" onclick="setScoreDisp('number')">Только число</button>
+    </div>
+    <h4>6. Шрифт рецензии</h4>
+    <div class="sbrow" id="revFontSB">
+      <button class="sb active" onclick="setRevFont('playfair')">Playfair</button>
+      <button class="sb" onclick="setRevFont('mono')">Mono</button>
+      <button class="sb" onclick="setRevFont('cormorant')">Cormorant</button>
+      <button class="sb" onclick="setRevFont('montserrat')">Modern</button>
+    </div>
+    <h4>7. Скругление обложки</h4>
+    <div class="rrow"><label>Радиус</label><input type="range" id="coverRadius" min="0" max="30" value="0" oninput="upd()"><span class="rval" id="coverRadiusV">0px</span></div>
+    <h4>8. Рецензия</h4>
+    <textarea id="trRev" oninput="upd()" placeholder="Твой текст о треке..."></textarea>
+    <h4>9. Оценка и дата</h4>
+    <div class="row2">
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ОЦЕНКА</label><input type="number" id="trScore" step="0.5" min="0.5" max="10" value="8.5" oninput="upd()"></div>
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ДАТА</label><input type="date" id="trDate" oninput="upd()"></div>
+    </div>
+    <div id="exSIn" style="display:none;flex-direction:column;gap:6px;background:var(--bg);border:1px solid var(--bor);padding:10px;border-radius:7px">
+      <label style="font-size:8px;color:#555;letter-spacing:1px">МЕЛОДИЯ / ТЕКСТ / ПРОДАКШН</label>
+      <div style="display:flex;gap:5px">
+        <input type="number" id="es1" step="0.5" min="0" max="10" value="8.5" oninput="upd()">
+        <input type="number" id="es2" step="0.5" min="0" max="10" value="9" oninput="upd()">
+        <input type="number" id="es3" step="0.5" min="0" max="10" value="8" oninput="upd()">
+      </div>
+    </div>
+    <h4>10. Данные трека</h4>
+    <input type="text" id="trArtist" placeholder="Исполнитель" oninput="upd()">
+    <input type="text" id="trSong" placeholder="Название трека" oninput="upd()">
+    <input type="text" id="trAlbum" placeholder="Альбом" oninput="upd()">
+    <div class="row2">
+      <input type="text" id="trYear" placeholder="Год" oninput="upd()">
+      <input type="text" id="trLabel" placeholder="Лейбл" oninput="upd()">
+    </div>
+    <input type="text" id="trGenres" placeholder="Жанры (через запятую)" oninput="upd()">
+    <h4>11. Ник</h4>
+    <input type="text" id="trNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- ALBUM -->
+  <div class="sec" id="sec-album">
+    <h4>Стиль карточки</h4>
+    <div class="sbrow" id="alSB">
+      <button class="sb active" onclick="setAlStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setAlStyle('light')">☀️ Светлый</button>
+      <button class="sb" onclick="setAlStyle('paper')">📰 Газета</button>
+      <button class="sb" onclick="setAlStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="alCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="alCustBtns"></div>
+      <div id="alCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="alBlur" min="0" max="20" value="4" oninput="upd()"><span class="rval" id="alBlurV">4px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="alDim" min="0" max="90" value="40" oninput="upd()"><span class="rval" id="alDimV">40%</span></div>
+        <button class="btn delbtn" onclick="clearBg('album')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stAlbum" onclick="togS('album')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e63946,#f4a261)" onclick="setSC('album','warm',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('album','cool',this)"></div>
+      <div class="cs" style="background:#e63946" onclick="setSC('album','red',this)"></div>
+    </div>
+    <h4>1. Поиск альбома</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="alQ" placeholder="Альбом или исполнитель..." onkeydown="if(event.key==='Enter')searchAlbum()">
+      <button class="btn" onclick="searchAlbum()" style="width:42px;padding:0;font-size:14px;flex-shrink:0">🔍</button>
+      <div id="alRes"></div>
+    </div>
+    <h4>2. Обложка из библиотеки</h4>
+    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи фото в библиотеку ↓ и нажми — станет обложкой альбома</div>
+    <h4>3. Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="alTag" checked onchange="upd()"> Теги жанра</label>
+      <label><input type="checkbox" id="alExS" onchange="upd()"> Доп. оценки</label>
+      <label><input type="checkbox" id="alYrl" checked onchange="upd()"> Год / Лейбл</label>
+      <label><input type="checkbox" id="alDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>4. Система оценок (альбом)</h4>
+    <div class="sbrow" id="alScoreSysSB">
+      <button class="sb active" onclick="setAlScoreSys('10')">1–10</button>
+      <button class="sb" onclick="setAlScoreSys('5')">1–5</button>
+    </div>
+    <h4>5. Шрифт рецензии</h4>
+    <div class="sbrow" id="alRevFontSB">
+      <button class="sb active" onclick="setAlRevFont('playfair')">Playfair</button>
+      <button class="sb" onclick="setAlRevFont('mono')">Mono</button>
+      <button class="sb" onclick="setAlRevFont('cormorant')">Cormorant</button>
+      <button class="sb" onclick="setAlRevFont('montserrat')">Modern</button>
+    </div>
+    <h4>6. Скругление обложки</h4>
+    <div class="rrow"><label>Радиус</label><input type="range" id="alCoverRadius" min="0" max="30" value="0" oninput="upd()"><span class="rval" id="alCoverRadiusV">0px</span></div>
+    <h4>7. Треклист (до 9 треков)</h4>
+    <div id="tlInputs" style="display:flex;flex-direction:column;gap:4px"></div>
+    <button class="btn" onclick="addTlRow()" style="font-size:10px;margin-top:2px">+ Трек</button>
+    <h4>8. Рецензия</h4>
+    <textarea id="alRev" oninput="upd()" placeholder="Твой текст об альбоме..."></textarea>
+    <h4>9. Оценка</h4>
+    <div class="row2">
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ОЦЕНКА</label><input type="number" id="alScore" step="0.5" min="0" max="10" value="8.0" oninput="upd()"></div>
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ДАТА</label><input type="date" id="alDate" oninput="upd()"></div>
+    </div>
+    <div id="alExSIn" style="display:none;flex-direction:column;gap:6px;background:var(--bg);border:1px solid var(--bor);padding:10px;border-radius:7px">
+      <label style="font-size:8px;color:#555;letter-spacing:1px">АТМОСФЕРА / ТЕКСТЫ / ЗВУК</label>
+      <div style="display:flex;gap:5px">
+        <input type="number" id="ae1" step="0.5" min="0" max="10" value="8" oninput="upd()">
+        <input type="number" id="ae2" step="0.5" min="0" max="10" value="8.5" oninput="upd()">
+        <input type="number" id="ae3" step="0.5" min="0" max="10" value="8" oninput="upd()">
+      </div>
+    </div>
+    <h4>10. Данные альбома</h4>
+    <input type="text" id="alArtist" placeholder="Исполнитель" oninput="upd()">
+    <input type="text" id="alName" placeholder="Название альбома" oninput="upd()">
+    <div class="row2">
+      <input type="text" id="alYear" placeholder="Год" oninput="upd()">
+      <input type="text" id="alLabel" placeholder="Лейбл" oninput="upd()">
+    </div>
+    <input type="text" id="alGenres" placeholder="Жанры (через запятую)" oninput="upd()">
+    <h4>11. Ник</h4>
+    <input type="text" id="alNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- OUTRO -->
+  <div class="sec" id="sec-outro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="outroSB">
+      <button class="sb" onclick="setOutroStyle('light')">☀️ Светлый</button>
+      <button class="sb active" onclick="setOutroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setOutroStyle('paper')">📰 Газета</button>
+      <button class="sb" onclick="setOutroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="oCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="oCustBtns"></div>
+      <div id="oCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="oBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="oBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="oDim" min="0" max="90" value="45" oninput="upd()"><span class="rval" id="oDimV">45%</span></div>
+        <h4>Панель</h4>
+        <div class="sbrow"><button class="sb active" id="oPnlS" onclick="setOutroPnl('solid')">▪ Тёмная</button><button class="sb" id="oPnlG" onclick="setOutroPnl('glass')">🫧 Glass</button><button class="sb" id="oPnlN" onclick="setOutroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('outro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stOutro" onclick="togS('outro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e63946,#f4a261)" onclick="setSC('outro','warm',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('outro','cool',this)"></div>
+      <div class="cs" style="background:#e63946" onclick="setSC('outro','red',this)"></div>
+    </div>
+    <h4>Заголовок</h4>
+    <input type="text" id="oH1" value="СПАСИБО" oninput="upd()">
+    <input type="text" id="oH2" value="ЗА ПРОСЛУШИВАНИЕ" oninput="upd()">
+    <h4>Текст</h4>
+    <textarea id="oTxt" rows="3" oninput="upd()">Ставь лайк если понравилось!
+Подписывайся на новые обзоры 🎵</textarea>
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="oShowTxt" checked onchange="upd()"> Текст</label>
+      <label><input type="checkbox" id="oShowTg" checked onchange="upd()"> Telegram</label>
+      <label><input type="checkbox" id="oShowQr" checked onchange="upd()"> QR-код</label>
+      <label><input type="checkbox" id="oShowNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="oShowDv" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Данные</h4>
+    <input type="text" id="oTg" placeholder="@твой_канал" oninput="upd()">
+    <input type="text" id="oQrUrl" placeholder="https://t.me/твой_канал" oninput="updQr()">
+    <input type="text" id="oNk" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <h4>📷 Библиотека фото</h4>
+  <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
+  <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
+  <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
+</div>
+
+<!-- CARD 600x600 -->
+<div class="card-outer" id="cardOuter">
+<div id="card" class="card-wrap th-dark">
+  <div class="card-bg" id="cardBg"></div>
+  <div class="card-dim" id="cardDim"></div>
+  <div class="top-stripe" id="topStripe"></div>
+
+  <!-- TRACK -->
+  <div class="view show track-view" id="viewTrack">
+    <div class="tr-header">
+      <div class="cover-zone">
+        <img id="trCoverImg" class="cover-art" src="" alt="" crossorigin="anonymous">
+        <div class="vinyl-disc" id="vinylEl"></div>
+      </div>
+      <div class="tr-meta">
+        <div class="ct-eyebrow" id="trEyebrow">ТРЕК</div>
+        <div class="ct-title" id="trTitleEl">НАЗВАНИЕ ТРЕКА</div>
+        <div class="ct-artist" id="trArtistEl">Исполнитель</div>
+        <div class="ct-tags" id="trTagsEl"></div>
+        <div class="score-area" id="trScoreArea">
+          <div class="score-ring" id="ringWrap">
+            <svg viewBox="0 0 80 80">
+              <circle class="ct-score-ring-bg" cx="40" cy="40" r="32"/>
+              <circle class="ct-score-ring-fill" id="ringFill" cx="40" cy="40" r="32" stroke="#e63946"/>
+              <text class="ct-score-num" id="ringNum" x="40" y="41">8.5</text>
+            </svg>
+          </div>
+          <div class="stars-col" id="starsCol">
+            <div class="stars-row" id="starsEl"></div>
+            <div class="score-label" id="scoreLabel">8.5 / 10</div>
+          </div>
+          <div id="numOnlyEl" style="display:none;font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--acc)">8.5</div>
+        </div>
+      </div>
+    </div>
+    <div class="ct-infobox" id="trInfoBox">
+      <div class="ic" id="icAlb"><b>Альбом</b><span id="trInfoAlb">—</span></div>
+      <div class="ic" id="icYrl"><b>Год / Лейбл</b><span id="trInfoYrl">—</span></div>
+      <div class="ic" id="icGnr"><b>Жанр</b><span id="trInfoGnr">—</span></div>
+    </div>
+    <div class="ct-review" id="trReviewBox">
+      <div class="ct-review-lbl">Рецензия:</div>
+      <div class="ct-review-txt" id="trRevEl">Твой текст о треке...</div>
+      <div class="ct-extra" id="trExtraEl">
+        <div class="erow"><span>Мелодия</span><span id="ex1El">—</span></div>
+        <div class="erow"><span>Текст</span><span id="ex2El">—</span></div>
+        <div class="erow"><span>Продакшн</span><span id="ex3El">—</span></div>
+      </div>
+    </div>
+    <div class="ct-footer">
+      <div class="ct-footer-nick" id="trNickEl">@music</div>
+      <div style="text-align:right"><div class="ct-footer-date" id="trDateEl"></div></div>
+    </div>
+  </div>
+
+  <!-- ALBUM -->
+  <div class="view album-view" id="viewAlbum">
+    <div class="al-top">
+      <img id="alCoverImg" class="album-cover-art" src="" alt="" crossorigin="anonymous">
+      <div class="al-info">
+        <div class="ct-eyebrow">АЛЬБОМ</div>
+        <div class="ct-title" id="alTitleEl" style="font-size:28px;line-height:1">НАЗВАНИЕ АЛЬБОМА</div>
+        <div class="ct-artist" id="alArtistEl">Исполнитель</div>
+        <div class="ct-tags" id="alTagsEl"></div>
+        <div class="ct-infobox" id="alInfoBox" style="margin-top:5px">
+          <div class="ic" id="alIcYrl"><b>Год</b><span id="alInfoYear">—</span></div>
+          <div class="ic"><b>Лейбл</b><span id="alInfoLabel">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="al-body">
+      <div class="tl-col">
+        <div class="tl-head">Треклист</div>
+        <div id="tlDisplay"></div>
+      </div>
+      <div class="al-right">
+        <div class="ct-review" style="flex:1" id="alReviewBox">
+          <div class="ct-review-lbl">Рецензия:</div>
+          <div class="ct-review-txt" id="alRevEl">Твой текст об альбоме...</div>
+          <div class="ct-extra" id="alExtraEl">
+            <div class="erow"><span>Атмосфера</span><span id="ae1El">—</span></div>
+            <div class="erow"><span>Тексты</span><span id="ae2El">—</span></div>
+            <div class="erow"><span>Звук</span><span id="ae3El">—</span></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;margin-top:8px">
+          <div><div class="al-score-lbl">Оценка</div><div class="al-score-big" id="alScoreEl">8.0</div></div>
+          <div style="text-align:right"><div class="ct-footer-nick" id="alNickEl">@music</div><div class="ct-footer-date" id="alDateEl" style="margin-top:3px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="view" id="viewIntro">
+    <!-- dark -->
+    <div id="io-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div>
+      <div class="io-dk-deco"></div>
+      <div class="io-dk-note">♫</div>
+      <div class="io-wrap">
+        <div id="dkIco" class="io-icons">🎵 🎧 🎶</div>
+        <div id="dkEy" class="io-eyebrow">Новый выпуск</div>
+        <div class="io-title"><span id="dkL1">ОЦЕНКИ</span><em id="dkL2">МУЗЫКИ</em></div>
+        <div id="dkDv" class="io-div"></div>
+        <div id="dkSb" class="io-sub">Честная музыкальная критика</div>
+        <div id="dkBg" class="io-badge">СЛУШАЕМ 🎧</div>
+        <div id="dkNk" class="io-nick">@music</div>
+      </div>
+    </div>
+    <!-- light -->
+    <div id="io-light" style="position:absolute;inset:0;display:none">
+      <div class="io-lt-bg"></div>
+      <div class="io-lt-deco" id="introLtDeco"></div>
+      <div class="io-wrap">
+        <div id="ltIco" class="io-lt-icons">🎵 🎧 🎶</div>
+        <div id="ltEy" class="io-lt-eyebrow">Новый выпуск</div>
+        <div class="io-lt-title"><span id="ltL1">ОЦЕНКИ</span><em id="ltL2">МУЗЫКИ</em></div>
+        <div id="ltDv" class="io-lt-div"></div>
+        <div id="ltSb" class="io-lt-sub">Честная музыкальная критика</div>
+        <div id="ltBg" class="io-lt-badge">СЛУШАЕМ 🎧</div>
+        <div id="ltNk" class="io-lt-nick">@music</div>
+      </div>
+    </div>
+    <!-- paper -->
+    <div id="io-paper" style="position:absolute;inset:0;display:none">
+      <div class="io-pp-bg"></div>
+      <div class="io-pp-stripe"></div>
+      <div class="io-pp-stripe-b"></div>
+      <div class="io-wrap">
+        <div id="ppIco" class="io-pp-icons">🎵 🎧 🎶</div>
+        <div id="ppEy" class="io-pp-eyebrow">Новый выпуск</div>
+        <div class="io-pp-title"><span id="ppL1">ОЦЕНКИ</span><br><span id="ppL2" class="acc">МУЗЫКИ</span></div>
+        <div id="ppDv" class="io-pp-div"></div>
+        <div id="ppSb" class="io-pp-sub">Честная музыкальная критика</div>
+        <div id="ppBg" class="io-pp-badge">СЛУШАЕМ</div>
+        <div id="ppNk" class="io-pp-nick">@music</div>
+      </div>
+    </div>
+    <!-- custom -->
+    <div id="io-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="cuPanel" class="pnl-solid">
+          <div id="cuIco" class="io-icons" style="opacity:.25">🎵 🎧 🎶</div>
+          <div id="cuEy" class="io-eyebrow">Новый выпуск</div>
+          <div class="io-title"><span id="cuL1">ОЦЕНКИ</span><em id="cuL2">МУЗЫКИ</em></div>
+          <div id="cuDv" class="io-div"></div>
+          <div id="cuSb" class="io-sub">Честная музыкальная критика</div>
+          <div id="cuBg" class="io-badge">СЛУШАЕМ 🎧</div>
+          <div id="cuNk" class="io-nick">@music</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTRO -->
+  <div class="view" id="viewOutro">
+    <!-- dark -->
+    <div id="ou-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div>
+      <div class="io-dk-deco"></div>
+      <div class="io-wrap">
+        <div class="io-title"><span id="odH1">СПАСИБО</span><em id="odH2">ЗА ПРОСЛУШИВАНИЕ</em></div>
+        <div id="odDv" class="io-div"></div>
+        <div id="odTxt" class="io-sub" style="color:rgba(255,255,255,.4)"></div>
+        <div id="odTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+          <div class="outro-tgname" id="odTg">@твой_канал</div>
+        </div>
+        <div id="odQrBlk" class="outro-qr"><img id="qrDk" src="" alt=""></div>
+        <div class="io-nick" id="odNk">@music</div>
+      </div>
+    </div>
+    <!-- light -->
+    <div id="ou-light" style="position:absolute;inset:0;display:none">
+      <div class="io-lt-bg"></div>
+      <div class="io-lt-deco" id="outroLtDeco"></div>
+      <div class="io-wrap">
+        <div class="io-lt-title"><span id="olH1">СПАСИБО</span><em id="olH2">ЗА ПРОСЛУШИВАНИЕ</em></div>
+        <div id="olDv" class="io-lt-div"></div>
+        <div id="olTxt" class="io-lt-sub" style="color:#888"></div>
+        <div id="olTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-lt-eyebrow">Подписывайся</div>
+          <div class="outro-tgname" id="olTg">@твой_канал</div>
+        </div>
+        <div id="olQrBlk" style="width:90px;height:90px;background:#fff;border-radius:8px;padding:5px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.12);flex-shrink:0;position:relative;z-index:2"><img id="qrLt" src="" alt="" style="width:100%;height:100%;border-radius:3px"></div>
+        <div class="io-lt-nick" id="olNk">@music</div>
+      </div>
+    </div>
+    <!-- paper -->
+    <div id="ou-paper" style="position:absolute;inset:0;display:none">
+      <div class="io-pp-bg"></div>
+      <div class="io-pp-stripe"></div>
+      <div class="io-pp-stripe-b"></div>
+      <div class="io-wrap">
+        <div class="io-pp-title"><span id="opH1">СПАСИБО</span><br><span id="opH2" class="acc">ЗА ПРОСЛУШИВАНИЕ</span></div>
+        <div id="opDv" class="io-pp-div"></div>
+        <div id="opTxt" class="io-pp-sub"></div>
+        <div id="opTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-pp-eyebrow">Подписывайся</div>
+          <div class="outro-tgname" id="opTg" style="color:#2AABEE">@твой_канал</div>
+        </div>
+        <div id="opQrBlk" class="outro-qr-dark"><img id="qrPp" src="" alt="" style="width:100%;height:100%;filter:invert(1)"></div>
+        <div class="io-pp-nick" id="opNk">@music</div>
+      </div>
+    </div>
+    <!-- custom -->
+    <div id="ou-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="ocuPanel" class="pnl-solid">
+          <div class="io-title"><span id="ocH1">СПАСИБО</span><em id="ocH2">ЗА ПРОСЛУШИВАНИЕ</em></div>
+          <div id="ocDv" class="io-div"></div>
+          <div id="ocTxt" class="io-sub" style="color:rgba(255,255,255,.5)"></div>
+          <div id="ocTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+            <div class="outro-tgname" id="ocTg">@твой_канал</div>
+          </div>
+          <div id="ocQrBlk" class="outro-qr"><img id="qrCu" src="" alt=""></div>
+          <div class="io-nick" id="ocNk">@music</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /card-outer -->
+
+<script>
+/* Mobile card scale */
+function setCardScale(){
+  if(window.innerWidth<=640){
+    const s=Math.min((window.innerWidth-24)/600,.95);
+    document.getElementById('cardOuter').style.setProperty('--card-scale',s);
+    document.getElementById('cardOuter').style.height=(600*s)+'px';
+  } else {
+    document.getElementById('cardOuter').style.setProperty('--card-scale','1');
+    document.getElementById('cardOuter').style.height='';
+  }
+}
+window.addEventListener('resize',setCardScale);
+document.addEventListener('DOMContentLoaded',setCardScale);
+setCardScale();
+</script>
+
+<script>
+let mode='track', trSty='dark', alSty='dark', introSty='dark', outroSty='dark';
+let trPnl='solid', iPnl='solid', oPnl='solid';
+let tlRows=[];
+let scoreSys='10', alScoreSys='10', scoreDisp='both', revFont='playfair', alRevFont='playfair';
+const bgS={track:{src:null,idx:null},album:{src:null,idx:null},intro:{src:null,idx:null},outro:{src:null,idx:null}};
+const SS={intro:{on:false,c:'warm'},track:{on:false,c:'warm'},album:{on:false,c:'warm'},outro:{on:false,c:'warm'}};
+const SGG={warm:'linear-gradient(90deg,#e63946,#f4a261)',cool:'linear-gradient(90deg,#3498db,#9b59b6)',teal:'linear-gradient(90deg,#2ecc71,#1abc9c)',red:'#e63946',amb:'#f4a261',whi:'rgba(255,255,255,.45)'};
+
+document.getElementById('trDate').valueAsDate=new Date();
+document.getElementById('alDate').valueAsDate=new Date();
+
+/* SCORE SYSTEM */
+function setScoreSys(s){
+  scoreSys=s;
+  document.querySelectorAll('#scoreSysSB .sb').forEach(b=>b.classList.toggle('active',b.textContent.trim()===s.replace('10','1–10').replace('5','1–5')));
+  // Actually match by onclick content
+  document.querySelectorAll('#scoreSysSB .sb').forEach((b,i)=>b.classList.toggle('active',['10','5'][i]===s));
+  const inp=document.getElementById('trScore');
+  inp.max=s==='5'?5:10;inp.step=s==='5'?0.5:0.5;
+  if(parseFloat(inp.value)>parseFloat(inp.max))inp.value=inp.max;
+  upd();
+}
+function setAlScoreSys(s){
+  alScoreSys=s;
+  document.querySelectorAll('#alScoreSysSB .sb').forEach((b,i)=>b.classList.toggle('active',['10','5'][i]===s));
+  const inp=document.getElementById('alScore');
+  inp.max=s==='5'?5:10;
+  if(parseFloat(inp.value)>parseFloat(inp.max))inp.value=inp.max;
+  upd();
+}
+function setScoreDisp(s){
+  scoreDisp=s;
+  document.querySelectorAll('#scoreDispSB .sb').forEach((b,i)=>b.classList.toggle('active',['both','ring','stars','number'][i]===s));
+  upd();
+}
+function setRevFont(s){
+  revFont=s;
+  document.querySelectorAll('#revFontSB .sb').forEach((b,i)=>b.classList.toggle('active',['playfair','mono','cormorant','montserrat'][i]===s));
+  upd();
+}
+function setAlRevFont(s){
+  alRevFont=s;
+  document.querySelectorAll('#alRevFontSB .sb').forEach((b,i)=>b.classList.toggle('active',['playfair','mono','cormorant','montserrat'][i]===s));
+  upd();
+}
+
+/* STRIPE */
+function togS(m){SS[m].on=!SS[m].on;const nm=m[0].toUpperCase()+m.slice(1);const b=document.getElementById('st'+nm);b.classList.toggle('on',SS[m].on);b.textContent=SS[m].on?'Вкл ✓':'Выкл';applyStripe()}
+function setSC(m,k,el){SS[m].c=k;el.parentElement.querySelectorAll('.cs').forEach(c=>c.classList.remove('active'));el.classList.add('active');applyStripe()}
+function applyStripe(){
+  const stripe=document.getElementById('topStripe');
+  const cur=mode;const st=SS[cur]||SS.track;
+  stripe.style.display=st.on?'block':'none';
+  if(st.on)stripe.style.background=SGG[st.c];
+}
+
+/* LIBRARY */
+let lib=[];
+function addLib(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{lib.push(e.target.result);renderLib()};r.readAsDataURL(f);ev.target.value=''}
+function renderLib(){
+  const g=document.getElementById('libGrid');g.innerHTML='';
+  lib.forEach((src,i)=>{
+    const t=document.createElement('div');
+    const sel=Object.values(bgS).some(s=>s.idx===i);
+    t.className='lt'+(sel?' sel':'');
+    t.innerHTML=`<img src="${src}"><div class="ldel" onclick="event.stopPropagation();delLib(${i})">✕</div>`;
+    t.onclick=()=>clickLib(i);g.appendChild(t);
+  });
+  const a=document.createElement('div');a.className='ladd';a.textContent='＋';a.onclick=()=>document.getElementById('libIn').click();g.appendChild(a);
+  ['track','album','intro','outro'].forEach(buildUBtns);
+}
+function delLib(i){lib.splice(i,1);Object.keys(bgS).forEach(m=>{if(bgS[m].idx===i)clearBg(m);else if(bgS[m].idx>i)bgS[m].idx--});renderLib()}
+function clickLib(i){
+  if(mode==='track'){document.getElementById('trCoverImg').src=lib[i];setBg('track',i)}
+  else if(mode==='album'){document.getElementById('alCoverImg').src=lib[i];setBg('album',i)}
+  else if(mode==='intro')setBg('intro',i);
+  else if(mode==='outro')setBg('outro',i);
+  upd();
+}
+function buildUBtns(m){
+  const el=document.getElementById(m+'CustBtns');if(!el)return;el.innerHTML='';
+  if(!lib.length){el.innerHTML='<span style="font-size:10px;color:#444">Добавь фото ↑</span>';return}
+  lib.forEach((src,i)=>{
+    const b=document.createElement('button');b.className='ubtn'+(bgS[m].idx===i?' active':'');
+    b.innerHTML=`<img src="${src}" style="width:16px;height:16px;object-fit:cover;border-radius:2px">Фото ${i+1}`;
+    b.onclick=()=>setBg(m,i);el.appendChild(b);
+  });
+}
+function setBg(m,i){bgS[m].idx=i;bgS[m].src=lib[i];const ctrl=document.getElementById(m+'CustCtrls');if(ctrl)ctrl.style.display='flex';renderLib();upd()}
+function clearBg(m){bgS[m].idx=null;bgS[m].src=null;const ctrl=document.getElementById(m+'CustCtrls');if(ctrl)ctrl.style.display='none';renderLib();upd()}
+
+/* THEMES */
+const THEMES=['th-dark','th-light','th-paper','th-custom'];
+function applyTheme(t){const c=document.getElementById('card');THEMES.forEach(x=>c.classList.remove(x));c.classList.add('th-'+t);c.style.background=''}
+function setTrStyle(s){trSty=s;document.querySelectorAll('#trSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','paper','custom'][i]===s));document.getElementById('trCustBlock').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
+function setAlStyle(s){alSty=s;document.querySelectorAll('#alSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','paper','custom'][i]===s));document.getElementById('alCustBlock').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
+function setTrPnl(ps){trPnl=ps;['trPnlS','trPnlG'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id===('trPnl'+(ps==='solid'?'S':'G')))});upd()}
+function setIntroPnl(ps){iPnl=ps;['iPnlS','iPnlG','iPnlN'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id==='iPnl'+(ps==='solid'?'S':ps==='glass'?'G':'N'))});setPnlClass(document.getElementById('cuPanel'),ps);upd()}
+function setOutroPnl(ps){oPnl=ps;['oPnlS','oPnlG','oPnlN'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id==='oPnl'+(ps==='solid'?'S':ps==='glass'?'G':'N'))});setPnlClass(document.getElementById('ocuPanel'),ps);upd()}
+function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid';else if(ps==='glass')el.className='pnl-glass'}
+function hideBgLayers(){document.getElementById('cardBg').style.display='none';document.getElementById('cardDim').style.display='none'}
+
+function setIntroStyle(s){
+  introSty=s;
+  document.querySelectorAll('#introSB .sb').forEach((b,i)=>b.classList.toggle('active',['light','dark','paper','custom'][i]===s));
+  ['dark','light','paper','custom'].forEach(x=>{const el=document.getElementById('io-'+x);if(el)el.style.display=x===s?'block':'none'});
+  document.getElementById('iCustBlock').style.display=s==='custom'?'block':'none';
+  if(s!=='custom')hideBgLayers();
+  applyStripe();upd();
+}
+function setOutroStyle(s){
+  outroSty=s;
+  document.querySelectorAll('#outroSB .sb').forEach((b,i)=>b.classList.toggle('active',['light','dark','paper','custom'][i]===s));
+  ['dark','light','paper','custom'].forEach(x=>{const el=document.getElementById('ou-'+x);if(el)el.style.display=x===s?'block':'none'});
+  document.getElementById('oCustBlock').style.display=s==='custom'?'block':'none';
+  if(s!=='custom')hideBgLayers();
+  applyStripe();upd();
+}
+
+/* MODE */
+function setMode(m){
+  mode=m;
+  const views={intro:'viewIntro',track:'viewTrack',album:'viewAlbum',outro:'viewOutro'};
+  Object.values(views).forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.style.display='none'}});
+  const v=document.getElementById(views[m]);if(v){v.classList.add('show');v.style.display='flex'}
+  ['intro','track','album','outro'].forEach(n=>{document.getElementById('sec-'+n).classList.toggle('show',n===m)});
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['intro','track','album','outro'][i]===m));
+  if(m==='track'||m==='album')hideBgLayers();
+  applyStripe();upd();
+}
+
+/* SEARCH — fuzzy transliteration + iTunes */
+const translit={
+  'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z',
+  'и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r',
+  'с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'sch',
+  'ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+  'моргенштерн':'morgenshtern','моргенштерна':'morgenshtern',
+  'пушкин':'pushkin','баста':'basta','оксимирон':'oxymiron','оксимирона':'oxymiron',
+  'скриптонит':'scriptonite','элджей':'eljay','тимати':'timati','ленинград':'leningrad',
+  'земфира':'zemfira','сплин':'splin','кино':'kino'
+};
+
+function smartTranslit(text){
+  const lower=text.toLowerCase().trim();
+  // Check if it's already in translit dict as full word
+  if(translit[lower])return translit[lower];
+  // Char-by-char transliteration
+  let res='';
+  for(let i=0;i<lower.length;i++){
+    res+=translit[lower[i]]!==undefined?translit[lower[i]]:lower[i];
+  }
+  return res;
+}
+
+function buildQueries(q){
+  const queries=[q];
+  const tr=smartTranslit(q);
+  if(tr.toLowerCase()!==q.toLowerCase())queries.push(tr);
+  return queries;
+}
+
+async function itunesSearch(query,entity,limit=8){
+  const url=`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=${entity}&limit=${limit}&lang=ru_RU`;
+  const d=await(await fetch(url)).json();
+  return d?.results||[];
+}
+
+function itunesArt(url,size=300){return url?url.replace('100x100bb',size+'x'+size+'bb'):''}
+
+async function searchTrack(){
+  const q=document.getElementById('trQ').value.trim();if(!q)return;
+  const res=document.getElementById('trRes');
+  res.innerHTML='<div class="ri" style="color:#555;font-style:italic">Поиск...</div>';res.style.display='block';
+  try{
+    const queries=buildQueries(q);
+    let items=[];
+    for(const query of queries){
+      const r=await itunesSearch(query,'song');
+      items=[...items,...r];
+      if(items.length>=6)break;
+    }
+    // deduplicate by trackId
+    const seen=new Set();
+    items=items.filter(t=>{if(seen.has(t.trackId))return false;seen.add(t.trackId);return true}).slice(0,10);
+    res.innerHTML='';
+    if(!items.length){res.innerHTML='<div class="ri" style="color:#555">Ничего не найдено</div>';return}
+    items.forEach(t=>{
+      const div=document.createElement('div');div.className='ri';
+      div.innerHTML=`<img src="${itunesArt(t.artworkUrl100,60)}" onerror="this.style.opacity=0"><div><b>${t.trackName||'—'}</b><span>${t.artistName} — ${t.collectionName||''}</span></div>`;
+      div.onclick=()=>pickTrack(t);res.appendChild(div);
+    });
+  }catch(e){res.innerHTML='<div class="ri" style="color:#e63946">Ошибка сети. Попробуй ещё раз.</div>'}
+}
+
+function pickTrack(t){
+  document.getElementById('trRes').style.display='none';
+  document.getElementById('trArtist').value=t.artistName||'';
+  document.getElementById('trSong').value=t.trackName||'';
+  document.getElementById('trAlbum').value=t.collectionName||'';
+  if(t.releaseDate)document.getElementById('trYear').value=t.releaseDate.slice(0,4);
+  if(t.primaryGenreName)document.getElementById('trGenres').value=t.primaryGenreName;
+  const bigArt=itunesArt(t.artworkUrl100,600);
+  if(bigArt)document.getElementById('trCoverImg').src=bigArt;
+  upd();
+}
+
+async function searchAlbum(){
+  const q=document.getElementById('alQ').value.trim();if(!q)return;
+  const res=document.getElementById('alRes');
+  res.innerHTML='<div class="ri" style="color:#555;font-style:italic">Поиск...</div>';res.style.display='block';
+  try{
+    const queries=buildQueries(q);
+    let items=[];
+    for(const query of queries){
+      // Search both as album and as song (to find albums via tracks)
+      const [albums,songs]=await Promise.all([itunesSearch(query,'album',10),itunesSearch(query,'song',10)]);
+      // Extract unique albums from songs
+      const albumsFromSongs=[];
+      const seenAlbums=new Set(albums.map(a=>a.collectionId));
+      songs.forEach(s=>{
+        if(s.collectionId&&!seenAlbums.has(s.collectionId)){
+          seenAlbums.add(s.collectionId);
+          albumsFromSongs.push({collectionId:s.collectionId,collectionName:s.collectionName,artistName:s.artistName,artworkUrl100:s.artworkUrl100,releaseDate:s.releaseDate,primaryGenreName:s.primaryGenreName,trackCount:null});
+        }
+      });
+      items=[...items,...albums,...albumsFromSongs];
+      if(items.length>=6)break;
+    }
+    // deduplicate
+    const seen=new Set();
+    items=items.filter(a=>{if(seen.has(a.collectionId))return false;seen.add(a.collectionId);return true}).slice(0,10);
+    res.innerHTML='';
+    if(!items.length){res.innerHTML='<div class="ri" style="color:#555">Ничего не найдено</div>';return}
+    items.forEach(a=>{
+      const div=document.createElement('div');div.className='ri';
+      div.innerHTML=`<img src="${itunesArt(a.artworkUrl100,60)}" onerror="this.style.opacity=0"><div><b>${a.collectionName||'—'}</b><span>${a.artistName} · ${a.releaseDate?.slice(0,4)||''} ${a.trackCount?'· '+a.trackCount+' тр.':''}</span></div>`;
+      div.onclick=()=>pickAlbum(a);res.appendChild(div);
+    });
+  }catch(e){res.innerHTML='<div class="ri" style="color:#e63946">Ошибка сети.</div>'}
+}
+
+async function pickAlbum(a){
+  document.getElementById('alRes').style.display='none';
+  document.getElementById('alArtist').value=a.artistName||'';
+  document.getElementById('alName').value=a.collectionName||'';
+  if(a.releaseDate)document.getElementById('alYear').value=a.releaseDate.slice(0,4);
+  if(a.primaryGenreName)document.getElementById('alGenres').value=a.primaryGenreName;
+  const bigArt=itunesArt(a.artworkUrl100,600);
+  if(bigArt)document.getElementById('alCoverImg').src=bigArt;
+  try{
+    const lu=`https://itunes.apple.com/lookup?id=${a.collectionId}&entity=song`;
+    const ld=await(await fetch(lu)).json();
+    const songs=(ld?.results||[]).filter(r=>r.wrapperType==='track').slice(0,9);
+    tlRows=[];document.getElementById('tlInputs').innerHTML='';
+    songs.forEach(s=>addTlRow(s.trackName||'',''));
+  }catch(e){}
+  upd();
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap')){
+    ['trRes','alRes'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+  }
+});
+
+/* TRACKLIST */
+function addTlRow(name='',mark=''){
+  if(tlRows.length>=9)return;
+  const i=tlRows.length;tlRows.push({name,mark});
+  const wrap=document.getElementById('tlInputs');
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:4px;align-items:center';
+  const ni=document.createElement('input');ni.type='text';ni.placeholder=`Трек ${i+1}`;ni.value=name;ni.style.flex='1';ni.oninput=()=>{tlRows[i].name=ni.value;upd()};
+  const mi=document.createElement('input');mi.type='text';mi.placeholder='▲';mi.value=mark;mi.style.cssText='width:34px;text-align:center';mi.oninput=()=>{tlRows[i].mark=mi.value;upd()};
+  const rb=document.createElement('button');rb.className='btn delbtn';rb.style.cssText='width:28px;padding:0;font-size:11px;flex-shrink:0';rb.textContent='✕';rb.onclick=()=>{tlRows.splice(i,1);rebuildTl();upd()};
+  row.appendChild(ni);row.appendChild(mi);row.appendChild(rb);wrap.appendChild(row);upd();
+}
+function rebuildTl(){const s=[...tlRows];tlRows=[];document.getElementById('tlInputs').innerHTML='';s.forEach(r=>addTlRow(r.name,r.mark))}
+
+/* STARS */
+function svgStar(type,sz=28){
+  const pts="12 2 15 8.5 22 9 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9 9 8.5 12 2";
+  if(type==='full')return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="#e63946"><polygon points="${pts}"/></svg>`;
+  if(type==='half')return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}"><defs><linearGradient id="h${sz}x"><stop offset="50%" stop-color="#e63946"/><stop offset="50%" stop-color="rgba(255,255,255,.1)"/></linearGradient></defs><polygon fill="url(#h${sz}x)" points="${pts}"/></svg>`;
+  return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="rgba(255,255,255,.1)"><polygon points="${pts}"/></svg>`;
+}
+function buildStars(score,maxScore){
+  let h='';const maxStars=5;const v=(score/maxScore)*maxStars;
+  for(let i=1;i<=maxStars;i++){
+    if(v>=i)h+=svgStar('full');else if(v>=i-.5)h+=svgStar('half');else h+=svgStar('empty');
+  }
+  return h;
+}
+
+/* BG */
+function applyBg(src,blurId,dimId,satId){
+  const bg=document.getElementById('cardBg'),dim=document.getElementById('cardDim');
+  const bl=document.getElementById(blurId)?.value||0;
+  const di=document.getElementById(dimId)?.value||40;
+  const sa=satId?document.getElementById(satId)?.value||100:100;
+  const bv=document.getElementById(blurId+'V');if(bv)bv.textContent=bl+'px';
+  const dv=document.getElementById(dimId+'V');if(dv)dv.textContent=di+'%';
+  const sv=document.getElementById(satId+'V');if(sv)sv.textContent=sa+'%';
+  bg.style.backgroundImage=`url('${src}')`;bg.style.filter=`blur(${bl}px) saturate(${sa}%)`;bg.style.transform=`scale(${1+bl*.012})`;bg.style.display='block';
+  dim.style.background=`rgba(0,0,0,${di/100})`;dim.style.display='block';
+}
+
+/* MAIN UPDATE */
+function _updCore(){
+  const card=document.getElementById('card');
+
+  /* TRACK */
+  if(mode==='track'){
+    applyTheme(trSty);
+    card.classList.remove('pm-glass');
+
+    const maxScore=scoreSys==='5'?5:10;
+    const score=Math.min(parseFloat(document.getElementById('trScore').value)||0,maxScore);
+    const artist=document.getElementById('trArtist').value||'Исполнитель';
+    const song=document.getElementById('trSong').value||'НАЗВАНИЕ ТРЕКА';
+    const album=document.getElementById('trAlbum').value||'—';
+    const year=document.getElementById('trYear').value||'—';
+    const label=document.getElementById('trLabel').value||'';
+    const genres=document.getElementById('trGenres').value||'';
+    const rev=document.getElementById('trRev').value||'Твой текст о треке...';
+    const nick=document.getElementById('trNick').value||'@music';
+    const dv=document.getElementById('trDate').value;
+    const coverR=document.getElementById('coverRadius').value;
+    document.getElementById('coverRadiusV').textContent=coverR+'px';
+
+    document.getElementById('trTitleEl').textContent=song.toUpperCase();
+    document.getElementById('trArtistEl').textContent=artist;
+    document.getElementById('trRevEl').textContent=rev;
+    document.getElementById('trNickEl').textContent=nick;
+    if(dv)document.getElementById('trDateEl').textContent=new Date(dv).toLocaleDateString('ru-RU');
+    document.getElementById('trDateEl').style.display=document.getElementById('cDt').checked?'block':'none';
+
+    // cover radius
+    document.getElementById('trCoverImg').style.borderRadius=coverR+'px';
+
+    // info
+    document.getElementById('trInfoAlb').textContent=album;
+    document.getElementById('trInfoYrl').textContent=label?`${year} · ${label}`:year;
+    document.getElementById('trInfoGnr').textContent=genres||'—';
+    document.getElementById('icAlb').style.display=document.getElementById('cAlb').checked?'flex':'none';
+    document.getElementById('icYrl').style.display=document.getElementById('cYrl').checked?'flex':'none';
+    document.getElementById('icGnr').style.display=document.getElementById('cGnr').checked?'flex':'none';
+
+    // tags
+    const te=document.getElementById('trTagsEl');te.innerHTML='';
+    if(document.getElementById('cTag').checked&&genres){
+      genres.split(',').slice(0,4).forEach(g=>{const t=document.createElement('div');t.className='ct-tag';t.textContent=g.trim();te.appendChild(t)});
+    }
+
+    // vinyl
+    document.getElementById('vinylEl').style.display=document.getElementById('cVin').checked?'block':'none';
+
+    // score display
+    const CIRC=201.1;const off=CIRC-(score/maxScore)*CIRC;
+    document.getElementById('ringFill').style.strokeDashoffset=off;
+    document.getElementById('ringNum').textContent=score;
+    document.getElementById('starsEl').innerHTML=buildStars(score,maxScore);
+    document.getElementById('scoreLabel').textContent=`${score} / ${maxScore}`;
+    document.getElementById('numOnlyEl').textContent=score;
+
+    const showRing=document.getElementById('cRing').checked;
+    const ringWrap=document.getElementById('ringWrap');
+    const starsCol=document.getElementById('starsCol');
+    const numOnly=document.getElementById('numOnlyEl');
+    if(!showRing){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='none'}
+    else{
+      if(scoreDisp==='both'){ringWrap.style.display='block';starsCol.style.display='flex';numOnly.style.display='none'}
+      else if(scoreDisp==='ring'){ringWrap.style.display='block';starsCol.style.display='none';numOnly.style.display='none'}
+      else if(scoreDisp==='stars'){ringWrap.style.display='none';starsCol.style.display='flex';numOnly.style.display='none'}
+      else if(scoreDisp==='number'){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='block'}
+    }
+
+    // review font
+    const rb=document.getElementById('trReviewBox');
+    ['rv-font-bebas','rv-font-mono','rv-font-cormorant','rv-font-montserrat'].forEach(c=>rb.classList.remove(c));
+    if(revFont!=='playfair')rb.classList.add('rv-font-'+revFont);
+
+    // extra scores
+    const exOn=document.getElementById('cExS').checked;
+    document.getElementById('trExtraEl').style.display=exOn?'flex':'none';
+    document.getElementById('exSIn').style.display=exOn?'flex':'none';
+    if(exOn){document.getElementById('ex1El').textContent=document.getElementById('es1').value;document.getElementById('ex2El').textContent=document.getElementById('es2').value;document.getElementById('ex3El').textContent=document.getElementById('es3').value}
+
+    // bg
+    if(trSty==='custom'&&bgS.track.src){
+      applyBg(bgS.track.src,'trBlur','trDim','trSat');
+      const op=parseInt(document.getElementById('trPnlOp')?.value||65)/100;
+      document.getElementById('trPnlOpV').textContent=Math.round(op*100)+'%';
+      if(trPnl==='glass'){card.classList.add('pm-glass')}
+      else{[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.08)!important`})}
+    }else{if(trSty!=='custom'){hideBgLayers();[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=''})}}
+
+    // auto-fit review
+    const revEl=document.getElementById('trRevEl');let fs=15;revEl.style.fontSize=fs+'px';
+    while(revEl.scrollHeight>revEl.clientHeight&&fs>9){fs-=.5;revEl.style.fontSize=fs+'px'}
+  }
+
+  /* ALBUM */
+  if(mode==='album'){
+    applyTheme(alSty);
+    card.classList.remove('pm-glass');
+
+    const maxScore=alScoreSys==='5'?5:10;
+    const score=Math.min(parseFloat(document.getElementById('alScore').value)||0,maxScore);
+    const artist=document.getElementById('alArtist').value||'Исполнитель';
+    const name=document.getElementById('alName').value||'НАЗВАНИЕ АЛЬБОМА';
+    const year=document.getElementById('alYear').value||'—';
+    const label=document.getElementById('alLabel').value||'—';
+    const genres=document.getElementById('alGenres').value||'';
+    const rev=document.getElementById('alRev').value||'Твой текст об альбоме...';
+    const nick=document.getElementById('alNick').value||'@music';
+    const dv=document.getElementById('alDate').value;
+    const coverR=document.getElementById('alCoverRadius').value;
+    document.getElementById('alCoverRadiusV').textContent=coverR+'px';
+
+    document.getElementById('alTitleEl').textContent=name.toUpperCase();
+    document.getElementById('alArtistEl').textContent=artist;
+    document.getElementById('alRevEl').textContent=rev;
+    document.getElementById('alNickEl').textContent=nick;
+    document.getElementById('alScoreEl').textContent=score;
+    if(dv)document.getElementById('alDateEl').textContent=new Date(dv).toLocaleDateString('ru-RU');
+    document.getElementById('alDateEl').style.display=document.getElementById('alDt').checked?'block':'none';
+    document.getElementById('alInfoYear').textContent=year;
+    document.getElementById('alInfoLabel').textContent=label;
+    document.getElementById('alIcYrl').style.display=document.getElementById('alYrl').checked?'flex':'none';
+
+    // cover radius
+    document.getElementById('alCoverImg').style.borderRadius=coverR+'px';
+
+    // tags
+    const at=document.getElementById('alTagsEl');at.innerHTML='';
+    if(document.getElementById('alTag').checked&&genres){
+      genres.split(',').slice(0,4).forEach(g=>{const t=document.createElement('div');t.className='ct-tag';t.textContent=g.trim();at.appendChild(t)});
+    }
+
+    // tracklist
+    const tld=document.getElementById('tlDisplay');tld.innerHTML='';
+    tlRows.filter(r=>r.name.trim()).forEach((r,i)=>{
+      const div=document.createElement('div');
+      div.className='ct-tl-item'+(r.mark?` highlight`:'');
+      div.innerHTML=`<span class="tl-n">${String(i+1).padStart(2,'0')}</span><span class="tl-name">${r.name}</span>${r.mark?`<span class="tl-mark">${r.mark}</span>`:''}`;
+      tld.appendChild(div);
+    });
+
+    // album review font
+    const arb=document.getElementById('alReviewBox');
+    ['rv-font-bebas','rv-font-mono','rv-font-cormorant','rv-font-montserrat'].forEach(c=>arb.classList.remove(c));
+    if(alRevFont!=='playfair')arb.classList.add('rv-font-'+alRevFont);
+
+    // extra album scores
+    const alEx=document.getElementById('alExS').checked;
+    document.getElementById('alExtraEl').style.display=alEx?'flex':'none';
+    document.getElementById('alExSIn').style.display=alEx?'flex':'none';
+    if(alEx){document.getElementById('ae1El').textContent=document.getElementById('ae1').value;document.getElementById('ae2El').textContent=document.getElementById('ae2').value;document.getElementById('ae3El').textContent=document.getElementById('ae3').value}
+
+    // bg
+    if(alSty==='custom'&&bgS.album.src){applyBg(bgS.album.src,'alBlur','alDim',null)}
+    else if(alSty!=='custom')hideBgLayers();
+
+    const alRevEl=document.getElementById('alRevEl');let fs=15;alRevEl.style.fontSize=fs+'px';
+    while(alRevEl.scrollHeight>alRevEl.clientHeight&&fs>9){fs-=.5;alRevEl.style.fontSize=fs+'px'}
+  }
+
+  /* INTRO */
+  const iT=document.getElementById('introType').value;
+  const ITT=[['ОЦЕНКИ','МУЗЫКИ'],['ТРЕКИ','НЕДЕЛИ'],['АЛЬБОМ','МЕСЯЦА'],['НОВИНКИ','ВЫПУСК']];
+  let il1,il2;
+  if(iT==='c'){il1=(document.getElementById('ic1').value||'МОЯ').toUpperCase();il2=(document.getElementById('ic2').value||'МУЗЫКА').toUpperCase()}
+  else{const p=ITT[parseInt(iT)]||ITT[0];il1=p[0];il2=p[1]}
+  const iSv=document.getElementById('iSubTxt').value||'Честная музыкальная критика';
+  const iBv=document.getElementById('iBgTxt').value||'Слушаем 🎧';
+  const iNv=document.getElementById('iNkTxt').value||'@music';
+  const iEl=document.getElementById('iEl').checked,iSb=document.getElementById('iSb').checked,iBg=document.getElementById('iBg').checked,iIc=document.getElementById('iIc').checked,iNk=document.getElementById('iNk').checked,iDv=document.getElementById('iDvEl').checked;
+  [['dk',false],['lt',false],['pp',true],['cu',false]].forEach(([pre,isPaper])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('L1',il1);S('L2',il2);V('Ey',iEl);V('Sb',iSb);V('Bg',iBg);V('Ico',iIc);V('Nk',iNk);V('Dv',iDv);
+    S('Sb',iSv);S('Bg',isPaper?iBv.toUpperCase():iBv);S('Nk',iNv);
+  });
+  if(mode==='intro'){
+    if(introSty==='custom'){
+      if(bgS.intro.src)applyBg(bgS.intro.src,'iBlur','iDim',null);
+      else hideBgLayers();
+      setPnlClass(document.getElementById('cuPanel'),iPnl);
+    }else hideBgLayers();
+  }
+
+  /* OUTRO */
+  const h1=document.getElementById('oH1').value||'СПАСИБО';
+  const h2=document.getElementById('oH2').value||'ЗА ПРОСЛУШИВАНИЕ';
+  const oTv=document.getElementById('oTxt').value;
+  const tgRaw=document.getElementById('oTg').value;const tgS=tgRaw?(tgRaw.startsWith('@')?tgRaw:'@'+tgRaw):'@твой_канал';
+  const nkO=document.getElementById('oNk').value||'@music';
+  const oST=document.getElementById('oShowTxt').checked,oSTg=document.getElementById('oShowTg').checked,oSQr=document.getElementById('oShowQr').checked,oSNk=document.getElementById('oShowNk').checked,oSDv=document.getElementById('oShowDv').checked;
+  [['od','dark'],['ol','light'],['op','paper'],['oc','custom']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('H1',h1);S('H2',h2);
+    const tx=document.getElementById(pre+'Txt');if(tx){tx.innerHTML=oTv.replace(/\n/g,'<br>');tx.style.display=oST?'block':'none'}
+    V('Dv',oSDv);V('TgBlk',oSTg,true);V('QrBlk',oSQr,true);V('Nk',oSNk);
+    S('Tg',tgS);S('Nk',nkO);
+  });
+  if(mode==='outro'){
+    if(outroSty==='custom'){
+      if(bgS.outro.src)applyBg(bgS.outro.src,'oBlur','oDim',null);
+      else hideBgLayers();
+      setPnlClass(document.getElementById('ocuPanel'),oPnl);
+    }else hideBgLayers();
+  }
+
+  applyStripe();
+}
+
+function introTC(){const v=document.getElementById('introType').value,c=v==='c';document.getElementById('ic1').style.display=c?'block':'none';document.getElementById('ic2').style.display=c?'block':'none';upd()}
+
+let lqr='';
+function updQr(){
+  const u=document.getElementById('oQrUrl').value.trim();
+  if(u&&u!==lqr){lqr=u;const src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}&bgcolor=ffffff&color=000000`;['qrDk','qrLt','qrPp','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=src})}
+  upd();
+}
+
+function save(){
+  const c=document.getElementById('card');
+  html2canvas(c,{scale:2,useCORS:true,allowTaint:false,backgroundColor:null,logging:false}).then(cv=>{
+    const dataUrl=cv.toDataURL('image/png');
+    const a=document.createElement('a');a.href=dataUrl;a.download=`muzyka_${mode}_${Date.now()}.png`;a.click();
+    // Save compressed thumbnail to gallery
+    try{
+      const th=document.createElement('canvas');
+      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
+      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+      const thumb=th.toDataURL('image/jpeg',0.75);
+      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+      const labels={intro:'Музыка · Начало',track:'Музыка · Трек',album:'Музыка · Альбом',outro:'Музыка · Конец'};
+      items.unshift({thumb,type:labels[mode]||'Музыка',date:new Date().toLocaleDateString('ru-RU')});
+      if(items.length>50)items.pop();
+      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+    }catch(e){console.warn('Gallery save failed:',e)}
+  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+}
+
+
+/* ── AUTOSAVE & RESTORE ── */
+const AS_KEY = 'music_draft';
+function collectDraft(){
+  const ids=['trArtist','trSong','trAlbum','trYear','trLabel','trGenres','trRev','trNick','trDate','trScore',
+    'alArtist','alName','alYear','alLabel','alGenres','alRev','alNick','alDate','alScore',
+    'iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+  const d={};
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value});
+  d._mode=mode;d._trSty=trSty;d._alSty=alSty;d._scoreSys=scoreSys;d._alScoreSys=alScoreSys;
+  d._scoreDisp=scoreDisp;d._revFont=revFont;d._alRevFont=alRevFont;
+  d._tlRows=JSON.stringify(tlRows);
+  // cover images
+  const trImg=document.getElementById('trCoverImg');if(trImg&&trImg.src&&trImg.src.startsWith('http'))d._trCover=trImg.src;
+  const alImg=document.getElementById('alCoverImg');if(alImg&&alImg.src&&alImg.src.startsWith('http'))d._alCover=alImg.src;
+  return d;
+}
+function applyDraft(d){
+  if(!d)return;
+  const ids=['trArtist','trSong','trAlbum','trYear','trLabel','trGenres','trRev','trNick','trDate','trScore',
+    'alArtist','alName','alYear','alLabel','alGenres','alRev','alNick','alDate','alScore',
+    'iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.value=d[id]});
+  if(d._trCover){const img=document.getElementById('trCoverImg');if(img)img.src=d._trCover}
+  if(d._alCover){const img=document.getElementById('alCoverImg');if(img)img.src=d._alCover}
+  if(d._scoreSys)setScoreSys(d._scoreSys);
+  if(d._alScoreSys)setAlScoreSys(d._alScoreSys);
+  if(d._scoreDisp)setScoreDisp(d._scoreDisp);
+  if(d._revFont)setRevFont(d._revFont);
+  if(d._alRevFont)setAlRevFont(d._alRevFont);
+  if(d._trSty)setTrStyle(d._trSty);
+  if(d._alSty)setAlStyle(d._alSty);
+  try{
+    const rows=JSON.parse(d._tlRows||'[]');
+    if(rows.length){tlRows=[];document.getElementById('tlInputs').innerHTML='';rows.forEach(r=>addTlRow(r.name,r.mark))}
+  }catch(e){}
+  if(d._mode)setMode(d._mode);
+  if(d._oQrUrl){const u=document.getElementById('oQrUrl');if(u){u.value=d._oQrUrl;updQr()}}
+}
+let _asTimer=null;
+function scheduleAutosave(){clearTimeout(_asTimer);_asTimer=setTimeout(()=>{try{localStorage.setItem(AS_KEY,JSON.stringify(collectDraft()))}catch(e){}},1500)}
+function upd(){_updCore();scheduleAutosave()}
+// Restore on load
+try{const d=JSON.parse(localStorage.getItem(AS_KEY)||'null');if(d)setTimeout(()=>applyDraft(d),100)}catch(e){}
+
+// INIT
+setMode('track');
+setIntroStyle('dark');
+setOutroStyle('dark');
+addTlRow('');addTlRow('');addTlRow('');addTlRow('');addTlRow('');
+upd();
+</script>
+</body>
+</html>

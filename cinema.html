@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Конструктор · Кино</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=UnifrakturMaguntia&family=Courier+Prime:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+<style>
+:root{--accent:#e74c3c}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#dde3ea;display:flex;gap:20px;padding:20px;justify-content:center;min-height:100vh}
+.controls{width:430px;background:white;padding:18px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:9px;max-height:97vh;overflow-y:auto;align-self:flex-start;flex-shrink:0}
+.controls::-webkit-scrollbar{width:3px}.controls::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+.ctrl-top{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.back-btn{font-size:14px;text-decoration:none;color:#888;border:1px solid #ddd;border-radius:6px;padding:3px 10px;transition:all .15s;font-family:'Segoe UI',sans-serif}
+.back-btn:hover{border-color:#e74c3c;color:#e74c3c}
+.ctrl-title{font-size:16px;font-weight:900;color:#222}
+h4{margin:6px 0 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid #f0f0f0;padding-bottom:4px}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;font-family:'Segoe UI',sans-serif}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#e74c3c}
+textarea{resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-tabs{display:flex;gap:5px}
+.mode-tab{flex:1;padding:8px 4px;border:1px solid #ddd;border-radius:8px;background:white;color:#666;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;transition:all .2s;text-align:center}
+.mode-tab.active{background:var(--accent);border-color:var(--accent);color:white}
+.mode-section{display:none;flex-direction:column;gap:8px}
+.mode-section.show{display:flex}
+.style-switcher{display:flex;gap:5px;flex-wrap:wrap}
+.style-btn{padding:6px 11px;border:2px solid #e0e0e0;border-radius:7px;background:white;color:#666;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s}
+.style-btn.active{border-color:#e74c3c;color:#e74c3c;background:#fff5f5}
+.toggle-block{background:#f8f9fa;padding:8px;border-radius:8px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.tg label{font-size:11px;display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 4px;border-radius:5px}
+.tg label:hover{background:rgba(0,0,0,.04)}
+.tg input[type=checkbox]{accent-color:#e74c3c}
+.srow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8f9fa;padding:8px 10px;border-radius:8px}
+.srow label{font-size:11px;font-weight:600;color:#555;min-width:55px}
+.stog{padding:3px 10px;border:1px solid #ddd;border-radius:6px;background:white;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.stog.on{background:#e74c3c;border-color:#e74c3c;color:white}
+.cs{width:22px;height:22px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;flex-shrink:0}
+.cs.active{border-color:#333;transform:scale(1.2)}
+.lib-grid{display:flex;flex-wrap:wrap;gap:7px;padding:8px;background:#f8f9fa;border-radius:8px}
+.lt{position:relative;width:58px;height:58px;cursor:pointer;border:2px solid transparent;border-radius:8px;overflow:hidden;transition:border-color .2s;flex-shrink:0}
+.lt img{width:100%;height:100%;object-fit:cover;display:block}
+.lt:hover{border-color:#3498db}.lt.selbg{border-color:#e74c3c!important;box-shadow:0 0 0 2px #e74c3c}
+.ldel{position:absolute;top:2px;right:2px;width:15px;height:15px;background:rgba(231,76,60,.9);border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;opacity:0;transition:opacity .2s}
+.lt:hover .ldel{opacity:1}
+.ladd{width:58px;height:58px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:#aaa;transition:all .2s;flex-shrink:0}
+.ladd:hover{border-color:#3498db;color:#3498db}
+.use-btns{display:flex;gap:6px;flex-wrap:wrap;padding:4px 0}
+.use-btn{padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:white;font-size:11px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .2s}
+.use-btn.active{background:#e74c3c;border-color:#e74c3c;color:white}
+.rrow{display:flex;align-items:center;gap:8px}
+.rrow label{font-size:11px;color:#555;min-width:74px;flex-shrink:0}
+.rrow input[type=range]{flex:1;accent-color:#e74c3c}
+.rval{font-size:11px;font-weight:700;min-width:36px;color:#333}
+.btn{width:100%;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:bold;cursor:pointer;background:#eee;color:#555;font-family:'Segoe UI',sans-serif;transition:all .2s}
+.btn:hover{background:#ddd}
+.savebtn{background:#3498db!important;color:white!important;padding:13px;margin-top:4px;font-size:14px}
+.savebtn:hover{background:#2980b9!important}
+#resultsList,#seriesResultsList{background:white;border:1px solid #ddd;display:none;position:absolute;left:0;right:0;top:100%;z-index:9999;box-shadow:0 5px 15px rgba(0,0,0,.2);border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto}
+.ri{padding:10px;cursor:pointer;border-bottom:1px solid #eee;font-size:12px;display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:rgba(231,76,60,.2);user-select:none}
+.ri:hover{background:#f0f7ff}
+.ri img{width:28px;height:42px;object-fit:cover;border-radius:3px;flex-shrink:0}
+.ri b{display:block;font-size:12px;color:#222}
+.ri span{font-size:11px;color:#888}
+/* Season ratings table */
+.season-row{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.season-row label{font-size:11px;color:#666;min-width:70px;flex-shrink:0}
+.season-row input{flex:1}
+.season-row input[type=number]{max-width:70px}
+
+/* CARD */
+.card-wrapper{width:600px;height:800px;padding:30px;display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25);flex-shrink:0;align-self:flex-start}
+.view{position:absolute;inset:0;padding:30px;display:none;flex-direction:column;z-index:2}
+.view.show{display:flex}
+.top-stripe{position:absolute;top:0;left:0;right:0;height:7px;z-index:30;display:none}
+.film-grain{position:absolute;inset:0;background-image:url('https://www.transparenttextures.com/patterns/stardust.png');opacity:.15;pointer-events:none;z-index:10;display:none}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;display:none}
+.card-dim{position:absolute;inset:0;z-index:1;pointer-events:none;display:none}
+
+/* PANEL MODES */
+.card-wrapper.pm-solid .tech-box{background:var(--psol,rgba(255,255,255,.88))!important;border:none!important;backdrop-filter:none!important}
+.card-wrapper.pm-solid .opinion-area{background:var(--psol,rgba(255,255,255,.88))!important;border:none!important;backdrop-filter:none!important}
+.card-wrapper.pm-glass .tech-box{background:rgba(255,255,255,.15)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;border:1px solid rgba(255,255,255,.4)!important;box-shadow:0 4px 20px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.6)!important}
+.card-wrapper.pm-glass .opinion-area{background:rgba(255,255,255,.12)!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.3)!important;box-shadow:0 8px 32px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.45)!important}
+
+/* THEMES */
+.style-light{background:#fff}
+.style-light .card-title{color:#222}
+.style-light .tech-box{background:white;box-shadow:0 4px 10px rgba(0,0,0,.06);color:#333;border:none}
+.style-light .tech-box b{color:#999}
+.style-light .opinion-area{background:white;box-shadow:0 4px 10px rgba(0,0,0,.06);border:none}
+.style-light .opinion-text{color:#222}.style-light .opinion-area-header{color:#666!important}
+.style-light .meta-text{color:rgba(0,0,0,.3)}.style-light .actor-name{color:#555}.style-light .actors-label{color:#999}
+.style-light .extra-ratings{color:#333;border-top-color:#eee}.style-light .fact-text{color:#888;border-top-color:#eee}
+.style-light .season-ratings{color:#333;border-top-color:#eee}.style-light .status-badge{background:#2ecc71}
+.style-dark{background:#111!important}
+.style-dark .card-title{color:#fff!important}.style-dark .tech-box{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.1)!important;color:rgba(255,255,255,.8)!important;box-shadow:none!important}
+.style-dark .tech-box b{color:rgba(255,255,255,.4)!important}.style-dark .opinion-area{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:none!important}
+.style-dark .opinion-text{color:rgba(255,255,255,.9)!important}.style-dark .opinion-area-header{color:rgba(255,255,255,.5)!important}
+.style-dark .extra-ratings{color:rgba(255,255,255,.8)!important;border-top-color:rgba(255,255,255,.1)!important}
+.style-dark .season-ratings{color:rgba(255,255,255,.8)!important;border-top-color:rgba(255,255,255,.1)!important}
+.style-dark .fact-text{color:rgba(255,255,255,.4)!important;border-top-color:rgba(255,255,255,.08)!important}
+.style-dark .meta-text{color:rgba(255,255,255,.28)!important}.style-dark .actor-name{color:rgba(255,255,255,.6)!important}.style-dark .actors-label{color:rgba(255,255,255,.3)!important}
+.style-newspaper{background:#f4ede0!important;font-family:'Courier Prime',monospace}
+.style-newspaper .card-title{color:#2a1a0a;font-family:'UnifrakturMaguntia',serif!important;font-size:24px!important;letter-spacing:2px;height:auto!important;margin-bottom:8px;border-bottom:2px double #2a1a0a;border-top:2px double #2a1a0a;padding:4px 0}
+.style-newspaper .tech-box{background:#e8dcc8!important;border:1px solid #2a1a0a!important;box-shadow:2px 2px 0 rgba(42,26,10,.3);color:#2a1a0a}
+.style-newspaper .tech-box b{color:#5a4a3a!important}
+.style-newspaper .opinion-area{background:#ece0cc!important;border:1px solid #2a1a0a!important;box-shadow:2px 2px 0 rgba(42,26,10,.3)}
+.style-newspaper .opinion-text{color:#2a1a0a;font-family:'Courier Prime',monospace;font-size:14px;line-height:1.6}
+.style-newspaper .opinion-area-header{color:#5a4a3a!important;font-family:'Courier Prime',monospace;letter-spacing:1px}
+.style-newspaper .meta-text,.style-newspaper .actor-name,.style-newspaper .actors-label,.style-newspaper .extra-ratings,.style-newspaper .season-ratings,.style-newspaper .fact-text{font-family:'Courier Prime',monospace;color:#2a1a0a}
+.style-newspaper .poster{border:2px solid #2a1a0a;box-shadow:3px 3px 0 rgba(42,26,10,.3);filter:grayscale(40%) sepia(20%)}
+.style-custom .card-title{color:white;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.style-custom .opinion-area-header{color:rgba(255,255,255,.7)!important}.style-custom .opinion-text{color:rgba(255,255,255,.92)}
+.style-custom .meta-text{color:rgba(255,255,255,.4)}.style-custom .actor-name{color:rgba(255,255,255,.8)}.style-custom .actors-label{color:rgba(255,255,255,.45)}
+.style-custom .extra-ratings,.style-custom .season-ratings{color:rgba(255,255,255,.85);border-top-color:rgba(255,255,255,.15)}
+.style-custom .fact-text{color:rgba(255,255,255,.45);border-top-color:rgba(255,255,255,.12)}
+.style-custom:not(.pm-solid):not(.pm-glass) .tech-box{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.style-custom:not(.pm-solid):not(.pm-glass) .tech-box b{color:rgba(255,255,255,.4)}
+.style-custom:not(.pm-solid):not(.pm-glass) .opinion-area{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12)}
+
+/* CARD ELEMENTS */
+.card-title{font-family:'Montserrat',sans-serif;font-weight:900;font-size:32px;text-transform:uppercase;text-align:center;height:88px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;line-height:1.1}
+.card-body{display:flex;gap:18px;flex:1;min-height:0}
+.card-left{width:210px;display:flex;flex-direction:column;gap:9px}
+.poster{width:100%;height:290px;border-radius:10px;object-fit:cover;box-shadow:0 10px 20px rgba(0,0,0,.2);background:#333;display:block}
+.tech-box{padding:10px 12px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:11.5px}
+.tech-box b{display:block;font-size:8.5px;text-transform:uppercase;margin-top:4px}
+.card-right{flex:1;display:flex;flex-direction:column;gap:9px;min-height:0}
+.opinion-area{border-radius:14px;padding:13px;flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.opinion-area-header{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;margin-bottom:4px}
+.spoiler-tag{position:absolute;top:9px;right:9px;background:#e74c3c;color:white;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:900;display:none}
+.opinion-text{font-family:'Montserrat',sans-serif;font-weight:500;font-size:17px;line-height:1.4;white-space:pre-wrap;flex:1;overflow:hidden}
+.rf-playfair .opinion-text{font-family:'Playfair Display',serif;font-style:italic;font-size:16px;line-height:1.5}
+.rf-mono .opinion-text{font-family:'Space Mono',monospace;font-size:12px;line-height:1.6;font-style:normal}
+.rf-courier .opinion-text{font-family:'Courier Prime',monospace;font-size:14px;line-height:1.6}
+.extra-ratings{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;border-top:1px solid #eee;padding-top:8px;display:none;flex-direction:column;gap:3px}
+.season-ratings{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10px;border-top:1px solid #eee;padding-top:8px;display:none;flex-direction:column;gap:2px}
+.fact-text{font-size:10px;font-style:italic;border-top:1px solid #eee;padding-top:7px;display:block}
+.card-footer{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;flex-shrink:0}
+.stars svg{width:42px;height:42px}
+.meta-text{font-family:'Montserrat',sans-serif;font-weight:900;font-size:12px;text-align:right}
+.actors-section{margin-top:3px}
+.actors-label{font-family:'Montserrat',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700}
+.actors-row{display:flex;gap:5px}
+.actor-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.actor-photo{width:52px;height:52px;border-radius:7px;object-fit:cover;background:#eee;display:block}
+.actor-name{font-family:'Montserrat',sans-serif;font-size:7.5px;text-align:center;font-weight:600;line-height:1.2}
+.status-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:900;color:white;margin-left:6px;vertical-align:middle;background:#e74c3c}
+.status-ongoing{background:#f39c12!important}
+.status-finished{background:#27ae60!important}
+.status-announced{background:#3498db!important}
+
+/* INTRO/OUTRO (same as before) */
+.intro-dark-bg{position:absolute;inset:0;background:#111}
+.intro-dark-content,.outro-dark-content,.intro-light-content,.outro-light-content,.intro-news-content,.outro-news-content,.intro-custom-content,.outro-custom-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:40px}
+.intro-eyebrow{font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:4px;color:#e74c3c;font-weight:700;text-transform:uppercase}
+.intro-main-title{font-family:'Montserrat',sans-serif;font-weight:900;font-size:62px;line-height:.95;text-transform:uppercase;color:white}
+.intro-main-title em{display:block;-webkit-text-stroke:2px #e74c3c;color:transparent;font-style:normal}
+.intro-subtitle{font-family:'Montserrat',sans-serif;font-weight:500;font-size:15px;color:rgba(255,255,255,.5);line-height:1.6;max-width:380px}
+.intro-badge{background:#e74c3c;color:white;padding:8px 22px;border-radius:50px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700}
+.intro-divider{width:50px;height:2px;background:#e74c3c;border-radius:2px}
+.intro-nick{font-family:'Montserrat',sans-serif;font-size:12px;color:rgba(255,255,255,.25)}
+.intro-icons{font-size:28px;opacity:.1;letter-spacing:10px}
+.intro-light-bg{position:absolute;inset:0;background:linear-gradient(160deg,#f8f9fa,#e8ecf0)}
+.intro-light-deco{position:absolute;top:0;left:0;right:0;height:8px}
+.intro-light-label{font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:4px;color:#999;font-weight:700;text-transform:uppercase}
+.intro-light-title{font-family:'Montserrat',sans-serif;font-weight:900;font-size:54px;line-height:1;text-transform:uppercase;color:#222}
+.intro-light-sub{font-family:'Montserrat',sans-serif;font-weight:500;font-size:14px;color:#777;line-height:1.6;max-width:360px}
+.intro-light-badge{background:#2ecc71;color:white;padding:8px 22px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700}
+.intro-light-divider{width:50px;height:3px;background:#e74c3c;border-radius:2px}
+.intro-light-nick{font-family:'Montserrat',sans-serif;font-size:12px;color:#bbb;font-weight:700}
+.intro-light-icons{font-size:32px;opacity:.2;letter-spacing:8px}
+.intro-news-bg,.outro-news-bg{position:absolute;inset:0;background:#f4ede0}
+.intro-news-border-top,.intro-news-border-bot,.outro-news-border-top,.outro-news-border-bot{position:absolute;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,#2a1a0a 0,#2a1a0a 8px,transparent 8px,transparent 16px)}
+.intro-news-border-top,.outro-news-border-top{top:0}
+.intro-news-border-bot,.outro-news-border-bot{bottom:0}
+.intro-news-title{font-family:'UnifrakturMaguntia',serif;font-size:68px;line-height:.95;color:#2a1a0a}
+.intro-news-sub{font-family:'Courier Prime',monospace;font-size:13px;color:#5a4a3a;line-height:1.6;max-width:380px;border-top:1px solid #2a1a0a;border-bottom:1px solid #2a1a0a;padding:8px 0;width:100%;text-align:center}
+.intro-news-divider{width:60%;height:2px;background:#2a1a0a}
+.intro-news-badge{background:#2a1a0a;color:#f4ede0;padding:7px 20px;font-family:'Courier Prime',monospace;font-size:12px;font-weight:700;letter-spacing:2px}
+.intro-news-nick{font-family:'Courier Prime',monospace;font-size:11px;color:#8a7a6a;letter-spacing:2px}
+.intro-news-icons{font-size:26px;opacity:.2;letter-spacing:8px}
+.intro-news-eyebrow{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:4px;color:#8a7a6a;text-transform:uppercase}
+.pnl-glass{background:rgba(255,255,255,.13);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.pnl-solid{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:13px}
+.outro-title{font-family:'Montserrat',sans-serif;font-weight:900;font-size:58px;line-height:.95;text-transform:uppercase;color:white}
+.outro-title em{display:block;-webkit-text-stroke:2px #e74c3c;color:transparent;font-style:normal}
+.outro-text{font-family:'Montserrat',sans-serif;font-size:14px;color:rgba(255,255,255,.45);line-height:1.7}
+.outro-divider{width:50px;height:2px;background:#e74c3c;border-radius:2px}
+.outro-tg-label{font-family:'Montserrat',sans-serif;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase}
+.outro-tg-name{font-family:'Montserrat',sans-serif;font-weight:900;font-size:27px;letter-spacing:2px;color:#2AABEE}
+.qrbox{width:100px;height:100px;background:white;border-radius:10px;padding:6px;display:flex;align-items:center;justify-content:center}
+.qrbox img{width:100%;height:100%;border-radius:3px}
+.outro-nick{font-family:'Montserrat',sans-serif;font-size:11px;color:rgba(255,255,255,.15)}
+.outro-light-bg{position:absolute;inset:0;background:linear-gradient(160deg,#f8f9fa,#e8ecf0)}
+.outro-light-deco{position:absolute;bottom:0;left:0;right:0;height:8px}
+.outro-light-title{font-family:'Montserrat',sans-serif;font-weight:900;font-size:52px;line-height:1;text-transform:uppercase;color:#222}
+.outro-light-title span{color:#e74c3c;display:block}
+.outro-light-text{font-family:'Montserrat',sans-serif;font-size:14px;color:#777;line-height:1.7}
+.outro-light-divider{width:50px;height:3px;background:#e74c3c;border-radius:2px}
+.outro-light-tg-label{font-family:'Montserrat',sans-serif;font-size:10px;color:#aaa;letter-spacing:3px;text-transform:uppercase}
+.outro-light-tg-name{font-family:'Montserrat',sans-serif;font-weight:900;font-size:26px;letter-spacing:2px;color:#2AABEE}
+.outro-light-qr{width:100px;height:100px;background:white;border-radius:10px;padding:6px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+.outro-light-qr img{width:100%;height:100%;border-radius:3px}
+.outro-light-nick{font-family:'Montserrat',sans-serif;font-size:11px;color:#ccc;font-weight:700}
+.outro-news-title{font-family:'UnifrakturMaguntia',serif;font-size:62px;line-height:.95;color:#2a1a0a}
+.outro-news-text{font-family:'Courier Prime',monospace;font-size:13px;color:#5a4a3a;line-height:1.7;border-top:1px solid #2a1a0a;border-bottom:1px solid #2a1a0a;padding:8px 0;width:100%;text-align:center}
+.outro-news-divider{width:60%;height:2px;background:#2a1a0a}
+.outro-news-tg-label{font-family:'Courier Prime',monospace;font-size:10px;color:#8a7a6a;letter-spacing:3px;text-transform:uppercase}
+.outro-news-tg-name{font-family:'UnifrakturMaguntia',serif;font-size:26px;color:#2AABEE}
+.outro-news-qr{width:100px;height:100px;background:#2a1a0a;border-radius:4px;padding:7px;display:flex;align-items:center;justify-content:center}
+.outro-news-qr img{width:100%;height:100%;border-radius:2px;filter:invert(1)}
+.outro-news-nick{font-family:'Courier Prime',monospace;font-size:11px;color:#8a7a6a;letter-spacing:2px}
+
+/* ─── MOBILE ─── */
+.card-outer{flex-shrink:0;align-self:flex-start}
+@media(hover:none){
+  .gal-item-del,.ldel{opacity:1!important}
+  .lt:hover{border-color:#3498db}
+}
+@media(max-width:900px){
+  body{flex-direction:column;align-items:stretch;padding:12px;gap:14px;min-height:auto}
+  .controls{width:100%;max-height:none;overflow-y:visible;border-radius:12px;align-self:auto}
+  .card-outer{align-self:center;width:100%;display:flex;justify-content:center}
+  .card-wrapper{transform-origin:top center}
+}
+@media(max-width:640px){
+  /* controls UX */
+  .mode-tab{font-size:10px;padding:10px 4px}
+  .btn{padding:11px;font-size:13px}
+  .savebtn{padding:15px!important;font-size:14px!important}
+  input[type=text],input[type=number],input[type=date],textarea,select{
+    font-size:16px!important; /* prevents iOS zoom */
+    padding:9px 11px
+  }
+  .tg{grid-template-columns:1fr 1fr}
+  .tg label{font-size:12px;padding:5px 4px}
+  h4{font-size:10px;padding-bottom:5px;margin-top:6px}
+  .style-btn{padding:8px 12px;font-size:11px}
+  .stog{padding:6px 14px;font-size:12px}
+  .cs{width:26px;height:26px}
+  .rrow input[type=range]{height:28px}
+  .rrow label{font-size:12px}
+  /* card scale to fit screen */
+  .card-outer{overflow:visible}
+  .card-wrapper{
+    transform:scale(var(--card-scale,0.55));
+    transform-origin:top center;
+    margin-bottom:calc((800px * var(--card-scale,0.55)) - 800px)
+  }
+}
+</style>
+</head>
+<body>
+<div class="controls">
+  <div class="ctrl-top">
+    <a href="index.html" class="back-btn">← Назад</a>
+    <div class="ctrl-title">🎬 Конструктор · Кино</div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab" onclick="setMode('intro')">▶ Начало</button>
+    <button class="mode-tab active" onclick="setMode('film')">🎬 Фильм</button>
+    <button class="mode-tab" onclick="setMode('series')">📺 Сериал</button>
+    <button class="mode-tab" onclick="setMode('outro')">◀ Конец</button>
+  </div>
+
+  <!-- INTRO -->
+  <div class="mode-section" id="sec-intro">
+    <h4>Стиль</h4>
+    <div class="style-switcher" id="introSB">
+      <button class="style-btn" onclick="setIntroStyle('light')">☀️ Светлый</button>
+      <button class="style-btn active" onclick="setIntroStyle('dark')">🌑 Тёмный</button>
+      <button class="style-btn" onclick="setIntroStyle('newspaper')">📰 Газета</button>
+      <button class="style-btn" onclick="setIntroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="intro-custom-block" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="use-btns" id="introCustomBtns"></div>
+      <div id="introCustomCtrls" style="display:none;flex-direction:column;gap:8px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="iBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="iBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="iDim" min="0" max="90" value="40" oninput="upd()"><span class="rval" id="iDimV">40%</span></div>
+        <h4>Панель</h4>
+        <div class="style-switcher">
+          <button class="style-btn active" id="iPnlSolid" onclick="setIntroPnl('solid')">▪ Тёмная</button>
+          <button class="style-btn" id="iPnlGlass" onclick="setIntroPnl('glass')">🫧 Glass</button>
+          <button class="style-btn" id="iPnlNone" onclick="setIntroPnl('none')">✕ Нет</button>
+        </div>
+        <button class="btn" style="background:#fee;color:#e74c3c;border:1px solid #fcc" onclick="clearBgFor('intro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stIntro" onclick="togS('intro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)" onclick="setSC('intro','rainbow',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#e74c3c,#e67e22)" onclick="setSC('intro','ro',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('intro','bp',this)"></div>
+      <div class="cs" style="background:#e74c3c" onclick="setSC('intro','red',this)"></div>
+    </div>
+    <h4>Тип заставки</h4>
+    <select id="introType" onchange="introTC()">
+      <option value="0">Оценка кино</option>
+      <option value="1">Моё мнение</option>
+      <option value="2">Фильмы недели</option>
+      <option value="3">Разбор фильма</option>
+      <option value="c">✏️ Свой текст →</option>
+    </select>
+    <input type="text" id="ic1" placeholder="Строка 1..." oninput="upd()" style="display:none">
+    <input type="text" id="ic2" placeholder="Строка 2 (акцент)..." oninput="upd()" style="display:none">
+    <h4>Элементы</h4>
+    <div class="toggle-block"><div class="tg">
+      <label><input type="checkbox" id="iShowEy" checked onchange="upd()"> «Новый выпуск»</label>
+      <label><input type="checkbox" id="iShowSu" checked onchange="upd()"> Подзаголовок</label>
+      <label><input type="checkbox" id="iShowBa" checked onchange="upd()"> Бейдж</label>
+      <label><input type="checkbox" id="iShowIc" checked onchange="upd()"> Иконки</label>
+      <label><input type="checkbox" id="iShowNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="iShowDv" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Текст</h4>
+    <input type="text" id="introSubTxt" value="Честный взгляд на кино" oninput="upd()">
+    <input type="text" id="introBadgeTxt" value="Смотрим 🍿" oninput="upd()">
+    <input type="text" id="introNickTxt" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- FILM -->
+  <div class="mode-section show" id="sec-film">
+    <h4>Стиль</h4>
+    <div class="style-switcher" id="filmSB">
+      <button class="style-btn active" onclick="setFilmStyle('light')">☀️ Светлый</button>
+      <button class="style-btn" onclick="setFilmStyle('dark')">🌑 Тёмный</button>
+      <button class="style-btn" onclick="setFilmStyle('newspaper')">📰 Газета</button>
+      <button class="style-btn" onclick="setFilmStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="film-custom-block" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="use-btns" id="filmCustomBtns"></div>
+      <div id="filmCustomCtrls" style="display:none;flex-direction:column;gap:8px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="fBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="fBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="fDim" min="0" max="90" value="35" oninput="upd()"><span class="rval" id="fDimV">35%</span></div>
+        <div class="rrow"><label>Насыщ.</label><input type="range" id="fSat" min="0" max="200" value="100" oninput="upd()"><span class="rval" id="fSatV">100%</span></div>
+        <h4>Панели</h4>
+        <div class="style-switcher">
+          <button class="style-btn active" id="fPnlSolid" onclick="setFilmPnl('solid')">▪ Тёмные</button>
+          <button class="style-btn" id="fPnlGlass" onclick="setFilmPnl('glass')">🫧 Glass</button>
+        </div>
+        <div class="rrow"><label>Прозрач.</label><input type="range" id="fPnlOp" min="10" max="95" value="75" oninput="upd()"><span class="rval" id="fPnlOpV">75%</span></div>
+        <button class="btn" style="background:#fee;color:#e74c3c;border:1px solid #fcc" onclick="clearBgFor('film')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stFilm" onclick="togS('film')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)" onclick="setSC('film','rainbow',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#e74c3c,#e67e22)" onclick="setSC('film','ro',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('film','bp',this)"></div>
+      <div class="cs" style="background:#e74c3c" onclick="setSC('film','red',this)"></div>
+    </div>
+    <h4>1. Поиск фильма</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="fSearch" placeholder="Название фильма..." onkeydown="if(event.key==='Enter')doSearch('film')">
+      <button class="btn" onclick="doSearch('film')" style="width:44px;padding:0">🔍</button>
+      <div id="resultsList"></div>
+    </div>
+    <h4>2. Элементы</h4>
+    <div class="toggle-block"><div class="tg">
+      <label><input type="checkbox" id="cGr" onchange="upd()"> Плёнка</label>
+      <label><input type="checkbox" id="cAc" checked onchange="upd()"> Актёры</label>
+      <label><input type="checkbox" id="cDr" checked onchange="upd()"> Режиссёр</label>
+      <label><input type="checkbox" id="cSt" checked onchange="upd()"> Студия</label>
+      <label><input type="checkbox" id="cFa" checked onchange="upd()"> Цитата</label>
+      <label><input type="checkbox" id="cEx" onchange="upd()"> Доп. оценки</label>
+      <label><input type="checkbox" id="cSp" onchange="upd()"> Спойлеры</label>
+      <label><input type="checkbox" id="cDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>3. Рецензия</h4>
+    <textarea id="fOp" oninput="upd()" rows="4" placeholder="Твой текст о фильме..."></textarea>
+    <h4>Шрифт рецензии</h4>
+    <div class="style-switcher" id="fFontSB">
+      <button class="style-btn active" onclick="setRevFont('film','montserrat')">Modern</button>
+      <button class="style-btn" onclick="setRevFont('film','playfair')">Playfair</button>
+      <button class="style-btn" onclick="setRevFont('film','mono')">Mono</button>
+    </div>
+    <h4>4. Оценка и дата</h4>
+    <div class="row2">
+      <div><label style="font-size:10px;color:#888">ОЦЕНКА (0.5–5)</label><input type="number" id="fRate" step="0.5" min="0.5" max="5" value="4.5" oninput="upd()"></div>
+      <div><label style="font-size:10px;color:#888">ДАТА</label><input type="date" id="fDate" oninput="upd()"></div>
+    </div>
+    <div id="fExtraIn" style="display:none;flex-direction:column;gap:5px;background:#f8f9fa;padding:10px;border-radius:8px">
+      <label style="font-size:9px;font-weight:700;color:#888">СЮЖЕТ / ВИЗУАЛ / ЗВУК</label>
+      <div style="display:flex;gap:5px">
+        <input type="number" id="fr1" step="0.5" min="0" max="5" value="4" oninput="upd()">
+        <input type="number" id="fr2" step="0.5" min="0" max="5" value="5" oninput="upd()">
+        <input type="number" id="fr3" step="0.5" min="0" max="5" value="4.5" oninput="upd()">
+      </div>
+    </div>
+    <h4>5. Данные фильма</h4>
+    <input type="text" id="fTitle" placeholder="Название фильма" oninput="upd()">
+    <input type="text" id="fDirector" placeholder="Режиссёр" oninput="upd()">
+    <input type="text" id="fStudio" placeholder="Студия" oninput="upd()">
+    <input type="text" id="fTagline" placeholder="Цитата / слоган" oninput="upd()">
+    <h4>6. Ник</h4>
+    <input type="text" id="fNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- SERIES -->
+  <div class="mode-section" id="sec-series">
+    <h4>Стиль</h4>
+    <div class="style-switcher" id="seriesSB">
+      <button class="style-btn active" onclick="setSeriesStyle('light')">☀️ Светлый</button>
+      <button class="style-btn" onclick="setSeriesStyle('dark')">🌑 Тёмный</button>
+      <button class="style-btn" onclick="setSeriesStyle('newspaper')">📰 Газета</button>
+      <button class="style-btn" onclick="setSeriesStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="series-custom-block" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="use-btns" id="seriesCustomBtns"></div>
+      <div id="seriesCustomCtrls" style="display:none;flex-direction:column;gap:8px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="sBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="sBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="sDim" min="0" max="90" value="35" oninput="upd()"><span class="rval" id="sDimV">35%</span></div>
+        <div class="rrow"><label>Насыщ.</label><input type="range" id="sSat" min="0" max="200" value="100" oninput="upd()"><span class="rval" id="sSatV">100%</span></div>
+        <h4>Панели</h4>
+        <div class="style-switcher">
+          <button class="style-btn active" id="sPnlSolid" onclick="setSeriesPnl('solid')">▪ Тёмные</button>
+          <button class="style-btn" id="sPnlGlass" onclick="setSeriesPnl('glass')">🫧 Glass</button>
+        </div>
+        <div class="rrow"><label>Прозрач.</label><input type="range" id="sPnlOp" min="10" max="95" value="75" oninput="upd()"><span class="rval" id="sPnlOpV">75%</span></div>
+        <button class="btn" style="background:#fee;color:#e74c3c;border:1px solid #fcc" onclick="clearBgFor('series')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stSeries" onclick="togS('series')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)" onclick="setSC('series','rainbow',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#3498db,#9b59b6)" onclick="setSC('series','bp',this)"></div>
+      <div class="cs" style="background:#e74c3c" onclick="setSC('series','red',this)"></div>
+    </div>
+    <h4>1. Поиск сериала</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="sSearch" placeholder="Название сериала..." onkeydown="if(event.key==='Enter')doSearch('series')">
+      <button class="btn" onclick="doSearch('series')" style="width:44px;padding:0">🔍</button>
+      <div id="seriesResultsList"></div>
+    </div>
+    <h4>2. Элементы</h4>
+    <div class="toggle-block"><div class="tg">
+      <label><input type="checkbox" id="scGr" onchange="upd()"> Плёнка</label>
+      <label><input type="checkbox" id="scAc" checked onchange="upd()"> Актёры</label>
+      <label><input type="checkbox" id="scDr" checked onchange="upd()"> Шоуранер</label>
+      <label><input type="checkbox" id="scSt" checked onchange="upd()"> Сеть/Студия</label>
+      <label><input type="checkbox" id="scFa" checked onchange="upd()"> Цитата</label>
+      <label><input type="checkbox" id="scSeR" checked onchange="upd()"> Оценки сезонов</label>
+      <label><input type="checkbox" id="scSp" onchange="upd()"> Спойлеры</label>
+      <label><input type="checkbox" id="scDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>3. Статус сериала</h4>
+    <div class="style-switcher" id="statusSB">
+      <button class="style-btn active" onclick="setStatus('finished')">✅ Вышел</button>
+      <button class="style-btn" onclick="setStatus('ongoing')">🔄 Онгоинг</button>
+      <button class="style-btn" onclick="setStatus('announced')">📢 Анонс</button>
+    </div>
+    <h4>4. Сезоны / серии</h4>
+    <div class="row2">
+      <div><label style="font-size:10px;color:#888">СЕЗОНОВ</label><input type="number" id="sSeasons" min="1" max="50" value="1" oninput="upd()"></div>
+      <div><label style="font-size:10px;color:#888">СЕРИЙ</label><input type="number" id="sEpisodes" min="1" max="999" value="10" oninput="upd()"></div>
+    </div>
+    <h4>5. Оценки по сезонам (до 6)</h4>
+    <div id="seasonRatingsIn" style="display:flex;flex-direction:column;gap:4px;background:#f8f9fa;padding:8px;border-radius:8px">
+    </div>
+    <h4>6. Рецензия</h4>
+    <textarea id="sOp" oninput="upd()" rows="4" placeholder="Твой текст о сериале..."></textarea>
+    <h4>Шрифт рецензии</h4>
+    <div class="style-switcher" id="sFontSB">
+      <button class="style-btn active" onclick="setRevFont('series','montserrat')">Modern</button>
+      <button class="style-btn" onclick="setRevFont('series','playfair')">Playfair</button>
+      <button class="style-btn" onclick="setRevFont('series','mono')">Mono</button>
+    </div>
+    <h4>7. Общая оценка и дата</h4>
+    <div class="row2">
+      <div><label style="font-size:10px;color:#888">ОЦЕНКА (0.5–5)</label><input type="number" id="sRate" step="0.5" min="0.5" max="5" value="4.0" oninput="upd()"></div>
+      <div><label style="font-size:10px;color:#888">ДАТА</label><input type="date" id="sDate" oninput="upd()"></div>
+    </div>
+    <h4>8. Данные сериала</h4>
+    <input type="text" id="sTitle" placeholder="Название сериала" oninput="upd()">
+    <input type="text" id="sShowrunner" placeholder="Шоуранер / создатель" oninput="upd()">
+    <input type="text" id="sNetwork" placeholder="Сеть / платформа (Netflix, HBO...)" oninput="upd()">
+    <input type="text" id="sTagline" placeholder="Цитата / слоган" oninput="upd()">
+    <h4>9. Ник</h4>
+    <input type="text" id="sNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- OUTRO -->
+  <div class="mode-section" id="sec-outro">
+    <h4>Стиль</h4>
+    <div class="style-switcher" id="outroSB">
+      <button class="style-btn" onclick="setOutroStyle('light')">☀️ Светлый</button>
+      <button class="style-btn active" onclick="setOutroStyle('dark')">🌑 Тёмный</button>
+      <button class="style-btn" onclick="setOutroStyle('newspaper')">📰 Газета</button>
+      <button class="style-btn" onclick="setOutroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="outro-custom-block" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="use-btns" id="outroCustomBtns"></div>
+      <div id="outroCustomCtrls" style="display:none;flex-direction:column;gap:8px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="oBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="oBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="oDim" min="0" max="90" value="40" oninput="upd()"><span class="rval" id="oDimV">40%</span></div>
+        <h4>Панель</h4>
+        <div class="style-switcher">
+          <button class="style-btn active" id="oPnlSolid" onclick="setOutroPnl('solid')">▪ Тёмная</button>
+          <button class="style-btn" id="oPnlGlass" onclick="setOutroPnl('glass')">🫧 Glass</button>
+          <button class="style-btn" id="oPnlNone" onclick="setOutroPnl('none')">✕ Нет</button>
+        </div>
+        <button class="btn" style="background:#fee;color:#e74c3c;border:1px solid #fcc" onclick="clearBgFor('outro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stOutro" onclick="togS('outro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)" onclick="setSC('outro','rainbow',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#e74c3c,#e67e22)" onclick="setSC('outro','ro',this)"></div>
+      <div class="cs" style="background:#e74c3c" onclick="setSC('outro','red',this)"></div>
+    </div>
+    <h4>Заголовок</h4>
+    <input type="text" id="oH1" value="СПАСИБО" oninput="upd()">
+    <input type="text" id="oH2" value="ЗА ПРОСМОТР" oninput="upd()">
+    <h4>Текст</h4>
+    <textarea id="oText" rows="3" oninput="upd()">Ставь лайк если понравилось!
+Подписывайся чтобы не пропустить 🎬</textarea>
+    <h4>Элементы</h4>
+    <div class="toggle-block"><div class="tg">
+      <label><input type="checkbox" id="oTxt" checked onchange="upd()"> Текст</label>
+      <label><input type="checkbox" id="oTg" checked onchange="upd()"> Telegram</label>
+      <label><input type="checkbox" id="oQr" checked onchange="upd()"> QR-код</label>
+      <label><input type="checkbox" id="oNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="oDv" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Данные</h4>
+    <input type="text" id="oTgIn" placeholder="@твой_канал" oninput="upd()">
+    <input type="text" id="oQrIn" placeholder="https://t.me/твой_канал" oninput="updQr()">
+    <input type="text" id="oNkIn" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <h4>📷 Библиотека фото</h4>
+  <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
+  <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
+  <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
+</div>
+<!-- CARD -->
+<div class="card-outer" id="cardOuter">
+<div id="card" class="card-wrapper style-light">
+  <div class="card-bg" id="cardBg"></div>
+  <div class="card-dim" id="cardDim"></div>
+  <div class="film-grain" id="grain"></div>
+  <div class="top-stripe" id="topStripe"></div>
+
+  <!-- FILM VIEW -->
+  <div class="view show" id="filmView">
+    <div id="fTitleEl" class="card-title">НАЗВАНИЕ ФИЛЬМА</div>
+    <div class="card-body">
+      <div class="card-left">
+        <img id="fPoster" class="poster" src="" crossorigin="anonymous" alt="">
+        <div class="tech-box">
+          <div id="fTech">2025 · Жанр · 2ч</div>
+          <div id="bDir"><b>Режиссёр:</b> <span id="fDirEl">?</span></div>
+          <div id="bStd"><b>Студия:</b> <span id="fStdEl">?</span></div>
+          <div id="bAct" class="actors-section">
+            <div class="actors-label">В ролях:</div>
+            <div class="actors-row">
+              <div class="actor-item"><img class="actor-photo" id="fap0" src="" crossorigin="anonymous"><div class="actor-name" id="fan0">—</div></div>
+              <div class="actor-item"><img class="actor-photo" id="fap1" src="" crossorigin="anonymous"><div class="actor-name" id="fan1">—</div></div>
+              <div class="actor-item"><img class="actor-photo" id="fap2" src="" crossorigin="anonymous"><div class="actor-name" id="fan2">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-right">
+        <div class="opinion-area">
+          <div id="fSpl" class="spoiler-tag">СПОЙЛЕРЫ</div>
+          <div class="opinion-area-header">Рецензия:</div>
+          <div id="fOp2" class="opinion-text">Твой текст здесь...</div>
+          <div id="fExt" class="extra-ratings">
+            <div style="display:flex;justify-content:space-between">Сюжет <span id="fs1">★★★★☆</span></div>
+            <div style="display:flex;justify-content:space-between">Визуал <span id="fs2">★★★★★</span></div>
+            <div style="display:flex;justify-content:space-between">Звук <span id="fs3">★★★★☆</span></div>
+          </div>
+          <div id="bFac" class="fact-text"><b>Цитата:</b> <span id="fFacEl">...</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div id="fStars" class="stars"></div>
+      <div class="meta-text"><div id="fDateEl"></div><div id="fNickEl" style="margin-top:4px;opacity:.5">@cinema</div></div>
+    </div>
+  </div>
+
+  <!-- SERIES VIEW -->
+  <div class="view" id="seriesView">
+    <div id="sTitleEl" class="card-title" style="font-size:28px">НАЗВАНИЕ СЕРИАЛА</div>
+    <div class="card-body">
+      <div class="card-left">
+        <img id="sPoster" class="poster" src="" crossorigin="anonymous" alt="">
+        <div class="tech-box">
+          <div id="sTech">2025 · Жанр</div>
+          <div id="sStatusEl" style="margin-top:4px;font-size:11px;font-weight:700"></div>
+          <div id="sbDr"><b>Шоуранер:</b> <span id="sDrEl">?</span></div>
+          <div id="sbStd"><b>Платформа:</b> <span id="sStdEl">?</span></div>
+          <div id="sbAct" class="actors-section">
+            <div class="actors-label">В ролях:</div>
+            <div class="actors-row">
+              <div class="actor-item"><img class="actor-photo" id="sap0" src="" crossorigin="anonymous"><div class="actor-name" id="san0">—</div></div>
+              <div class="actor-item"><img class="actor-photo" id="sap1" src="" crossorigin="anonymous"><div class="actor-name" id="san1">—</div></div>
+              <div class="actor-item"><img class="actor-photo" id="sap2" src="" crossorigin="anonymous"><div class="actor-name" id="san2">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-right">
+        <div class="opinion-area">
+          <div id="sSpl" class="spoiler-tag">СПОЙЛЕРЫ</div>
+          <div class="opinion-area-header">Рецензия:</div>
+          <div id="sOp2" class="opinion-text">Твой текст здесь...</div>
+          <div id="sSeasonRatingsEl" class="season-ratings"></div>
+          <div id="sbFac" class="fact-text"><b>Цитата:</b> <span id="sFacEl">...</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div id="sStars" class="stars"></div>
+      <div class="meta-text"><div id="sDateEl"></div><div id="sNickEl" style="margin-top:4px;opacity:.5">@cinema</div></div>
+    </div>
+  </div>
+
+  <!-- INTRO VIEW -->
+  <div class="view" id="introView">
+    <div id="intro-dark" style="position:absolute;inset:0;display:flex">
+      <div class="intro-dark-bg"></div>
+      <div class="intro-dark-content">
+        <div id="iDkIco" class="intro-icons">🎬 🎥 🎞️</div>
+        <div id="iDkEy" class="intro-eyebrow">Новый выпуск</div>
+        <div class="intro-main-title"><span id="iDkL1">ОЦЕНКА</span><em id="iDkL2">КИНО</em></div>
+        <div id="iDkDv" class="intro-divider"></div>
+        <div id="iDkSu" class="intro-subtitle">Честный взгляд на кино</div>
+        <div id="iDkBa" class="intro-badge">Смотрим 🍿</div>
+        <div id="iDkNk" class="intro-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="intro-light" style="position:absolute;inset:0;display:none">
+      <div class="intro-light-bg"></div>
+      <div class="intro-light-deco" id="introLightDeco" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)"></div>
+      <div class="intro-light-content">
+        <div id="iLtIco" class="intro-light-icons">🎬 🎥 🎞️</div>
+        <div id="iLtEy" class="intro-light-label">Новый выпуск</div>
+        <div class="intro-light-title"><span id="iLtL1">ОЦЕНКА</span> <span id="iLtL2" style="color:#e74c3c">КИНО</span></div>
+        <div id="iLtDv" class="intro-light-divider"></div>
+        <div id="iLtSu" class="intro-light-sub">Честный взгляд на кино</div>
+        <div id="iLtBa" class="intro-light-badge">Смотрим 🍿</div>
+        <div id="iLtNk" class="intro-light-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="intro-newspaper" style="position:absolute;inset:0;display:none">
+      <div class="intro-news-bg"></div>
+      <div class="intro-news-border-top"></div><div class="intro-news-border-bot"></div>
+      <div class="intro-news-content">
+        <div id="iNwIco" class="intro-news-icons">🎬 🎥 🎞️</div>
+        <div id="iNwEy" class="intro-news-eyebrow">Новый выпуск</div>
+        <div class="intro-news-title"><span id="iNwL1">ОЦЕНКА</span><br><span id="iNwL2" style="color:#e74c3c">КИНО</span></div>
+        <div id="iNwDv" class="intro-news-divider"></div>
+        <div id="iNwSu" class="intro-news-sub">Честный взгляд на кино</div>
+        <div id="iNwBa" class="intro-news-badge">СМОТРИМ</div>
+        <div id="iNwNk" class="intro-news-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="intro-custom" style="position:absolute;inset:0;display:none;z-index:2;display:flex;align-items:center;justify-content:center">
+      <div id="introPanelWrap" class="pnl-solid" style="text-align:center">
+        <div id="iCuIco" class="intro-icons" style="opacity:.3">🎬 🎥 🎞️</div>
+        <div id="iCuEy" class="intro-eyebrow">Новый выпуск</div>
+        <div class="intro-main-title"><span id="iCuL1">ОЦЕНКА</span><em id="iCuL2">КИНО</em></div>
+        <div id="iCuDv" class="intro-divider"></div>
+        <div id="iCuSu" class="intro-subtitle">Честный взгляд на кино</div>
+        <div id="iCuBa" class="intro-badge">Смотрим 🍿</div>
+        <div id="iCuNk" class="intro-nick">@cinema</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTRO VIEW -->
+  <div class="view" id="outroView">
+    <div id="outro-dark" style="position:absolute;inset:0;display:flex">
+      <div style="position:absolute;inset:0;background:#111"></div>
+      <div style="position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:13px;padding:40px">
+        <div class="outro-title"><span id="oDkH1">СПАСИБО</span><em id="oDkH2">ЗА ПРОСМОТР</em></div>
+        <div id="oDkDv" class="outro-divider"></div>
+        <div id="oDkTxt" class="outro-text"></div>
+        <div id="oDkTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div class="outro-tg-label">Подписывайся</div>
+          <div class="outro-tg-name" id="oDkTg">@твой_канал</div>
+        </div>
+        <div id="oDkQrBlk" class="qrbox"><img id="qrDk" src="" alt="QR"></div>
+        <div id="oDkNk" class="outro-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="outro-light" style="position:absolute;inset:0;display:none">
+      <div class="outro-light-bg"></div>
+      <div class="outro-light-deco" id="outroLightDeco" style="background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)"></div>
+      <div style="position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:13px;padding:40px">
+        <div class="outro-light-title"><span id="oLtH1">СПАСИБО</span><span id="oLtH2">ЗА ПРОСМОТР</span></div>
+        <div id="oLtDv" class="outro-light-divider"></div>
+        <div id="oLtTxt" class="outro-light-text"></div>
+        <div id="oLtTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div class="outro-light-tg-label">Подписывайся</div>
+          <div class="outro-light-tg-name" id="oLtTg">@твой_канал</div>
+        </div>
+        <div id="oLtQrBlk" class="outro-light-qr"><img id="qrLt" src="" alt="QR" style="width:100%;height:100%;border-radius:3px"></div>
+        <div id="oLtNk" class="outro-light-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="outro-newspaper" style="position:absolute;inset:0;display:none">
+      <div class="outro-news-bg"></div>
+      <div class="outro-news-border-top"></div><div class="outro-news-border-bot"></div>
+      <div style="position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:13px;padding:40px">
+        <div class="outro-news-title"><span id="oNwH1">СПАСИБО</span><br><span id="oNwH2" style="color:#e74c3c">ЗА ПРОСМОТР</span></div>
+        <div id="oNwDv" class="outro-news-divider"></div>
+        <div id="oNwTxt" class="outro-news-text"></div>
+        <div id="oNwTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div class="outro-news-tg-label">Подписывайся</div>
+          <div class="outro-news-tg-name" id="oNwTg">@твой_канал</div>
+        </div>
+        <div id="oNwQrBlk" class="outro-news-qr"><img id="qrNw" src="" alt="QR" style="width:100%;height:100%;filter:invert(1)"></div>
+        <div id="oNwNk" class="outro-news-nick">@cinema</div>
+      </div>
+    </div>
+    <div id="outro-custom" style="position:absolute;inset:0;display:none;z-index:2;display:flex;align-items:center;justify-content:center">
+      <div id="outroPanelWrap" class="pnl-solid" style="text-align:center">
+        <div class="outro-title"><span id="oCuH1">СПАСИБО</span><em id="oCuH2">ЗА ПРОСМОТР</em></div>
+        <div id="oCuDv" class="outro-divider"></div>
+        <div id="oCuTxt" class="outro-text"></div>
+        <div id="oCuTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div class="outro-tg-label">Подписывайся</div>
+          <div class="outro-tg-name" id="oCuTg">@твой_канал</div>
+        </div>
+        <div id="oCuQrBlk" class="qrbox"><img id="qrCu" src="" alt="QR"></div>
+        <div id="oCuNk" class="outro-nick">@cinema</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /card-outer -->
+<script>
+/* Mobile card scale */
+function setCardScale(){
+  if(window.innerWidth<=640){
+    const s=Math.min((window.innerWidth-24)/600,.95);
+    document.getElementById('cardOuter').style.setProperty('--card-scale',s);
+    document.getElementById('cardOuter').style.height=(800*s)+'px';
+  } else {
+    document.getElementById('cardOuter').style.setProperty('--card-scale','1');
+    document.getElementById('cardOuter').style.height='';
+  }
+}
+window.addEventListener('resize',setCardScale);
+document.addEventListener('DOMContentLoaded',setCardScale);
+setCardScale();
+</script>
+<script>
+const TMDB_KEY='53039e5ed72046b6be330aa9d8dbd112';
+let mode='film', introSty='dark', outroSty='dark', filmSty='light', seriesSty='light';
+let filmPnlSty='solid', introPnlSty='solid', outroPnlSty='solid', seriesPnlSty='solid';
+let seriesStatus='finished';
+let filmRevFont='montserrat', seriesRevFont='montserrat';
+let lastPC=null;
+let lib=[];
+const bgState={film:{src:null,idx:null},series:{src:null,idx:null},intro:{src:null,idx:null},outro:{src:null,idx:null}};
+const SS={intro:{on:false,c:'rainbow'},film:{on:false,c:'rainbow'},series:{on:false,c:'rainbow'},outro:{on:false,c:'rainbow'}};
+const SG={rainbow:'linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6)',ro:'linear-gradient(90deg,#e74c3c,#e67e22)',bp:'linear-gradient(90deg,#3498db,#9b59b6)',gd:'linear-gradient(90deg,#f1c40f,#e67e22)',red:'#e74c3c'};
+let seasonRatings=[4,4,0,0,0,0];
+
+document.getElementById('fDate').valueAsDate=new Date();
+document.getElementById('sDate').valueAsDate=new Date();
+
+// Build season inputs
+function buildSeasonInputs(){
+  const n=Math.min(parseInt(document.getElementById('sSeasons').value)||1,6);
+  const wrap=document.getElementById('seasonRatingsIn');
+  wrap.innerHTML='';
+  for(let i=0;i<n;i++){
+    const row=document.createElement('div');row.className='season-row';
+    row.innerHTML=`<label>Сезон ${i+1}</label><input type="range" min="0.5" max="5" step="0.5" value="${seasonRatings[i]||3}" oninput="seasonRatings[${i}]=parseFloat(this.value);document.getElementById('sr${i}v').textContent=this.value+'★';upd()"><span style="font-size:11px;font-weight:700;min-width:30px;color:#333" id="sr${i}v">${seasonRatings[i]||3}★</span>`;
+    wrap.appendChild(row);
+  }
+}
+buildSeasonInputs();
+document.getElementById('sSeasons').addEventListener('input',buildSeasonInputs);
+
+/* STRIPE */
+function togS(m){
+  SS[m].on=!SS[m].on;
+  const nm=m[0].toUpperCase()+m.slice(1);
+  const b=document.getElementById('st'+nm);
+  b.classList.toggle('on',SS[m].on);b.textContent=SS[m].on?'Вкл ✓':'Выкл';
+  applyStripe();
+}
+function setSC(m,k,el){SS[m].c=k;el.parentElement.querySelectorAll('.cs').forEach(s=>s.classList.remove('active'));el.classList.add('active');applyStripe()}
+function applyStripe(){
+  const s=document.getElementById('topStripe'),st=SS[mode]||SS.film;
+  s.style.display=st.on?'block':'none';
+  if(st.on)s.style.background=SG[st.c];
+}
+
+/* LIBRARY */
+function addLib(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{lib.push(e.target.result);renderLib()};r.readAsDataURL(f);ev.target.value=''}
+function renderLib(){
+  const g=document.getElementById('libGrid');g.innerHTML='';
+  lib.forEach((src,i)=>{
+    const t=document.createElement('div');t.className='lt';
+    if(Object.values(bgState).some(b=>b.idx===i))t.classList.add('selbg');
+    t.innerHTML=`<img src="${src}"><div class="ldel" onclick="event.stopPropagation();delLib(${i})">✕</div>`;
+    t.onclick=()=>{setBgFor(mode,i);if(mode==='film'){document.getElementById('fPoster').src=src}else if(mode==='series'){document.getElementById('sPoster').src=src}};
+    g.appendChild(t);
+  });
+  const a=document.createElement('div');a.className='ladd';a.textContent='＋';a.onclick=()=>document.getElementById('libIn').click();g.appendChild(a);
+  ['film','series','intro','outro'].forEach(buildBgBtns);
+}
+function delLib(i){lib.splice(i,1);Object.keys(bgState).forEach(m=>{if(bgState[m].idx===i)clearBgFor(m);else if(bgState[m].idx>i)bgState[m].idx--});renderLib()}
+function buildBgBtns(m){
+  const el=document.getElementById(m+'CustomBtns');if(!el)return;el.innerHTML='';
+  if(!lib.length){el.innerHTML='<span style="font-size:11px;color:#aaa">Добавь фото ↑</span>';return}
+  lib.forEach((src,i)=>{const b=document.createElement('button');b.className='use-btn'+(bgState[m].idx===i?' active':'');b.innerHTML=`<img src="${src}" style="width:18px;height:18px;object-fit:cover;border-radius:3px"> Фото ${i+1}`;b.onclick=()=>setBgFor(m,i);el.appendChild(b)});
+}
+function setBgFor(m,i){bgState[m].idx=i;bgState[m].src=lib[i];const ctrl=document.getElementById(m+'CustomCtrls');if(ctrl)ctrl.style.display='flex';renderLib();upd()}
+function clearBgFor(m){bgState[m].idx=null;bgState[m].src=null;const ctrl=document.getElementById(m+'CustomCtrls');if(ctrl)ctrl.style.display='none';renderLib();upd()}
+
+/* STYLES */
+const STYLES=['light','dark','newspaper','custom'];
+function applyCardStyle(s){
+  const c=document.getElementById('card');
+  STYLES.forEach(x=>c.classList.remove('style-'+x));
+  c.classList.add('style-'+s);
+  c.classList.remove('pm-solid','pm-glass');
+}
+function setFilmStyle(s){filmSty=s;document.querySelectorAll('#filmSB .style-btn').forEach((b,i)=>b.classList.toggle('active',STYLES[i]===s));document.getElementById('film-custom-block').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
+function setSeriesStyle(s){seriesSty=s;document.querySelectorAll('#seriesSB .style-btn').forEach((b,i)=>b.classList.toggle('active',STYLES[i]===s));document.getElementById('series-custom-block').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
+function setFilmPnl(ps){filmPnlSty=ps;document.getElementById('fPnlSolid').classList.toggle('active',ps==='solid');document.getElementById('fPnlGlass').classList.toggle('active',ps==='glass');upd()}
+function setSeriesPnl(ps){seriesPnlSty=ps;document.getElementById('sPnlSolid').classList.toggle('active',ps==='solid');document.getElementById('sPnlGlass').classList.toggle('active',ps==='glass');upd()}
+function setIntroStyle(s){introSty=s;document.querySelectorAll('#introSB .style-btn').forEach((b,i)=>b.classList.toggle('active',['light','dark','newspaper','custom'][i]===s));['dark','light','newspaper','custom'].forEach(x=>{const el=document.getElementById('intro-'+x);if(el)el.style.display=x===s?'flex':'none'});document.getElementById('intro-custom-block').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();applyStripe();upd()}
+function setOutroStyle(s){outroSty=s;document.querySelectorAll('#outroSB .style-btn').forEach((b,i)=>b.classList.toggle('active',['light','dark','newspaper','custom'][i]===s));['dark','light','newspaper','custom'].forEach(x=>{const el=document.getElementById('outro-'+x);if(el)el.style.display=x===s?'flex':'none'});document.getElementById('outro-custom-block').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();applyStripe();upd()}
+function setIntroPnl(ps){introPnlSty=ps;['iPnlSolid','iPnlGlass','iPnlNone'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id.includes(ps==='solid'?'Solid':ps==='glass'?'Glass':'None'))});setPnlClass(document.getElementById('introPanelWrap'),ps);upd()}
+function setOutroPnl(ps){outroPnlSty=ps;['oPnlSolid','oPnlGlass','oPnlNone'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id.includes(ps==='solid'?'Solid':ps==='glass'?'Glass':'None'))});setPnlClass(document.getElementById('outroPanelWrap'),ps);upd()}
+function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid';else if(ps==='glass')el.className='pnl-glass'}
+
+function setStatus(s){seriesStatus=s;document.querySelectorAll('#statusSB .style-btn').forEach((b,i)=>b.classList.toggle('active',['finished','ongoing','announced'][i]===s));upd()}
+function setRevFont(target,f){
+  const fonts=['montserrat','playfair','mono'];
+  if(target==='film'){filmRevFont=f;document.querySelectorAll('#fFontSB .style-btn').forEach((b,i)=>b.classList.toggle('active',fonts[i]===f))}
+  else{seriesRevFont=f;document.querySelectorAll('#sFontSB .style-btn').forEach((b,i)=>b.classList.toggle('active',fonts[i]===f))}
+  upd();
+}
+
+function hideBgLayers(){document.getElementById('cardBg').style.display='none';document.getElementById('cardDim').style.display='none'}
+
+/* MODE */
+function setMode(m){
+  mode=m;
+  ['film','series','intro','outro'].forEach(n=>{
+    const sec=document.getElementById('sec-'+n);if(sec)sec.classList.toggle('show',n===m);
+    const view=document.getElementById(n+'View');if(view){view.classList.toggle('show',n===m);view.style.display=n===m?'flex':'none'}
+  });
+  document.querySelectorAll('.mode-tab').forEach((b,i)=>b.classList.toggle('active',['intro','film','series','outro'][i]===m));
+  hideBgLayers();applyStripe();upd();
+}
+
+/* SEARCH */
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap')){
+    ['resultsList','seriesResultsList'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+  }
+});
+
+async function doSearch(type){
+  const qEl=type==='film'?document.getElementById('fSearch'):document.getElementById('sSearch');
+  const q=qEl.value.trim();if(!q)return;
+  const resId=type==='film'?'resultsList':'seriesResultsList';
+  const res=document.getElementById(resId);
+  res.innerHTML='<div class="ri" style="color:#888;font-style:italic">Поиск...</div>';res.style.display='block';
+  try{
+    const searchType=type==='film'?'movie':'tv';
+    const r=await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&language=ru-RU&query=${encodeURIComponent(q)}`);
+    const d=await r.json();
+    res.innerHTML='';
+    if(!d.results?.length){res.innerHTML='<div class="ri" style="color:#888">Ничего не найдено</div>';return}
+    d.results.slice(0,7).forEach(item=>{
+      const div=document.createElement('div');div.className='ri';
+      const title=item.title||item.name||'—';
+      const year=(item.release_date||item.first_air_date||'').slice(0,4);
+      const img=item.poster_path?`https://image.tmdb.org/t/p/w92${item.poster_path}`:'';
+      div.innerHTML=`<img src="${img}" onerror="this.style.display='none'"><div><b>${title}</b><span>${year}</span></div>`;
+      div.onclick=()=>type==='film'?pickFilm(item.id):pickSeries(item.id);
+      res.appendChild(div);
+    });
+  }catch(e){res.innerHTML='<div class="ri" style="color:#e74c3c">Ошибка. Проверь соединение.</div>'}
+}
+
+async function pickFilm(id){
+  document.getElementById('resultsList').style.display='none';
+  const[mR,cR]=await Promise.all([
+    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=ru-RU`),
+    fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}&language=ru-RU`)
+  ]);
+  const m=await mR.json(),c=await cR.json();
+  const h=Math.floor((m.runtime||0)/60),mn=(m.runtime||0)%60;
+  document.getElementById('fTitle').value=m.title||'';
+  document.getElementById('fDirector').value=c.crew?.find(x=>x.job==='Director')?.name||'';
+  document.getElementById('fStudio').value=m.production_companies?.[0]?.name||'';
+  document.getElementById('fTagline').value=m.tagline||'';
+  if(m.poster_path)document.getElementById('fPoster').src='https://image.tmdb.org/t/p/w500'+m.poster_path;
+  document.getElementById('fTitleEl').innerText=(m.title||'').toUpperCase();
+  document.getElementById('fTech').innerText=`${m.release_date?.slice(0,4)||'—'} · ${m.genres?.[0]?.name||'—'} · ${h}ч ${mn}м`;
+  document.getElementById('fDirEl').innerText=c.crew?.find(x=>x.job==='Director')?.name||'?';
+  document.getElementById('fStdEl').innerText=m.production_companies?.[0]?.name||'Инди';
+  document.getElementById('fFacEl').innerText=m.tagline||'Нужно смотреть!';
+  const cast=(c.cast||[]).slice(0,3);
+  for(let i=0;i<3;i++){const a=cast[i];document.getElementById('fan'+i).innerText=a?.name||'';document.getElementById('fap'+i).src=a?.profile_path?'https://image.tmdb.org/t/p/w185'+a.profile_path:'';document.getElementById('fap'+i).style.background=a?.profile_path?'':'#ccc'}
+  upd();
+}
+
+async function pickSeries(id){
+  document.getElementById('seriesResultsList').style.display='none';
+  const[mR,cR]=await Promise.all([
+    fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_KEY}&language=ru-RU`),
+    fetch(`https://api.themoviedb.org/3/tv/${id}/credits?api_key=${TMDB_KEY}&language=ru-RU`)
+  ]);
+  const m=await mR.json(),c=await cR.json();
+  document.getElementById('sTitle').value=m.name||'';
+  document.getElementById('sShowrunner').value=m.created_by?.[0]?.name||'';
+  document.getElementById('sNetwork').value=m.networks?.[0]?.name||m.production_companies?.[0]?.name||'';
+  document.getElementById('sTagline').value=m.tagline||'';
+  document.getElementById('sSeasons').value=m.number_of_seasons||1;
+  document.getElementById('sEpisodes').value=m.number_of_episodes||10;
+  // status
+  const st=m.status;
+  if(st==='Ended'||st==='Canceled')setStatus('finished');
+  else if(st==='Returning Series'||st==='In Production')setStatus('ongoing');
+  else setStatus('announced');
+  if(m.poster_path)document.getElementById('sPoster').src='https://image.tmdb.org/t/p/w500'+m.poster_path;
+  document.getElementById('sTech').innerText=`${m.first_air_date?.slice(0,4)||'—'} · ${m.genres?.[0]?.name||'—'}`;
+  document.getElementById('sDrEl').innerText=m.created_by?.[0]?.name||'?';
+  document.getElementById('sStdEl').innerText=m.networks?.[0]?.name||'—';
+  document.getElementById('sFacEl').innerText=m.tagline||'Стоит посмотреть!';
+  const cast=(c.cast||[]).slice(0,3);
+  for(let i=0;i<3;i++){const a=cast[i];document.getElementById('san'+i).innerText=a?.name||'';document.getElementById('sap'+i).src=a?.profile_path?'https://image.tmdb.org/t/p/w185'+a.profile_path:'';document.getElementById('sap'+i).style.background=a?.profile_path?'':'#ccc'}
+  buildSeasonInputs();upd();
+}
+
+document.getElementById('fPoster').onload=function(){
+  if(filmSty!=='light')return;
+  try{const col=new ColorThief().getColor(this);lastPC=col;if(filmSty==='light'&&lastPC)document.getElementById('card').style.background=`linear-gradient(180deg,#fff 20%,rgba(${lastPC[0]},${lastPC[1]},${lastPC[2]},.35) 100%)`}catch(e){}
+};
+
+/* STARS */
+function svgStar(t,sz=40){const p="12 2 15 8.5 22 9 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9 9 8.5 12 2";if(t==='full')return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="#FFD700"><polygon points="${p}"/></svg>`;if(t==='half')return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}"><defs><linearGradient id="hg${sz}"><stop offset="50%" stop-color="#FFD700"/><stop offset="50%" stop-color="#ccc"/></linearGradient></defs><polygon fill="url(#hg${sz})" points="${p}"/></svg>`;return`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="#ccc"><polygon points="${p}"/></svg>`}
+function buildStars(v){let h='';for(let i=1;i<=5;i++){if(v>=i)h+=svgStar('full');else if(v>=i-.5)h+=svgStar('half');else h+=svgStar('empty')}return h}
+function gS(v){let s='';for(let i=1;i<=5;i++){if(v>=i)s+='★';else if(v>=i-.5)s+='½';else s+='☆'}return s}
+
+/* BG */
+function applyBg(src,blurId,dimId,satId){
+  const bg=document.getElementById('cardBg'),dim=document.getElementById('cardDim');
+  const bl=document.getElementById(blurId)?.value||0;
+  const di=document.getElementById(dimId)?.value||35;
+  const sa=satId?document.getElementById(satId)?.value||100:100;
+  if(document.getElementById(blurId+'V'))document.getElementById(blurId+'V').textContent=bl+'px';
+  if(document.getElementById(dimId+'V'))document.getElementById(dimId+'V').textContent=di+'%';
+  if(satId&&document.getElementById(satId+'V'))document.getElementById(satId+'V').textContent=sa+'%';
+  bg.style.backgroundImage=`url('${src}')`;bg.style.filter=`blur(${bl}px) saturate(${sa}%)`;bg.style.transform=`scale(${1+bl*.015})`;bg.style.display='block';
+  dim.style.background=`rgba(0,0,0,${di/100})`;dim.style.display='block';
+}
+
+/* MAIN UPDATE */
+function _updCore(){
+  const card=document.getElementById('card');
+
+  if(mode==='film'){
+    applyCardStyle(filmSty);
+    const rate=parseFloat(document.getElementById('fRate').value)||0;
+    const title=(document.getElementById('fTitle').value||'НАЗВАНИЕ ФИЛЬМА').toUpperCase();
+    const nick=document.getElementById('fNick').value||'@cinema';
+    const dv=document.getElementById('fDate').value;
+    document.getElementById('fTitleEl').innerText=title;
+    document.getElementById('fOp2').innerText=document.getElementById('fOp').value||'Твой текст здесь...';
+    document.getElementById('fNickEl').innerText=nick;
+    if(dv)document.getElementById('fDateEl').innerText=new Date(dv).toLocaleDateString('ru-RU');
+    document.getElementById('fDateEl').style.display=document.getElementById('cDt').checked?'block':'none';
+    document.getElementById('fDirEl').innerText=document.getElementById('fDirector').value||'?';
+    document.getElementById('fStdEl').innerText=document.getElementById('fStudio').value||'?';
+    document.getElementById('fFacEl').innerText=document.getElementById('fTagline').value||'...';
+    document.getElementById('grain').style.display=document.getElementById('cGr').checked?'block':'none';
+    document.getElementById('bDir').style.display=document.getElementById('cDr').checked?'block':'none';
+    document.getElementById('bStd').style.display=document.getElementById('cSt').checked?'block':'none';
+    document.getElementById('bAct').style.display=document.getElementById('cAc').checked?'block':'none';
+    document.getElementById('bFac').style.display=document.getElementById('cFa').checked?'block':'none';
+    document.getElementById('fSpl').style.display=document.getElementById('cSp').checked?'block':'none';
+    const ex=document.getElementById('cEx').checked;
+    document.getElementById('fExt').style.display=ex?'flex':'none';
+    document.getElementById('fExtraIn').style.display=ex?'flex':'none';
+    document.getElementById('fs1').innerText=gS(parseFloat(document.getElementById('fr1').value)||0);
+    document.getElementById('fs2').innerText=gS(parseFloat(document.getElementById('fr2').value)||0);
+    document.getElementById('fs3').innerText=gS(parseFloat(document.getElementById('fr3').value)||0);
+    document.getElementById('fStars').innerHTML=buildStars(rate);
+    // apply review font
+    const fArea=document.getElementById('filmView').querySelector('.opinion-area');
+    if(fArea){['rf-playfair','rf-mono','rf-courier'].forEach(c=>fArea.classList.remove(c));if(filmRevFont==='playfair')fArea.classList.add('rf-playfair');else if(filmRevFont==='mono')fArea.classList.add('rf-mono')}
+    // bg
+    if(filmSty==='custom'&&bgState.film.src){
+      applyBg(bgState.film.src,'fBlur','fDim','fSat');
+      const op=parseInt(document.getElementById('fPnlOp').value||75)/100;
+      document.getElementById('fPnlOpV').textContent=Math.round(op*100)+'%';
+      card.style.setProperty('--psol',`rgba(0,0,0,${op})`);
+      card.classList.add('pm-'+filmPnlSty);
+    }else if(filmSty!=='custom'){hideBgLayers()}
+    if(filmSty==='light'&&lastPC)card.style.background=`linear-gradient(180deg,#fff 20%,rgba(${lastPC[0]},${lastPC[1]},${lastPC[2]},.35) 100%)`;
+    // auto-fit text
+    const opEl=document.getElementById('fOp2');let fs=20;opEl.style.fontSize=fs+'px';
+    while(opEl.scrollHeight>opEl.offsetHeight&&fs>8){fs-=.5;opEl.style.fontSize=fs+'px'}
+  }
+
+  if(mode==='series'){
+    applyCardStyle(seriesSty);
+    const rate=parseFloat(document.getElementById('sRate').value)||0;
+    const title=(document.getElementById('sTitle').value||'НАЗВАНИЕ СЕРИАЛА').toUpperCase();
+    const nick=document.getElementById('sNick').value||'@cinema';
+    const dv=document.getElementById('sDate').value;
+    const ns=parseInt(document.getElementById('sSeasons').value)||1;
+    const ne=parseInt(document.getElementById('sEpisodes').value)||10;
+    document.getElementById('sTitleEl').innerText=title;
+    document.getElementById('sOp2').innerText=document.getElementById('sOp').value||'Твой текст здесь...';
+    document.getElementById('sNickEl').innerText=nick;
+    if(dv)document.getElementById('sDateEl').innerText=new Date(dv).toLocaleDateString('ru-RU');
+    document.getElementById('sDateEl').style.display=document.getElementById('scDt').checked?'block':'none';
+    document.getElementById('sDrEl').innerText=document.getElementById('sShowrunner').value||'?';
+    document.getElementById('sStdEl').innerText=document.getElementById('sNetwork').value||'?';
+    document.getElementById('sFacEl').innerText=document.getElementById('sTagline').value||'...';
+    // status badge
+    const statusLabels={finished:'Завершён',ongoing:'Онгоинг',announced:'Анонс'};
+    const statusCls={finished:'status-finished',ongoing:'status-ongoing',announced:'status-announced'};
+    document.getElementById('sTech').innerText=`${ns} сез. · ${ne} эп.`;
+    const statusEl=document.getElementById('sStatusEl');
+    statusEl.innerHTML=`<span class="status-badge ${statusCls[seriesStatus]}">${statusLabels[seriesStatus]}</span>`;
+    // toggles
+    document.getElementById('grain').style.display=document.getElementById('scGr').checked?'block':'none';
+    document.getElementById('sbDr').style.display=document.getElementById('scDr').checked?'block':'none';
+    document.getElementById('sbStd').style.display=document.getElementById('scSt').checked?'block':'none';
+    document.getElementById('sbAct').style.display=document.getElementById('scAc').checked?'block':'none';
+    document.getElementById('sbFac').style.display=document.getElementById('scFa').checked?'block':'none';
+    document.getElementById('sSpl').style.display=document.getElementById('scSp').checked?'block':'none';
+    // season ratings on card
+    const seREl=document.getElementById('sSeasonRatingsEl');
+    const showSeR=document.getElementById('scSeR').checked;
+    seREl.style.display=showSeR?'flex':'none';
+    if(showSeR){
+      const n=Math.min(ns,6);seREl.innerHTML='';
+      for(let i=0;i<n;i++){
+        const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between';
+        row.innerHTML=`<span>Сезон ${i+1}</span><span>${gS(seasonRatings[i]||3)}</span>`;
+        seREl.appendChild(row);
+      }
+    }
+    document.getElementById('sStars').innerHTML=buildStars(rate);
+    // apply review font
+    const sArea=document.getElementById('seriesView').querySelector('.opinion-area');
+    if(sArea){['rf-playfair','rf-mono','rf-courier'].forEach(c=>sArea.classList.remove(c));if(seriesRevFont==='playfair')sArea.classList.add('rf-playfair');else if(seriesRevFont==='mono')sArea.classList.add('rf-mono')}
+    // bg
+    if(seriesSty==='custom'&&bgState.series.src){
+      applyBg(bgState.series.src,'sBlur','sDim','sSat');
+      const op=parseInt(document.getElementById('sPnlOp').value||75)/100;
+      document.getElementById('sPnlOpV').textContent=Math.round(op*100)+'%';
+      card.style.setProperty('--psol',`rgba(0,0,0,${op})`);
+      card.classList.add('pm-'+seriesPnlSty);
+    }else if(seriesSty!=='custom'){hideBgLayers()}
+    // auto-fit
+    const opEl=document.getElementById('sOp2');let fs=20;opEl.style.fontSize=fs+'px';
+    while(opEl.scrollHeight>opEl.offsetHeight&&fs>8){fs-=.5;opEl.style.fontSize=fs+'px'}
+  }
+
+  /* INTRO CONTENT */
+  const it=document.getElementById('introType').value;
+  const ITT=[['ОЦЕНКА','КИНО'],['МОЁ','МНЕНИЕ'],['ФИЛЬМЫ','НЕДЕЛИ'],['РАЗБОР','ФИЛЬМА']];
+  let l1,l2;if(it==='c'){l1=(document.getElementById('ic1').value||'МОЙ').toUpperCase();l2=(document.getElementById('ic2').value||'КОНТЕНТ').toUpperCase()}else{const p=ITT[parseInt(it)]||ITT[0];l1=p[0];l2=p[1]}
+  const ey=document.getElementById('iShowEy').checked,su=document.getElementById('iShowSu').checked,ba=document.getElementById('iShowBa').checked,ic=document.getElementById('iShowIc').checked,nk=document.getElementById('iShowNk').checked,dvi=document.getElementById('iShowDv').checked;
+  const sv=document.getElementById('introSubTxt').value||'Честный взгляд на кино';
+  const bv=document.getElementById('introBadgeTxt').value||'Смотрим 🍿';
+  const nv=document.getElementById('introNickTxt').value||'@cinema';
+  [['Dk',false],['Lt',false],['Nw',true],['Cu',false]].forEach(([pre,isNews])=>{
+    const S=(id,v)=>{const el=document.getElementById('i'+pre+id);if(el)el.innerText=v};
+    const V=(id,show)=>{const el=document.getElementById('i'+pre+id);if(el)el.style.display=show?'block':'none'};
+    S('L1',l1);S('L2',l2);V('Ey',ey);V('Su',su);V('Ba',ba);V('Ico',ic);V('Nk',nk);V('Dv',dvi);
+    S('Su',sv);S('Ba',isNews?bv.toUpperCase():bv);S('Nk',nv);
+  });
+  if(mode==='intro'&&introSty==='custom'){
+    if(bgState.intro.src)applyBg(bgState.intro.src,'iBlur','iDim',null);else hideBgLayers();
+    setPnlClass(document.getElementById('introPanelWrap'),introPnlSty);
+  }else if(mode==='intro')hideBgLayers();
+
+  /* OUTRO CONTENT */
+  const h1=document.getElementById('oH1').value||'СПАСИБО';
+  const h2=document.getElementById('oH2').value||'ЗА ПРОСМОТР';
+  const ot=document.getElementById('oText').value;
+  const tv=document.getElementById('oTgIn').value;
+  const tgv=tv?(tv.startsWith('@')?tv:'@'+tv):'@твой_канал';
+  const nkv=document.getElementById('oNkIn').value||'@cinema';
+  const oTxt=document.getElementById('oTxt').checked,oTg=document.getElementById('oTg').checked,oQr=document.getElementById('oQr').checked,oNk=document.getElementById('oNk').checked,oDv=document.getElementById('oDv').checked;
+  [['Dk','dark'],['Lt','light'],['Nw','newspaper'],['Cu','custom']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById('o'+pre+id);if(el)el.innerText=v};
+    const V=(id,show,fl)=>{const el=document.getElementById('o'+pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('H1',h1);S('H2',h2);
+    const te=document.getElementById('o'+pre+'Txt');if(te){te.innerHTML=ot.replace(/\n/g,'<br>');te.style.display=oTxt?'block':'none'}
+    V('Dv',oDv);V('TgBlk',oTg,true);V('QrBlk',oQr,true);V('Nk',oNk);
+    S('Tg',tgv);S('Nk',nkv);
+  });
+  if(mode==='outro'&&outroSty==='custom'){
+    if(bgState.outro.src)applyBg(bgState.outro.src,'oBlur','oDim',null);else hideBgLayers();
+    setPnlClass(document.getElementById('outroPanelWrap'),outroPnlSty);
+  }else if(mode==='outro')hideBgLayers();
+  applyStripe();
+}
+
+function introTC(){const v=document.getElementById('introType').value,s=v==='c';document.getElementById('ic1').style.display=s?'block':'none';document.getElementById('ic2').style.display=s?'block':'none';upd()}
+
+let lqr='';
+function updQr(){
+  const u=document.getElementById('oQrIn').value.trim();
+  if(u&&u!==lqr){lqr=u;const s=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}`;['qrDk','qrLt','qrNw','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=s})}
+  upd();
+}
+
+/* SAVE + GALLERY */
+function save(){
+  const c=document.getElementById('card');
+  html2canvas(c,{scale:2,useCORS:true,allowTaint:false,backgroundColor:null,logging:false}).then(cv=>{
+    const dataUrl=cv.toDataURL('image/png');
+    const a=document.createElement('a');a.href=dataUrl;a.download=`kino_${mode}_${Date.now()}.png`;a.click();
+    // Save compressed thumbnail to gallery
+    try{
+      const th=document.createElement('canvas');
+      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
+      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+      const thumb=th.toDataURL('image/jpeg',0.75);
+      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+      const labels={intro:'Кино · Начало',film:'Кино · Фильм',series:'Кино · Сериал',outro:'Кино · Конец'};
+      items.unshift({thumb,type:labels[mode]||'Кино',date:new Date().toLocaleDateString('ru-RU')});
+      if(items.length>50)items.pop();
+      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+    }catch(e){console.warn('Gallery save failed:',e)}
+  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+}
+
+/* AUTOSAVE */
+const AS_KEY='cinema_draft';
+function collectDraft(){
+  const ids=['fTitle','fDirector','fStudio','fTagline','fOp','fNick','fDate','fRate',
+    'sTitle','sShowrunner','sNetwork','sTagline','sOp','sNick','sDate','sRate','sSeasons','sEpisodes',
+    'introSubTxt','introBadgeTxt','introNickTxt','oH1','oH2','oText','oTgIn','oQrIn','oNkIn'];
+  const d={};ids.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value});
+  d._mode=mode;d._filmSty=filmSty;d._seriesSty=seriesSty;d._introSty=introSty;d._outroSty=outroSty;
+  d._status=seriesStatus;d._seasonRatings=JSON.stringify(seasonRatings);
+  d._filmRevFont=filmRevFont;d._seriesRevFont=seriesRevFont;
+  const fp=document.getElementById('fPoster');if(fp&&fp.src&&fp.src.startsWith('http'))d._fPoster=fp.src;
+  const sp=document.getElementById('sPoster');if(sp&&sp.src&&sp.src.startsWith('http'))d._sPoster=sp.src;
+  return d;
+}
+function applyDraft(d){
+  if(!d)return;
+  const ids=['fTitle','fDirector','fStudio','fTagline','fOp','fNick','fDate','fRate',
+    'sTitle','sShowrunner','sNetwork','sTagline','sOp','sNick','sDate','sRate','sSeasons','sEpisodes',
+    'introSubTxt','introBadgeTxt','introNickTxt','oH1','oH2','oText','oTgIn','oQrIn','oNkIn'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.value=d[id]});
+  if(d._fPoster)document.getElementById('fPoster').src=d._fPoster;
+  if(d._sPoster)document.getElementById('sPoster').src=d._sPoster;
+  try{if(d._seasonRatings)seasonRatings=JSON.parse(d._seasonRatings)}catch(e){}
+  if(d._filmSty)setFilmStyle(d._filmSty);
+  if(d._seriesSty)setSeriesStyle(d._seriesSty);
+  if(d._introSty)setIntroStyle(d._introSty);
+  if(d._outroSty)setOutroStyle(d._outroSty);
+  if(d._status)setStatus(d._status);
+  if(d._filmRevFont)setRevFont('film',d._filmRevFont);
+  if(d._seriesRevFont)setRevFont('series',d._seriesRevFont);
+  buildSeasonInputs();
+  if(d._mode)setMode(d._mode);
+  if(d._oQrIn){const u=document.getElementById('oQrIn');if(u){u.value=d._oQrIn;updQr()}}
+}
+let _asTimer=null;
+function upd(){_updCore();clearTimeout(_asTimer);_asTimer=setTimeout(()=>{try{localStorage.setItem(AS_KEY,JSON.stringify(collectDraft()))}catch(e){}},1500)}
+try{const d=JSON.parse(localStorage.getItem(AS_KEY)||'null');if(d)setTimeout(()=>applyDraft(d),150)}catch(e){}
+
+// INIT
+setIntroStyle('dark');
+setOutroStyle('dark');
+upd();
+</script>
+</body>
+</html>

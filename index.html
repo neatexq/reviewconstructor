@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Конструктор рецензий</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#e63946;--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bor:#252525;--txt:#e8e8e8;--txt2:#555}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:50px}
+.logo{text-align:center}
+.logo-t{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:10px;color:#fff;line-height:1}
+.logo-t span{color:var(--acc)}
+.logo-s{font-size:10px;letter-spacing:4px;color:var(--txt2);margin-top:6px;text-transform:uppercase}
+.cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.card{width:240px;background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:28px 22px;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:block}
+.card:hover{border-color:var(--acc);transform:translateY(-5px);box-shadow:0 24px 48px rgba(0,0,0,.6)}
+.card-ico{font-size:46px;margin-bottom:14px;display:block}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:#fff}
+.card-desc{font-size:10px;color:var(--txt2);margin-top:7px;line-height:1.65;letter-spacing:.3px}
+
+/* GALLERY */
+.gallery-section{width:100%;max-width:900px}
+.gal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.gal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:#fff}
+.gal-clear{font-size:10px;letter-spacing:1px;color:var(--txt2);cursor:pointer;padding:4px 10px;border:1px solid var(--bor);border-radius:5px;background:transparent;font-family:'Space Mono',monospace;transition:all .15s}
+.gal-clear:hover{border-color:var(--acc);color:var(--acc)}
+.gal-empty{font-size:10px;color:var(--txt2);letter-spacing:1px;padding:20px;text-align:center;border:1px dashed var(--bor);border-radius:10px}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.gal-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--bor);cursor:pointer;transition:border-color .15s}
+.gal-item:hover{border-color:var(--acc)}
+.gal-item img{width:100%;display:block;object-fit:cover}
+.gal-item-del{position:absolute;top:6px;right:6px;width:22px;height:22px;background:rgba(230,57,70,.9);border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}
+.gal-item:hover .gal-item-del{opacity:1}
+.gal-item-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:8px 8px 6px;font-size:8px;letter-spacing:1px;color:rgba(255,255,255,.6);text-transform:uppercase}
+
+.deco{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden}
+.deco-circle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,.06),transparent 60%)}
+
+@media(max-width:600px){
+  body{padding:24px 16px;gap:32px}
+  .logo-t{font-size:38px;letter-spacing:6px}
+  .cards{flex-direction:column;align-items:stretch;gap:12px}
+  .card{width:100%;display:flex;flex-direction:row;align-items:center;gap:16px;padding:18px 16px;text-align:left;border-radius:14px}
+  .card-ico{font-size:36px;margin-bottom:0;flex-shrink:0}
+  .card-title{font-size:22px}
+  .card-desc{font-size:10px;margin-top:4px}
+  .gal-title{font-size:18px}
+  .gal-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+  .gal-head{flex-wrap:wrap;gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="deco">
+  <div class="deco-circle" style="width:600px;height:600px;top:-200px;right:-100px"></div>
+  <div class="deco-circle" style="width:400px;height:400px;bottom:-100px;left:-100px"></div>
+</div>
+
+<div class="logo">
+  <div class="logo-t">КРИТИ<span>К</span></div>
+  <div class="logo-s">Конструктор рецензий</div>
+</div>
+
+<div class="cards">
+  <a href="music.html" class="card">
+    <span class="card-ico">🎵</span>
+    <div class="card-title">Музыка</div>
+    <div class="card-desc">Рецензии на треки и альбомы. Поиск через iTunes, виниловые диски, оценки, треклисты.</div>
+  </a>
+  <a href="cinema.html" class="card">
+    <span class="card-ico">🎬</span>
+    <div class="card-title">Кино</div>
+    <div class="card-desc">Рецензии на фильмы и сериалы. Поиск через TMDB, постеры, актёры, оценки по сезонам.</div>
+  </a>
+</div>
+
+<div class="gallery-section">
+  <div class="gal-head">
+    <div class="gal-title">МОИ РЕЦЕНЗИИ</div>
+    <button class="gal-clear" onclick="clearGallery()">Очистить всё</button>
+  </div>
+  <div id="galGrid" class="gal-grid"></div>
+  <div id="galEmpty" class="gal-empty" style="display:none">Нет сохранённых рецензий. Скачай PNG в конструкторе — он появится здесь.</div>
+</div>
+
+<script>
+function loadGallery(){
+  const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+  const grid=document.getElementById('galGrid');
+  const empty=document.getElementById('galEmpty');
+  grid.innerHTML='';
+  if(!items.length){empty.style.display='block';grid.style.display='none';return}
+  empty.style.display='none';grid.style.display='grid';
+  items.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='gal-item';
+    d.innerHTML=`<img src="${item.thumb}" loading="lazy"><div class="gal-item-del" onclick="event.stopPropagation();delReview(${i})">✕</div><div class="gal-item-meta">${item.type} · ${item.date}</div>`;
+    d.onclick=()=>window.open(item.thumb,'_blank');
+    grid.appendChild(d);
+  });
+}
+function delReview(i){
+  const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+  items.splice(i,1);
+  localStorage.setItem('reviews_gallery',JSON.stringify(items));
+  loadGallery();
+}
+function clearGallery(){
+  if(confirm('Удалить все сохранённые рецензии?')){localStorage.removeItem('reviews_gallery');loadGallery()}
+}
+loadGallery();
+</script>
+</body>
+</html>
