@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Музыка-Конструктор</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Unbounded:wght@700;900&family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--acc:#e63946;--acc2:#f4a261;--bg:#111;--bg2:#1a1a1a;--bg3:#222;--bor:#2e2e2e;--txt:#e8e8e8;--txt2:#888}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -168,9 +168,6 @@ textarea{resize:vertical;min-height:75px}
 .th-custom .al-score-big{color:var(--acc)}
 .th-custom .tl-head{color:rgba(255,255,255,.3)}
 
-/* glass panels */
-.pm-glass .ct-infobox{background:rgba(255,255,255,.1)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;border:1px solid rgba(255,255,255,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)!important}
-.pm-glass .ct-review{background:rgba(255,255,255,.08)!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)!important}
 
 /* ── TRACK VIEW ── */
 .track-view{padding:26px 28px 22px;display:flex;flex-direction:column;height:100%;gap:10px}
@@ -272,7 +269,6 @@ textarea{resize:vertical;min-height:75px}
 /* custom */
 .io-cu-inner{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:14px}
 .pnl-solid{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px}
-.pnl-glass{background:rgba(255,255,255,.1);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 
 /* OUTRO specific */
 .outro-tgname{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;color:#2AABEE;position:relative;z-index:2}
@@ -280,11 +276,7 @@ textarea{resize:vertical;min-height:75px}
 .outro-qr img{width:100%;height:100%;border-radius:3px}
 .outro-qr-dark{width:90px;height:90px;background:#1a1005;border-radius:4px;padding:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2}
 .outro-qr-dark img{width:100%;height:100%;filter:invert(1)}
-/* Glass fallback for html2canvas export */
-.card-wrap.pm-glass-export .ct-infobox{background:rgba(255,255,255,0.15)!important;border:1px solid rgba(255,255,255,0.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)!important}
-.card-wrap.pm-glass-export .ct-review{background:rgba(255,255,255,0.12)!important;border:1px solid rgba(255,255,255,0.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)!important}
-.card-wrap.pm-glass-export .pnl-glass{background:rgba(255,255,255,0.14)!important;border:1px solid rgba(255,255,255,0.22)!important}
-
+.card-wrap.card-wrap.card-wrap
 /* ─── MOBILE ─── */
 .card-outer{flex-shrink:0;align-self:flex-start}
 @media(hover:none){.ldel{opacity:1!important}}
@@ -342,7 +334,7 @@ textarea{resize:vertical;min-height:75px}
         <div class="rrow"><label>Размытие</label><input type="range" id="iBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="iBlurV">0px</span></div>
         <div class="rrow"><label>Затемнение</label><input type="range" id="iDim" min="0" max="90" value="45" oninput="upd()"><span class="rval" id="iDimV">45%</span></div>
         <h4>Панель</h4>
-        <div class="sbrow"><button class="sb active" id="iPnlS" onclick="setIntroPnl('solid')">▪ Тёмная</button><button class="sb" id="iPnlG" onclick="setIntroPnl('glass')">🫧 Glass</button><button class="sb" id="iPnlN" onclick="setIntroPnl('none')">✕ Нет</button></div>
+        <div class="sbrow"><button class="sb active" id="iPnlS" onclick="setIntroPnl('solid')">▪ Тёмная</button><button class="sb" id="iPnlN" onclick="setIntroPnl('none')">✕ Нет</button></div>
         <button class="btn delbtn" onclick="clearBg('intro')">✕ Убрать фото</button>
       </div>
     </div>
@@ -396,7 +388,7 @@ textarea{resize:vertical;min-height:75px}
         <div class="rrow"><label>Затемнение</label><input type="range" id="trDim" min="0" max="90" value="40" oninput="upd()"><span class="rval" id="trDimV">40%</span></div>
         <div class="rrow"><label>Насыщ.</label><input type="range" id="trSat" min="0" max="200" value="110" oninput="upd()"><span class="rval" id="trSatV">110%</span></div>
         <h4>Подложки</h4>
-        <div class="sbrow"><button class="sb active" id="trPnlS" onclick="setTrPnl('solid')">▪ Тёмные</button><button class="sb" id="trPnlG" onclick="setTrPnl('glass')">🫧 Glass</button></div>
+        <div class="sbrow"><button class="sb active" id="trPnlS" onclick="setTrPnl('solid')">▪ Тёмные</button></div>
         <div class="rrow"><label>Прозрачность</label><input type="range" id="trPnlOp" min="10" max="95" value="65" oninput="upd()"><span class="rval" id="trPnlOpV">65%</span></div>
         <button class="btn delbtn" onclick="clearBg('track')">✕ Убрать фото</button>
       </div>
@@ -575,7 +567,7 @@ textarea{resize:vertical;min-height:75px}
         <div class="rrow"><label>Размытие</label><input type="range" id="oBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="oBlurV">0px</span></div>
         <div class="rrow"><label>Затемнение</label><input type="range" id="oDim" min="0" max="90" value="45" oninput="upd()"><span class="rval" id="oDimV">45%</span></div>
         <h4>Панель</h4>
-        <div class="sbrow"><button class="sb active" id="oPnlS" onclick="setOutroPnl('solid')">▪ Тёмная</button><button class="sb" id="oPnlG" onclick="setOutroPnl('glass')">🫧 Glass</button><button class="sb" id="oPnlN" onclick="setOutroPnl('none')">✕ Нет</button></div>
+        <div class="sbrow"><button class="sb active" id="oPnlS" onclick="setOutroPnl('solid')">▪ Тёмная</button><button class="sb" id="oPnlN" onclick="setOutroPnl('none')">✕ Нет</button></div>
         <button class="btn delbtn" onclick="clearBg('outro')">✕ Убрать фото</button>
       </div>
     </div>
@@ -952,9 +944,9 @@ function applyTheme(t){const c=document.getElementById('card');THEMES.forEach(x=
 function setTrStyle(s){trSty=s;document.querySelectorAll('#trSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','paper','custom'][i]===s));document.getElementById('trCustBlock').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
 function setAlStyle(s){alSty=s;document.querySelectorAll('#alSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','paper','custom'][i]===s));document.getElementById('alCustBlock').style.display=s==='custom'?'block':'none';if(s!=='custom')hideBgLayers();upd()}
 function setTrPnl(ps){trPnl=ps;['trPnlS','trPnlG'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id===('trPnl'+(ps==='solid'?'S':'G')))});upd()}
-function setIntroPnl(ps){iPnl=ps;['iPnlS','iPnlG','iPnlN'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id==='iPnl'+(ps==='solid'?'S':ps==='glass'?'G':'N'))});setPnlClass(document.getElementById('cuPanel'),ps);upd()}
-function setOutroPnl(ps){oPnl=ps;['oPnlS','oPnlG','oPnlN'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id==='oPnl'+(ps==='solid'?'S':ps==='glass'?'G':'N'))});setPnlClass(document.getElementById('ocuPanel'),ps);upd()}
-function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid';else if(ps==='glass')el.className='pnl-glass'}
+function setIntroPnl(ps){iPnl=ps;document.getElementById('iPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('iPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('cuPanel'),ps);upd()}
+function setOutroPnl(ps){oPnl=ps;document.getElementById('oPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('oPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('ocuPanel'),ps);upd()}
+function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid'}
 function hideBgLayers(){document.getElementById('cardBg').style.display='none';document.getElementById('cardDim').style.display='none'}
 
 function setIntroStyle(s){
@@ -1180,8 +1172,7 @@ function _updCore(){
   /* TRACK */
   if(mode==='track'){
     applyTheme(trSty);
-    card.classList.remove('pm-glass');
-
+    
     const maxScore=scoreSys==='5'?5:10;
     const score=Math.min(parseFloat(document.getElementById('trScore').value)||0,maxScore);
     const artist=document.getElementById('trArtist').value||'Исполнитель';
@@ -1259,7 +1250,6 @@ function _updCore(){
       applyBg(bgS.track.src,'trBlur','trDim','trSat');
       const op=parseInt(document.getElementById('trPnlOp')?.value||65)/100;
       document.getElementById('trPnlOpV').textContent=Math.round(op*100)+'%';
-      if(trPnl==='glass'){card.classList.add('pm-glass')}
       else{[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.08)!important`})}
     }else{if(trSty!=='custom'){hideBgLayers();[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=''})}}
 
@@ -1271,8 +1261,7 @@ function _updCore(){
   /* ALBUM */
   if(mode==='album'){
     applyTheme(alSty);
-    card.classList.remove('pm-glass');
-
+    
     const maxScore=alScoreSys==='5'?5:10;
     const score=Math.min(parseFloat(document.getElementById('alScore').value)||0,maxScore);
     const artist=document.getElementById('alArtist').value||'Исполнитель';
@@ -1395,22 +1384,21 @@ function updQr(){
 
 function save(){
   const c=document.getElementById('card');
-  htmlToImage.toPng(c,{pixelRatio:2,cacheBust:true}).then(dataUrl=>{
+  html2canvas(c,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
+    const dataUrl=cv.toDataURL('image/png');
     const a=document.createElement('a');a.href=dataUrl;a.download=`muzyka_${mode}_${Date.now()}.png`;a.click();
     try{
-      const img=new Image();img.onload=()=>{
-        const th=document.createElement('canvas');
-        const scale=200/c.offsetWidth;th.width=200;th.height=Math.round(c.offsetHeight*scale);
-        th.getContext('2d').drawImage(img,0,0,th.width,th.height);
-        const thumb=th.toDataURL('image/jpeg',0.75);
-        const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
-        const labels={intro:'Музыка · Начало',track:'Музыка · Трек',album:'Музыка · Альбом',outro:'Музыка · Конец'};
-        items.unshift({thumb,type:labels[mode]||'Музыка',date:new Date().toLocaleDateString('ru-RU')});
-        if(items.length>50)items.pop();
-        localStorage.setItem('reviews_gallery',JSON.stringify(items));
-      };img.src=dataUrl;
-    }catch(e){console.warn('Gallery save failed:',e)}
-  }).catch(err=>{console.error(err);alert('Ошибка экспорта. Используй Chrome.');});
+      const th=document.createElement('canvas');
+      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
+      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+      const thumb=th.toDataURL('image/jpeg',0.75);
+      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+      const labels={intro:'Музыка · Начало',track:'Музыка · Трек',album:'Музыка · Альбом',outro:'Музыка · Конец'};
+      items.unshift({thumb,type:labels[mode]||'Музыка',date:new Date().toLocaleDateString('ru-RU')});
+      if(items.length>50)items.pop();
+      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+    }catch(e){}
+  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
 }
 
 
