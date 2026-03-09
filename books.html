@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Книги-Конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--acc:#c8a96e;--acc2:#7c5c2e;--bg:#0f0d0b;--bg2:#171410;--bg3:#1e1a15;--bor:#2e2820;--txt:#e8e0d0;--txt2:#6b5f4a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);display:flex;gap:20px;padding:20px;justify-content:center;min-height:100vh;color:var(--txt)}
+.ctrl{width:420px;background:var(--bg2);border:1px solid var(--bor);padding:16px;border-radius:12px;display:flex;flex-direction:column;gap:8px;max-height:97vh;overflow-y:auto;align-self:flex-start;flex-shrink:0}
+.ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#2e2820;border-radius:2px}
+.ctrl-head{font-family:'Playfair Display',serif;font-size:18px;letter-spacing:2px;color:#fff;border-bottom:3px solid var(--acc);padding-bottom:8px;margin-bottom:2px;font-style:italic}
+h4{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;padding-bottom:3px;border-bottom:1px solid var(--bor);margin-top:4px;font-family:'Space Mono',monospace}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:12px;font-family:'Space Mono',monospace;color:var(--txt);outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+select option{background:var(--bg)}
+textarea{resize:vertical;min-height:75px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tabs{display:flex;gap:4px}
+.tab{flex:1;padding:7px 3px;border:1px solid var(--bor);border-radius:7px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .2s;text-align:center;font-family:'Space Mono',monospace}
+.tab.active{background:var(--acc);border-color:var(--acc);color:#1a1005}
+.sec{display:none;flex-direction:column;gap:7px}.sec.show{display:flex}
+.sbrow{display:flex;gap:4px;flex-wrap:wrap}
+.sb{padding:5px 10px;border:1px solid var(--bor);border-radius:5px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Space Mono',monospace}
+.sb.active{border-color:var(--acc);color:var(--acc);background:rgba(200,169,110,.08)}
+.tblock{background:var(--bg);border:1px solid var(--bor);padding:8px;border-radius:7px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.tg label{font-size:10px;display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 4px;border-radius:4px;color:#aaa}
+.tg label:hover{background:rgba(255,255,255,.03)}
+.tg input[type=checkbox]{accent-color:var(--acc);width:12px;height:12px}
+.srow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--bor);padding:7px 10px;border-radius:7px}
+.srow label{font-size:9px;color:var(--txt2);min-width:42px;letter-spacing:.3px;text-transform:uppercase}
+.stog{padding:2px 9px;border:1px solid var(--bor);border-radius:4px;background:var(--bg2);font-size:10px;font-weight:700;cursor:pointer;color:var(--txt2);font-family:'Space Mono',monospace;transition:all .2s}
+.stog.on{background:var(--acc);border-color:var(--acc);color:#1a1005}
+.cs{width:20px;height:20px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.cs.active{border-color:#fff;transform:scale(1.25)}
+.lib-grid{display:flex;flex-wrap:wrap;gap:6px;background:var(--bg);padding:7px;border-radius:8px;border:1px solid var(--bor)}
+.lt{position:relative;width:52px;height:52px;cursor:pointer;border:2px solid transparent;border-radius:7px;overflow:hidden;transition:border-color .15s;flex-shrink:0}
+.lt img{width:100%;height:100%;object-fit:cover;display:block}
+.lt:hover{border-color:#c8a96e}.lt.sel{border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc)}
+.ldel{position:absolute;top:1px;right:1px;width:14px;height:14px;background:rgba(200,169,110,.9);border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#1a1005;cursor:pointer;opacity:0;transition:opacity .15s}
+.lt:hover .ldel{opacity:1}
+.ladd{width:52px;height:52px;border:2px dashed var(--bor);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#444;transition:all .15s;flex-shrink:0}
+.ladd:hover{border-color:var(--acc);color:var(--acc)}
+.rrow{display:flex;align-items:center;gap:7px}
+.rrow label{font-size:9px;color:var(--txt2);min-width:70px;flex-shrink:0;letter-spacing:.3px;text-transform:uppercase}
+.rrow input[type=range]{flex:1;accent-color:var(--acc)}
+.rval{font-size:10px;font-weight:700;min-width:34px;color:var(--txt)}
+.btn{width:100%;padding:7px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3);color:var(--txt2);font-family:'Space Mono',monospace;transition:all .2s;border:1px solid var(--bor)}
+.btn:hover{background:var(--bor);color:var(--txt)}
+.savebtn{background:var(--acc)!important;border-color:var(--acc)!important;color:#1a1005!important;padding:12px;margin-top:4px;font-size:13px;letter-spacing:2px}
+.savebtn:hover{background:#b8996e!important}
+.delbtn{background:var(--bg)!important;border-color:var(--acc)!important;color:var(--acc)!important}
+.ri{padding:10px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:11px;display:flex;align-items:center;gap:9px;color:#bbb;-webkit-tap-highlight-color:rgba(200,169,110,.2);user-select:none}
+.ri:hover{background:var(--bg2)}
+.ri img{width:36px;height:52px;object-fit:cover;border-radius:3px;flex-shrink:0;background:#1a1a1a}
+.ri b{display:block;color:#ddd;font-size:11px}
+.ri span{font-size:10px;color:#666}
+
+/* CARD */
+.card-outer{flex-shrink:0;align-self:flex-start}
+.card-wrap{width:600px;height:800px;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.8);flex-shrink:0}
+.view{position:absolute;inset:0;display:none;flex-direction:column;z-index:2}.view.show{display:flex}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;display:none}
+.card-dim{position:absolute;inset:0;z-index:1;pointer-events:none;display:none}
+.top-stripe{position:absolute;top:0;left:0;right:0;height:6px;z-index:30;display:none}
+
+/* ── THEMES ── */
+/* DARK */
+.th-dark{background:#0c0a07}
+.th-dark .bk-eyebrow{color:rgba(200,169,110,.5)}
+.th-dark .bk-title{color:#fff}
+.th-dark .bk-author{color:rgba(255,255,255,.5)}
+.th-dark .bk-tag{background:rgba(200,169,110,.07);border:1px solid rgba(200,169,110,.18);color:rgba(200,169,110,.6)}
+.th-dark .bk-infobox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.th-dark .bk-infobox b{color:rgba(200,169,110,.35)}
+.th-dark .bk-infobox span{color:rgba(255,255,255,.75)}
+.th-dark .bk-review{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.th-dark .bk-review-lbl{color:rgba(200,169,110,.4)}
+.th-dark .bk-review-txt{color:rgba(255,255,255,.88)}
+.th-dark .bk-quote{color:rgba(255,255,255,.45);border-left-color:rgba(200,169,110,.3)}
+.th-dark .bk-footer-nick{color:rgba(255,255,255,.18)}
+.th-dark .bk-footer-date{color:rgba(255,255,255,.18)}
+.th-dark .bk-score-num{fill:#fff}
+.th-dark .bk-score-ring-bg{stroke:rgba(255,255,255,.07)}
+/* PAPER */
+.th-paper{background:#f0e8d8}
+.th-paper .bk-eyebrow{color:#8a7a5a;letter-spacing:4px}
+.th-paper .bk-title{color:#1a1005;font-family:'Playfair Display',serif!important;font-style:italic}
+.th-paper .bk-author{color:#5a4a2a}
+.th-paper .bk-tag{background:#ddd5b8;border:1px solid #8a7a5a;color:#5a4a2a}
+.th-paper .bk-infobox{background:#e8e0cc;border:1px solid #b0a080;box-shadow:2px 2px 0 rgba(42,26,5,.1)}
+.th-paper .bk-infobox b{color:#8a7a5a}
+.th-paper .bk-infobox span{color:#1a1005}
+.th-paper .bk-review{background:#eae4d0;border:1px solid #b0a080;box-shadow:2px 2px 0 rgba(42,26,5,.1)}
+.th-paper .bk-review-lbl{color:#8a7a5a;letter-spacing:2px}
+.th-paper .bk-review-txt{color:#1a1005}
+.th-paper .bk-quote{color:#5a4a2a;border-left-color:#8a7a5a;font-style:italic}
+.th-paper .bk-footer-nick{color:#8a7a5a}
+.th-paper .bk-footer-date{color:#8a7a5a}
+.th-paper .bk-score-num{fill:#1a1005}
+.th-paper .bk-score-ring-bg{stroke:rgba(42,26,5,.12)}
+.th-paper .bk-cover{border:2px solid #8a7a5a;box-shadow:5px 5px 0 rgba(42,26,5,.15)}
+/* NIGHT */
+.th-night{background:#0a0a14}
+.th-night .bk-eyebrow{color:rgba(150,130,255,.5)}
+.th-night .bk-title{color:#e8e8ff}
+.th-night .bk-author{color:rgba(200,200,255,.45)}
+.th-night .bk-tag{background:rgba(150,130,255,.08);border:1px solid rgba(150,130,255,.2);color:rgba(180,160,255,.6)}
+.th-night .bk-infobox{background:rgba(150,130,255,.05);border:1px solid rgba(150,130,255,.12)}
+.th-night .bk-infobox b{color:rgba(150,130,255,.4)}
+.th-night .bk-infobox span{color:rgba(220,215,255,.8)}
+.th-night .bk-review{background:rgba(0,0,0,.3);border:1px solid rgba(150,130,255,.1)}
+.th-night .bk-review-lbl{color:rgba(150,130,255,.45)}
+.th-night .bk-review-txt{color:rgba(230,228,255,.9)}
+.th-night .bk-quote{color:rgba(200,195,255,.5);border-left-color:rgba(150,130,255,.3)}
+.th-night .bk-footer-nick{color:rgba(150,130,255,.25)}
+.th-night .bk-footer-date{color:rgba(150,130,255,.25)}
+.th-night .bk-score-num{fill:#e8e8ff}
+.th-night .bk-score-ring-bg{stroke:rgba(150,130,255,.1)}
+/* CUSTOM */
+.th-custom .bk-eyebrow{color:rgba(200,169,110,.6)}
+.th-custom .bk-title{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.th-custom .bk-author{color:rgba(255,255,255,.5)}
+.th-custom .bk-tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55)}
+.th-custom .bk-infobox{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1)}
+.th-custom .bk-infobox b{color:rgba(200,169,110,.4)}
+.th-custom .bk-infobox span{color:rgba(255,255,255,.85)}
+.th-custom .bk-review{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1)}
+.th-custom .bk-review-lbl{color:rgba(200,169,110,.5)}
+.th-custom .bk-review-txt{color:rgba(255,255,255,.9)}
+.th-custom .bk-quote{color:rgba(255,255,255,.45);border-left-color:rgba(200,169,110,.4)}
+.th-custom .bk-footer-nick{color:rgba(255,255,255,.18)}
+.th-custom .bk-footer-date{color:rgba(255,255,255,.18)}
+.th-custom .bk-score-num{fill:#fff}
+.th-custom .bk-score-ring-bg{stroke:rgba(255,255,255,.1)}
+
+/* ── BOOK VIEW ── */
+.book-view{padding:28px 28px 22px;display:flex;flex-direction:column;height:100%;gap:11px}
+.bk-header{display:flex;gap:20px;align-items:flex-start;flex-shrink:0}
+.bk-cover-zone{position:relative;flex-shrink:0}
+.bk-cover{width:130px;height:195px;object-fit:cover;display:block;background:#1a1005;box-shadow:6px 6px 20px rgba(0,0,0,.5)}
+.bk-spine{position:absolute;left:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.3)}
+.bk-meta{flex:1;display:flex;flex-direction:column;gap:6px;padding-top:2px;min-width:0}
+.bk-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase}
+.bk-title{font-family:'Playfair Display',serif;font-size:26px;line-height:1.1;letter-spacing:.3px;word-break:break-word;font-weight:700}
+.bk-author{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;letter-spacing:.5px}
+.bk-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.bk-tag{font-size:8px;padding:2px 7px;border-radius:2px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace}
+.bk-score-area{display:flex;align-items:center;gap:10px;margin-top:4px}
+.bk-score-ring svg{width:64px;height:64px}
+.bk-score-ring-bg{fill:none;stroke-width:7}
+.bk-score-ring-fill{fill:none;stroke-width:7;stroke-linecap:round;stroke-dasharray:201.1;stroke-dashoffset:201.1;transform-origin:50% 50%;transform:rotate(-90deg)}
+.bk-score-num{font-family:'Playfair Display',serif;font-size:22px;dominant-baseline:middle;text-anchor:middle;font-weight:700}
+.bk-stars-col{display:flex;flex-direction:column;gap:2px}
+.bk-stars-row{display:flex}
+.bk-score-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase}
+.bk-num-only{display:none;font-family:'Playfair Display',serif;font-size:60px;line-height:1;color:var(--acc);font-weight:700}
+
+.bk-infobox{padding:9px 12px;border-radius:7px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;flex-shrink:0}
+.bk-infobox .ic{display:flex;flex-direction:column;gap:1px}
+.bk-infobox b{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;display:block;font-family:'Space Mono',monospace}
+.bk-infobox span{font-size:10px;font-family:'Space Mono',monospace;line-height:1.4}
+
+.bk-quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;line-height:1.55;padding:0 0 0 12px;border-left:3px solid;flex-shrink:0;letter-spacing:.2px}
+
+.bk-review{border-radius:9px;padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}
+.bk-review-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;flex-shrink:0}
+.bk-review-txt{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;line-height:1.5;flex:1;overflow:hidden;white-space:pre-wrap}
+.rv-font-garamond .bk-review-txt{font-family:'EB Garamond',serif;font-style:italic;font-size:16px}
+.rv-font-mono .bk-review-txt{font-family:'Space Mono',monospace;font-style:normal;font-size:11px;line-height:1.55}
+.rv-font-playfair .bk-review-txt{font-family:'Playfair Display',serif;font-size:15px;line-height:1.5}
+.rv-font-modern .bk-review-txt{font-family:'Montserrat',sans-serif;font-style:normal;font-size:12px;line-height:1.5;font-weight:400}
+
+.bk-footer{display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0}
+.bk-footer-nick{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px}
+.bk-footer-date{font-family:'Space Mono',monospace;font-size:9px;margin-top:2px;letter-spacing:1px}
+
+/* INTRO/OUTRO */
+.io-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:50px 44px;z-index:2}
+.io-dk-bg{position:absolute;inset:0;background:#0c0a07;z-index:0}
+.io-dk-deco{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(200,169,110,.07) 0%,transparent 55%);z-index:0}
+.io-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--acc);text-transform:uppercase;position:relative;z-index:2}
+.io-title{font-family:'Playfair Display',serif;font-size:58px;line-height:.92;color:#fff;letter-spacing:1px;position:relative;z-index:2;font-style:italic}
+.io-title em{display:block;-webkit-text-stroke:1.5px var(--acc);color:transparent;font-style:normal;font-family:'Bebas Neue',sans-serif;letter-spacing:3px;font-size:52px}
+.io-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:rgba(255,255,255,.38);max-width:340px;line-height:1.65;position:relative;z-index:2}
+.io-badge{background:var(--acc);color:#1a1005;padding:7px 22px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;border-radius:2px;position:relative;z-index:2}
+.io-div{width:40px;height:1px;background:var(--acc);position:relative;z-index:2}
+.io-nick{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:2px;position:relative;z-index:2}
+.io-icons{font-size:24px;opacity:.1;letter-spacing:14px;position:relative;z-index:2}
+/* paper intro */
+.io-pp-bg{position:absolute;inset:0;background:#f0e8d8;z-index:0}
+.io-pp-stripe{position:absolute;top:0;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,#1a1005 0,#1a1005 8px,transparent 8px,transparent 16px);z-index:1}
+.io-pp-stripe-b{position:absolute;bottom:0;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,#1a1005 0,#1a1005 8px,transparent 8px,transparent 16px);z-index:1}
+.io-pp-title{font-family:'Playfair Display',serif;font-size:56px;line-height:.92;color:#1a1005;font-style:italic;position:relative;z-index:2}
+.io-pp-title span.acc{color:var(--acc2);font-style:normal;font-family:'Bebas Neue',sans-serif;letter-spacing:3px;font-size:50px;-webkit-text-stroke:1px var(--acc2)}
+.io-pp-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:#8a7a5a;text-transform:uppercase;position:relative;z-index:2}
+.io-pp-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#5a4a2a;max-width:340px;line-height:1.65;border-top:1px solid #8a7a5a;border-bottom:1px solid #8a7a5a;padding:8px 0;width:80%;position:relative;z-index:2}
+.io-pp-badge{background:#1a1005;color:#f0e8d8;padding:7px 20px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;position:relative;z-index:2}
+.io-pp-nick{font-family:'Space Mono',monospace;font-size:9px;color:#8a7a5a;letter-spacing:2px;position:relative;z-index:2}
+.io-pp-icons{font-size:24px;opacity:.12;letter-spacing:12px;position:relative;z-index:2}
+.pnl-solid{background:rgba(0,0,0,.6);border:1px solid rgba(200,169,110,.12);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px}
+/* outro */
+.outro-tgname{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:#2AABEE;position:relative;z-index:2}
+.outro-qr{width:90px;height:90px;background:#fff;border-radius:8px;padding:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2}
+.outro-qr img{width:100%;height:100%;border-radius:3px}
+
+/* MOBILE */
+@media(hover:none){.ldel{opacity:1!important}}
+@media(max-width:900px){
+  body{flex-direction:column;align-items:stretch;padding:12px;gap:14px;min-height:auto}
+  .ctrl{width:100%;max-height:none;overflow-y:visible}
+  .card-outer{align-self:center;width:100%;display:flex;justify-content:center}
+}
+@media(max-width:640px){
+  .tab{font-size:10px;padding:10px 3px}
+  .btn{padding:11px;font-size:13px}
+  .savebtn{padding:14px!important;font-size:14px!important}
+  input[type=text],input[type=number],input[type=date],textarea,select{font-size:16px!important;padding:9px 11px}
+  .card-outer{overflow:visible}
+  .card-wrap{transform:scale(var(--card-scale,.55));transform-origin:top center;margin-bottom:calc((800px * var(--card-scale,.55)) - 800px)}
+}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <div class="ctrl-head" style="display:flex;align-items:center;gap:10px">
+    <a href="index.html" style="font-size:16px;text-decoration:none;color:var(--txt2);border:1px solid var(--bor);border-radius:5px;padding:2px 8px;font-family:Space Mono,monospace;font-style:normal">←</a>
+    📚 Книги-Конструктор
+  </div>
+  <div class="tabs">
+    <button class="tab" onclick="setMode('intro')">▶ Начало</button>
+    <button class="tab active" onclick="setMode('book')">📖 Книга</button>
+    <button class="tab" onclick="setMode('outro')">◀ Конец</button>
+  </div>
+
+  <!-- INTRO -->
+  <div class="sec" id="sec-intro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="introSB">
+      <button class="sb active" onclick="setIntroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setIntroStyle('paper')">📰 Бумага</button>
+      <button class="sb" onclick="setIntroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="iCustBlock" style="display:none;flex-direction:column;gap:7px">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="iCustBtns"></div>
+      <div id="iCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="iBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="iBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="iDim" min="0" max="90" value="50" oninput="upd()"><span class="rval" id="iDimV">50%</span></div>
+        <div class="sbrow"><button class="sb active" id="iPnlS" onclick="setIntroPnl('solid')">▪ Тёмная</button><button class="sb" id="iPnlN" onclick="setIntroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('intro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stIntro" onclick="togS('intro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#c8a96e,#7c5c2e)" onclick="setSC('intro','gold',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#9b59b6,#c8a96e)" onclick="setSC('intro','violet',this)"></div>
+      <div class="cs" style="background:#c8a96e" onclick="setSC('intro','amber',this)"></div>
+      <div class="cs" style="background:rgba(255,255,255,.4)" onclick="setSC('intro','whi',this)"></div>
+    </div>
+    <h4>Тип заставки</h4>
+    <select id="introType" onchange="introTC()">
+      <option value="0">Обзоры книг</option>
+      <option value="1">Книга месяца</option>
+      <option value="2">Читаем вместе</option>
+      <option value="3">Новинки</option>
+      <option value="c">✏️ Свой текст →</option>
+    </select>
+    <input type="text" id="ic1" placeholder="Строка 1..." oninput="upd()" style="display:none">
+    <input type="text" id="ic2" placeholder="Строка 2 (акцент)..." oninput="upd()" style="display:none">
+    <h4>Текст</h4>
+    <input type="text" id="iSubTxt" value="Честная книжная критика" oninput="upd()">
+    <input type="text" id="iBgTxt" value="ЧИТАЕМ 📚" oninput="upd()">
+    <input type="text" id="iNkTxt" placeholder="@твой_ник" oninput="upd()">
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="iEl" checked onchange="upd()"> Метка</label>
+      <label><input type="checkbox" id="iSb" checked onchange="upd()"> Подзаголовок</label>
+      <label><input type="checkbox" id="iBgEl" checked onchange="upd()"> Бейдж</label>
+      <label><input type="checkbox" id="iIc" checked onchange="upd()"> Иконки 📚</label>
+      <label><input type="checkbox" id="iNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="iDvEl" checked onchange="upd()"> Линия</label>
+    </div></div>
+  </div>
+
+  <!-- BOOK -->
+  <div class="sec show" id="sec-book">
+    <h4>Стиль карточки</h4>
+    <div class="sbrow" id="bkSB">
+      <button class="sb active" onclick="setBkStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setBkStyle('paper')">📰 Бумага</button>
+      <button class="sb" onclick="setBkStyle('night')">🌙 Ночной</button>
+      <button class="sb" onclick="setBkStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="bkCustBlock" style="display:none;flex-direction:column;gap:7px">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="bkCustBtns"></div>
+      <div id="bkCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="bkBlur" min="0" max="20" value="5" oninput="upd()"><span class="rval" id="bkBlurV">5px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="bkDim" min="0" max="90" value="55" oninput="upd()"><span class="rval" id="bkDimV">55%</span></div>
+        <div class="rrow"><label>Прозрачность</label><input type="range" id="bkPnlOp" min="10" max="95" value="60" oninput="upd()"><span class="rval" id="bkPnlOpV">60%</span></div>
+        <button class="btn delbtn" onclick="clearBg('book')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog on" id="stBook" onclick="togS('book')">Вкл ✓</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#c8a96e,#7c5c2e)" onclick="setSC('book','gold',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#9b59b6,#c8a96e)" onclick="setSC('book','violet',this)"></div>
+      <div class="cs" style="background:#c8a96e" onclick="setSC('book','amber',this)"></div>
+    </div>
+    <h4>1. Поиск книги</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="bkQ" placeholder="Название или автор...">
+      <button class="btn" onclick="searchBook()" style="width:42px;padding:0;font-size:14px;flex-shrink:0">🔍</button>
+      <div id="bkRes" style="background:var(--bg);border:1px solid var(--bor);display:none;position:absolute;left:0;right:0;top:100%;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.7);border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto"></div>
+    </div>
+    <h4>2. Обложка из библиотеки</h4>
+    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи обложку в библиотеку ↓ или найди книгу через поиск</div>
+    <h4>3. Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="cRing" checked onchange="upd()"> Кольцо оценки</label>
+      <label><input type="checkbox" id="cTag" checked onchange="upd()"> Теги жанра</label>
+      <label><input type="checkbox" id="cQuote" checked onchange="upd()"> Цитата</label>
+      <label><input type="checkbox" id="cSpine" checked onchange="upd()"> Корешок книги</label>
+      <label><input type="checkbox" id="cPages" checked onchange="upd()"> Страниц</label>
+      <label><input type="checkbox" id="cYear" checked onchange="upd()"> Год издания</label>
+      <label><input type="checkbox" id="cPub" checked onchange="upd()"> Издатель</label>
+      <label><input type="checkbox" id="cDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>4. Система оценок</h4>
+    <div class="sbrow" id="scoreSysSB">
+      <button class="sb active" onclick="setScoreSys('10')">1–10</button>
+      <button class="sb" onclick="setScoreSys('5')">1–5</button>
+    </div>
+    <h4>5. Отображение оценки</h4>
+    <div class="sbrow" id="scoreDispSB">
+      <button class="sb active" onclick="setScoreDisp('both')">Кольцо + ⭐</button>
+      <button class="sb" onclick="setScoreDisp('ring')">Только кольцо</button>
+      <button class="sb" onclick="setScoreDisp('stars')">Только ⭐</button>
+      <button class="sb" onclick="setScoreDisp('number')">Только число</button>
+    </div>
+    <h4>6. Шрифт рецензии</h4>
+    <div class="sbrow" id="revFontSB">
+      <button class="sb active" onclick="setRevFont('cormorant')">Cormorant</button>
+      <button class="sb" onclick="setRevFont('garamond')">Garamond</button>
+      <button class="sb" onclick="setRevFont('playfair')">Playfair</button>
+      <button class="sb" onclick="setRevFont('mono')">Mono</button>
+      <button class="sb" onclick="setRevFont('modern')">Modern</button>
+    </div>
+    <h4>7. Скругление обложки</h4>
+    <div class="rrow"><label>Радиус</label><input type="range" id="coverRadius" min="0" max="16" value="3" oninput="upd()"><span class="rval" id="coverRadiusV">3px</span></div>
+    <h4>8. Название и автор</h4>
+    <input type="text" id="bkTitle" placeholder="Название книги" oninput="upd()">
+    <input type="text" id="bkAuthor" placeholder="Автор" oninput="upd()">
+    <h4>9. Детали</h4>
+    <div class="row2">
+      <input type="text" id="bkYear" placeholder="Год" oninput="upd()">
+      <input type="text" id="bkPages" placeholder="Страниц" oninput="upd()">
+    </div>
+    <input type="text" id="bkPublisher" placeholder="Издатель" oninput="upd()">
+    <input type="text" id="bkGenres" placeholder="Жанры (через запятую)" oninput="upd()">
+    <h4>10. Цитата из книги</h4>
+    <textarea id="bkQuote" rows="2" oninput="upd()" placeholder="Любимая цитата..."></textarea>
+    <h4>11. Рецензия</h4>
+    <textarea id="bkRev" oninput="upd()" placeholder="Твой текст о книге..."></textarea>
+    <h4>12. Оценка и дата</h4>
+    <div class="row2">
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ОЦЕНКА</label><input type="number" id="bkScore" step="0.5" min="0.5" max="10" value="8.5" oninput="upd()"></div>
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ДАТА</label><input type="date" id="bkDate" oninput="upd()"></div>
+    </div>
+    <h4>13. Ник</h4>
+    <input type="text" id="bkNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- OUTRO -->
+  <div class="sec" id="sec-outro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="outroSB">
+      <button class="sb active" onclick="setOutroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setOutroStyle('paper')">📰 Бумага</button>
+      <button class="sb" onclick="setOutroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="oCustBlock" style="display:none;flex-direction:column;gap:7px">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="oCustBtns"></div>
+      <div id="oCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="oBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="oBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="oDim" min="0" max="90" value="50" oninput="upd()"><span class="rval" id="oDimV">50%</span></div>
+        <div class="sbrow"><button class="sb active" id="oPnlS" onclick="setOutroPnl('solid')">▪ Тёмная</button><button class="sb" id="oPnlN" onclick="setOutroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('outro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stOutro" onclick="togS('outro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#c8a96e,#7c5c2e)" onclick="setSC('outro','gold',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#9b59b6,#c8a96e)" onclick="setSC('outro','violet',this)"></div>
+      <div class="cs" style="background:#c8a96e" onclick="setSC('outro','amber',this)"></div>
+    </div>
+    <h4>Заголовок</h4>
+    <input type="text" id="oH1" value="СПАСИБО" oninput="upd()">
+    <input type="text" id="oH2" value="ЗА ПРОЧТЕНИЕ" oninput="upd()">
+    <h4>Текст</h4>
+    <textarea id="oTxt" rows="3" oninput="upd()">Ставь лайк если понравилось!
+Подписывайся на новые обзоры 📚</textarea>
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="oShowTxt" checked onchange="upd()"> Текст</label>
+      <label><input type="checkbox" id="oShowTg" checked onchange="upd()"> Telegram</label>
+      <label><input type="checkbox" id="oShowQr" checked onchange="upd()"> QR-код</label>
+      <label><input type="checkbox" id="oShowNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="oShowDv" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Данные</h4>
+    <input type="text" id="oTg" placeholder="@твой_канал" oninput="upd()">
+    <input type="text" id="oQrUrl" placeholder="https://t.me/твой_канал" oninput="updQr()">
+    <input type="text" id="oNk" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <h4>📷 Библиотека фото</h4>
+  <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
+  <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
+  <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
+</div>
+
+<!-- CARD 600×800 -->
+<div class="card-outer" id="cardOuter">
+<div id="card" class="card-wrap th-dark">
+  <div class="card-bg" id="cardBg"></div>
+  <div class="card-dim" id="cardDim"></div>
+  <div class="top-stripe" id="topStripe"></div>
+
+  <!-- BOOK VIEW -->
+  <div class="view show book-view" id="viewBook">
+    <div class="bk-header">
+      <div class="bk-cover-zone">
+        <img id="bkCoverImg" class="bk-cover" src="" alt="" crossorigin="anonymous">
+        <div class="bk-spine" id="bkSpineEl"></div>
+      </div>
+      <div class="bk-meta">
+        <div class="bk-eyebrow" id="bkEyebrow">КНИГА</div>
+        <div class="bk-title" id="bkTitleEl">НАЗВАНИЕ КНИГИ</div>
+        <div class="bk-author" id="bkAuthorEl">Автор книги</div>
+        <div class="bk-tags" id="bkTagsEl"></div>
+        <div class="bk-score-area" id="bkScoreArea">
+          <div class="bk-score-ring" id="bkRingWrap">
+            <svg viewBox="0 0 80 80">
+              <circle class="bk-score-ring-bg" cx="40" cy="40" r="32"/>
+              <circle class="bk-score-ring-fill" id="bkRingFill" cx="40" cy="40" r="32" stroke="#c8a96e"/>
+              <text class="bk-score-num" id="bkRingNum" x="40" y="41">8.5</text>
+            </svg>
+          </div>
+          <div class="bk-stars-col" id="bkStarsCol">
+            <div class="bk-stars-row" id="bkStarsEl"></div>
+            <div class="bk-score-label" id="bkScoreLabel">8.5 / 10</div>
+          </div>
+          <div class="bk-num-only" id="bkNumOnly">8.5</div>
+        </div>
+      </div>
+    </div>
+    <div class="bk-infobox" id="bkInfoBox">
+      <div class="ic" id="icPages"><b>Страниц</b><span id="bkInfoPages">—</span></div>
+      <div class="ic" id="icYear"><b>Год</b><span id="bkInfoYear">—</span></div>
+      <div class="ic" id="icPub"><b>Издатель</b><span id="bkInfoPub">—</span></div>
+    </div>
+    <div class="bk-quote" id="bkQuoteEl">«Любимая цитата из книги»</div>
+    <div class="bk-review" id="bkReviewBox">
+      <div class="bk-review-lbl">Рецензия:</div>
+      <div class="bk-review-txt" id="bkRevEl">Твой текст о книге...</div>
+    </div>
+    <div class="bk-footer">
+      <div class="bk-footer-nick" id="bkNickEl">@books</div>
+      <div style="text-align:right"><div class="bk-footer-date" id="bkDateEl"></div></div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="view" id="viewIntro">
+    <div id="io-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div><div class="io-dk-deco"></div>
+      <div class="io-wrap">
+        <div id="dkIco" class="io-icons">📚 📖 ✍️</div>
+        <div id="dkEy" class="io-eyebrow">Новый выпуск</div>
+        <div class="io-title"><span id="dkL1">Обзоры</span><em id="dkL2">КНИГ</em></div>
+        <div id="dkDv" class="io-div"></div>
+        <div id="dkSb" class="io-sub">Честная книжная критика</div>
+        <div id="dkBg" class="io-badge">ЧИТАЕМ 📚</div>
+        <div id="dkNk" class="io-nick">@books</div>
+      </div>
+    </div>
+    <div id="io-paper" style="position:absolute;inset:0;display:none">
+      <div class="io-pp-bg"></div><div class="io-pp-stripe"></div><div class="io-pp-stripe-b"></div>
+      <div class="io-wrap">
+        <div id="ppIco" class="io-pp-icons">📚 📖 ✍️</div>
+        <div id="ppEy" class="io-pp-eyebrow">Новый выпуск</div>
+        <div class="io-pp-title"><span id="ppL1">Обзоры</span><br><span id="ppL2" class="acc">КНИГ</span></div>
+        <div id="ppDv" style="width:50%;height:1px;background:#8a7a5a;position:relative;z-index:2"></div>
+        <div id="ppSb" class="io-pp-sub">Честная книжная критика</div>
+        <div id="ppBg" class="io-pp-badge">ЧИТАЕМ 📚</div>
+        <div id="ppNk" class="io-pp-nick">@books</div>
+      </div>
+    </div>
+    <div id="io-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="cuPanel" class="pnl-solid">
+          <div id="cuIco" class="io-icons" style="opacity:.25">📚 📖 ✍️</div>
+          <div id="cuEy" class="io-eyebrow">Новый выпуск</div>
+          <div class="io-title"><span id="cuL1">Обзоры</span><em id="cuL2">КНИГ</em></div>
+          <div id="cuDv" class="io-div"></div>
+          <div id="cuSb" class="io-sub">Честная книжная критика</div>
+          <div id="cuBg" class="io-badge">ЧИТАЕМ 📚</div>
+          <div id="cuNk" class="io-nick">@books</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTRO -->
+  <div class="view" id="viewOutro">
+    <div id="ou-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div><div class="io-dk-deco"></div>
+      <div class="io-wrap">
+        <div class="io-title"><span id="odH1">СПАСИБО</span><em id="odH2">ЗА ПРОЧТЕНИЕ</em></div>
+        <div id="odDv" class="io-div"></div>
+        <div id="odTxt" class="io-sub"></div>
+        <div id="odTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+          <div class="outro-tgname" id="odTg">@твой_канал</div>
+        </div>
+        <div id="odQrBlk" class="outro-qr"><img id="qrDk" src="" alt=""></div>
+        <div class="io-nick" id="odNk">@books</div>
+      </div>
+    </div>
+    <div id="ou-paper" style="position:absolute;inset:0;display:none">
+      <div class="io-pp-bg"></div><div class="io-pp-stripe"></div><div class="io-pp-stripe-b"></div>
+      <div class="io-wrap">
+        <div class="io-pp-title"><span id="opH1">СПАСИБО</span><br><span id="opH2" class="acc">ЗА ПРОЧТЕНИЕ</span></div>
+        <div id="opDv" style="width:50%;height:1px;background:#8a7a5a;position:relative;z-index:2"></div>
+        <div id="opTxt" class="io-pp-sub"></div>
+        <div id="opTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-pp-eyebrow">Подписывайся</div>
+          <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:22px;color:#2AABEE;position:relative;z-index:2" id="opTg">@твой_канал</div>
+        </div>
+        <div id="opQrBlk" style="width:90px;height:90px;background:#1a1005;border-radius:4px;padding:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2"><img id="qrPp" src="" alt="" style="width:100%;height:100%;filter:invert(1)"></div>
+        <div class="io-pp-nick" id="opNk">@books</div>
+      </div>
+    </div>
+    <div id="ou-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="ocuPanel" class="pnl-solid">
+          <div class="io-title"><span id="ocH1">СПАСИБО</span><em id="ocH2">ЗА ПРОЧТЕНИЕ</em></div>
+          <div id="ocDv" class="io-div"></div>
+          <div id="ocTxt" class="io-sub" style="color:rgba(255,255,255,.5)"></div>
+          <div id="ocTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+            <div class="outro-tgname" id="ocTg">@твой_канал</div>
+          </div>
+          <div id="ocQrBlk" class="outro-qr"><img id="qrCu" src="" alt=""></div>
+          <div class="io-nick" id="ocNk">@books</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function setCardScale(){
+  if(window.innerWidth<=640){
+    const s=Math.min((window.innerWidth-24)/600,.95);
+    document.getElementById('cardOuter').style.setProperty('--card-scale',s);
+    document.getElementById('cardOuter').style.height=(800*s)+'px';
+  }else{document.getElementById('cardOuter').style.setProperty('--card-scale','1');document.getElementById('cardOuter').style.height='';}
+}
+window.addEventListener('resize',setCardScale);
+document.addEventListener('DOMContentLoaded',setCardScale);
+setCardScale();
+</script>
+<script>
+let mode='book',bkSty='dark',introSty='dark',outroSty='dark';
+let iPnl='solid',oPnl='solid';
+let scoreSys='10',scoreDisp='both',revFont='cormorant';
+const bgS={book:{src:null,idx:null},intro:{src:null,idx:null},outro:{src:null,idx:null}};
+const SS={intro:{on:false,c:'gold'},book:{on:true,c:'gold'},outro:{on:false,c:'gold'}};
+const SGG={gold:'linear-gradient(90deg,#c8a96e,#7c5c2e)',violet:'linear-gradient(90deg,#9b59b6,#c8a96e)',amber:'#c8a96e',whi:'rgba(255,255,255,.4)'};
+const ITT=[['Обзоры','КНИГ'],['Книга','МЕСЯЦА'],['Читаем','ВМЕСТЕ'],['Новинки','КНИГ']];
+
+document.getElementById('bkDate').valueAsDate=new Date();
+
+function setScoreSys(s){scoreSys=s;document.querySelectorAll('#scoreSysSB .sb').forEach((b,i)=>b.classList.toggle('active',['10','5'][i]===s));const inp=document.getElementById('bkScore');inp.max=s==='5'?5:10;if(parseFloat(inp.value)>parseFloat(inp.max))inp.value=inp.max;upd()}
+function setScoreDisp(s){scoreDisp=s;document.querySelectorAll('#scoreDispSB .sb').forEach((b,i)=>b.classList.toggle('active',['both','ring','stars','number'][i]===s));upd()}
+function setRevFont(s){revFont=s;document.querySelectorAll('#revFontSB .sb').forEach((b,i)=>b.classList.toggle('active',['cormorant','garamond','playfair','mono','modern'][i]===s));upd()}
+
+function togS(m){SS[m].on=!SS[m].on;const nm=m==='book'?'Book':m[0].toUpperCase()+m.slice(1);const b=document.getElementById('st'+nm);b.classList.toggle('on',SS[m].on);b.textContent=SS[m].on?'Вкл ✓':'Выкл';applyStripe()}
+function setSC(m,k,el){SS[m].c=k;el.parentElement.querySelectorAll('.cs').forEach(c=>c.classList.remove('active'));el.classList.add('active');applyStripe()}
+function applyStripe(){const stripe=document.getElementById('topStripe');const cur=SS[mode];if(cur&&cur.on){stripe.style.display='block';stripe.style.background=SGG[cur.c]||cur.c}else stripe.style.display='none'}
+
+function applyBg(src,blurId,dimId){
+  const bg=document.getElementById('cardBg'),dim=document.getElementById('cardDim');
+  const bl=parseInt(document.getElementById(blurId)?.value||0);
+  const di=parseInt(document.getElementById(dimId)?.value||0)/100;
+  document.getElementById(blurId+'V')&&(document.getElementById(blurId+'V').textContent=bl+'px');
+  document.getElementById(dimId+'V')&&(document.getElementById(dimId+'V').textContent=Math.round(di*100)+'%');
+  bg.style.backgroundImage=`url('${src}')`;bg.style.filter=`blur(${bl}px)`;bg.style.transform=`scale(${1+bl*.015})`;bg.style.display='block';
+  dim.style.background=`rgba(0,0,0,${di})`;dim.style.display='block';
+}
+function hideBgLayers(){document.getElementById('cardBg').style.display='none';document.getElementById('cardDim').style.display='none'}
+function clearBg(m){bgS[m]={src:null,idx:null};document.querySelectorAll('.lt').forEach(t=>t.classList.remove('sel'));hideBgLayers();upd()}
+
+function applyTheme(t){const c=document.getElementById('card');c.className=c.className.replace(/\bth-\w+/,'');c.classList.add('th-'+t)}
+function setBkStyle(s){bkSty=s;document.querySelectorAll('#bkSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','paper','night','custom'][i]===s));document.getElementById('bkCustBlock').style.display=s==='custom'?'flex':'none';upd()}
+function setIntroStyle(s){introSty=s;document.querySelectorAll('#introSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','paper','custom'][i]===s));document.getElementById('iCustBlock').style.display=s==='custom'?'flex':'none';upd()}
+function setOutroStyle(s){outroSty=s;document.querySelectorAll('#outroSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','paper','custom'][i]===s));document.getElementById('oCustBlock').style.display=s==='custom'?'flex':'none';upd()}
+function setIntroPnl(ps){iPnl=ps;document.getElementById('iPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('iPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('cuPanel'),ps);upd()}
+function setOutroPnl(ps){oPnl=ps;document.getElementById('oPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('oPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('ocuPanel'),ps);upd()}
+function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid'}
+
+function setMode(m){
+  mode=m;
+  const views={intro:'viewIntro',book:'viewBook',outro:'viewOutro'};
+  Object.values(views).forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.style.display='none'}});
+  const v=document.getElementById(views[m]);if(v){v.classList.add('show');v.style.display='flex'}
+  ['intro','book','outro'].forEach(n=>document.getElementById('sec-'+n).classList.toggle('show',n===m));
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['intro','book','outro'][i]===m));
+  if(m==='book')hideBgLayers();
+  applyStripe();upd();
+}
+function introTC(){const v=document.getElementById('introType').value,c=v==='c';document.getElementById('ic1').style.display=c?'block':'none';document.getElementById('ic2').style.display=c?'block':'none';upd()}
+
+function renderStars(score,max){let h='';const norm=score/max;for(let i=0;i<(max===5?5:10);i++){const v=norm*(max===5?5:10);if(i+1<=v)h+='<span style="color:#FFD700;font-size:13px">★</span>';else if(i<v)h+='<span style="color:#FFD700;font-size:13px;opacity:.5">★</span>';else h+='<span style="color:rgba(255,255,255,.15);font-size:13px">★</span>';}return h}
+
+function _updCore(){
+  /* BOOK */
+  if(mode==='book'){
+    applyTheme(bkSty);
+    const maxScore=scoreSys==='5'?5:10;
+    const score=Math.min(parseFloat(document.getElementById('bkScore').value)||0,maxScore);
+    const title=document.getElementById('bkTitle').value||'НАЗВАНИЕ КНИГИ';
+    const author=document.getElementById('bkAuthor').value||'Автор книги';
+    const year=document.getElementById('bkYear').value||'—';
+    const pages=document.getElementById('bkPages').value||'—';
+    const publisher=document.getElementById('bkPublisher').value||'—';
+    const genres=document.getElementById('bkGenres').value||'';
+    const quote=document.getElementById('bkQuote').value||'';
+    const rev=document.getElementById('bkRev').value||'Твой текст о книге...';
+    const nick=document.getElementById('bkNick').value||'@books';
+    const dv=document.getElementById('bkDate').value;
+    const coverR=document.getElementById('coverRadius').value;
+    document.getElementById('coverRadiusV').textContent=coverR+'px';
+
+    const cRing=document.getElementById('cRing').checked,cTag=document.getElementById('cTag').checked;
+    const cQuote=document.getElementById('cQuote').checked,cSpine=document.getElementById('cSpine').checked;
+    const cPages=document.getElementById('cPages').checked,cYear=document.getElementById('cYear').checked;
+    const cPub=document.getElementById('cPub').checked,cDt=document.getElementById('cDt').checked;
+
+    document.getElementById('bkTitleEl').textContent=title;
+    document.getElementById('bkAuthorEl').textContent=author;
+    document.getElementById('bkCoverImg').style.borderRadius=coverR+'px';
+    document.getElementById('bkSpineEl').style.display=cSpine?'block':'none';
+
+    document.getElementById('bkInfoPages').textContent=pages;document.getElementById('icPages').style.display=cPages?'flex':'none';
+    document.getElementById('bkInfoYear').textContent=year;document.getElementById('icYear').style.display=cYear?'flex':'none';
+    document.getElementById('bkInfoPub').textContent=publisher;document.getElementById('icPub').style.display=cPub?'flex':'none';
+
+    const tagsEl=document.getElementById('bkTagsEl');
+    if(cTag&&genres){tagsEl.innerHTML=genres.split(',').map(g=>`<span class="bk-tag">${g.trim()}</span>`).join('');tagsEl.style.display='flex'}else tagsEl.style.display='none';
+
+    const quoteEl=document.getElementById('bkQuoteEl');
+    if(cQuote&&quote){quoteEl.textContent='«'+quote+'»';quoteEl.style.display='block'}else quoteEl.style.display='none';
+
+    const pct=score/maxScore,circumference=201.1;
+    document.getElementById('bkRingFill').style.strokeDashoffset=circumference-(pct*circumference);
+    document.getElementById('bkRingNum').textContent=score;
+    document.getElementById('bkStarsEl').innerHTML=renderStars(score,maxScore);
+    document.getElementById('bkScoreLabel').textContent=`${score} / ${maxScore}`;
+    document.getElementById('bkNumOnly').textContent=score;
+    const ringWrap=document.getElementById('bkRingWrap'),starsCol=document.getElementById('bkStarsCol'),numOnly=document.getElementById('bkNumOnly');
+    if(!cRing){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='none'}
+    else if(scoreDisp==='both'){ringWrap.style.display='block';starsCol.style.display='flex';numOnly.style.display='none'}
+    else if(scoreDisp==='ring'){ringWrap.style.display='block';starsCol.style.display='none';numOnly.style.display='none'}
+    else if(scoreDisp==='stars'){ringWrap.style.display='none';starsCol.style.display='flex';numOnly.style.display='none'}
+    else if(scoreDisp==='number'){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='block'}
+
+    document.getElementById('bkRevEl').textContent=rev;
+    document.getElementById('bkReviewBox').className='bk-review rv-font-'+revFont;
+
+    document.getElementById('bkNickEl').textContent=nick;
+    if(cDt&&dv){const d=new Date(dv);document.getElementById('bkDateEl').textContent=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})}else document.getElementById('bkDateEl').textContent='';
+
+    const revEl=document.getElementById('bkRevEl');let fs=16;revEl.style.fontSize=fs+'px';
+    while(revEl.scrollHeight>revEl.clientHeight&&fs>9){fs-=.5;revEl.style.fontSize=fs+'px'}
+
+    if(bkSty==='custom'&&bgS.book.src){
+      applyBg(bgS.book.src,'bkBlur','bkDim');
+      const op=parseInt(document.getElementById('bkPnlOp')?.value||60)/100;
+      document.getElementById('bkPnlOpV').textContent=Math.round(op*100)+'%';
+      [document.getElementById('bkInfoBox'),document.getElementById('bkReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.1)!important`});
+    }else{if(bkSty!=='custom'){hideBgLayers();[document.getElementById('bkInfoBox'),document.getElementById('bkReviewBox')].forEach(el=>{if(el)el.style.cssText=''})}}
+  }
+
+  /* INTRO */
+  let il1,il2;
+  const iT=document.getElementById('introType').value;
+  if(iT==='c'){il1=document.getElementById('ic1').value||'Обзоры';il2=(document.getElementById('ic2').value||'КНИГ').toUpperCase()}
+  else{const p=ITT[parseInt(iT)]||ITT[0];il1=p[0];il2=p[1]}
+  const iSv=document.getElementById('iSubTxt').value||'Честная книжная критика';
+  const iBv=document.getElementById('iBgTxt').value||'ЧИТАЕМ 📚';
+  const iNv=document.getElementById('iNkTxt').value||'@books';
+  const iEl=document.getElementById('iEl').checked,iSb=document.getElementById('iSb').checked,iBg=document.getElementById('iBgEl').checked,iIc=document.getElementById('iIc').checked,iNk=document.getElementById('iNk').checked,iDv=document.getElementById('iDvEl').checked;
+  [['dk'],['pp'],['cu']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('L1',il1);S('L2',il2);V('Ey',iEl);V('Sb',iSb);V('Bg',iBg);V('Ico',iIc);V('Nk',iNk);V('Dv',iDv);
+    S('Sb',iSv);S('Bg',iBv);S('Nk',iNv);
+    ['L1','L2'].forEach(key=>{const el=document.getElementById(pre+key);if(!el)return;el.style.fontSize='';let fs=58;el.style.fontSize=fs+'px';while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}});
+  });
+  if(mode==='intro'){
+    ['io-dark','io-paper','io-custom'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+    const map={dark:'io-dark',paper:'io-paper',custom:'io-custom'};
+    const el=document.getElementById(map[introSty]);if(el)el.style.display='flex';
+    if(introSty==='custom'){if(bgS.intro.src)applyBg(bgS.intro.src,'iBlur','iDim');else hideBgLayers();setPnlClass(document.getElementById('cuPanel'),iPnl)}else hideBgLayers();
+  }
+
+  /* OUTRO */
+  const h1=document.getElementById('oH1').value||'СПАСИБО';
+  const h2=document.getElementById('oH2').value||'ЗА ПРОЧТЕНИЕ';
+  const oTv=document.getElementById('oTxt').value;
+  const tgRaw=document.getElementById('oTg').value;const tgS=tgRaw?(tgRaw.startsWith('@')?tgRaw:'@'+tgRaw):'@твой_канал';
+  const nkO=document.getElementById('oNk').value||'@books';
+  const oST=document.getElementById('oShowTxt').checked,oSTg=document.getElementById('oShowTg').checked,oSQr=document.getElementById('oShowQr').checked,oSNk=document.getElementById('oShowNk').checked,oSDv=document.getElementById('oShowDv').checked;
+  [['od'],['op'],['oc']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('H1',h1);S('H2',h2);
+    const tx=document.getElementById(pre+'Txt');if(tx){tx.innerHTML=oTv.replace(/\n/g,'<br>');tx.style.display=oST?'block':'none'}
+    V('Dv',oSDv);V('TgBlk',oSTg,true);V('QrBlk',oSQr,true);V('Nk',oSNk);S('Tg',tgS);S('Nk',nkO);
+    ['H1','H2'].forEach(key=>{const el=document.getElementById(pre+key);if(!el)return;el.style.fontSize='';let fs=58;el.style.fontSize=fs+'px';while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}});
+  });
+  if(mode==='outro'){
+    ['ou-dark','ou-paper','ou-custom'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+    const map={dark:'ou-dark',paper:'ou-paper',custom:'ou-custom'};
+    const el=document.getElementById(map[outroSty]);if(el)el.style.display='flex';
+    if(outroSty==='custom'){if(bgS.outro.src)applyBg(bgS.outro.src,'oBlur','oDim');else hideBgLayers();setPnlClass(document.getElementById('ocuPanel'),oPnl)}else hideBgLayers();
+  }
+  applyStripe();
+}
+function upd(){_updCore();autosave()}
+
+/* LIBRARY */
+let lib=[];
+function addLib(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{lib.push(ev.target.result);renderLib();setBgFor(mode,lib.length-1)};r.readAsDataURL(file);e.target.value=''}
+function renderLib(){
+  const grid=document.getElementById('libGrid');grid.innerHTML='';
+  lib.forEach((src,i)=>{
+    const t=document.createElement('div');t.className='lt';
+    if(bgS[mode]&&bgS[mode].idx===i)t.classList.add('sel');
+    const img=document.createElement('img');img.src=src;t.appendChild(img);
+    const del=document.createElement('div');del.className='ldel';del.textContent='×';
+    del.onclick=ev=>{ev.stopPropagation();lib.splice(i,1);if(bgS[mode]&&bgS[mode].idx===i){bgS[mode]={src:null,idx:null};hideBgLayers()}renderLib();upd()};
+    t.appendChild(del);
+    t.onclick=()=>{
+      if(mode==='book'){document.getElementById('bkCoverImg').src=src;document.getElementById('bkCoverImg').style.display='block';document.querySelectorAll('.lt').forEach((tt,j)=>tt.classList.toggle('sel',j===i))}
+      else setBgFor(mode,i);
+      upd();
+    };
+    grid.appendChild(t);
+  });
+  const add=document.createElement('div');add.className='ladd';add.textContent='＋';add.onclick=()=>document.getElementById('libIn').click();grid.appendChild(add);
+}
+function setBgFor(m,i){
+  bgS[m]={src:lib[i],idx:i};
+  if(m==='book')setBkStyle('custom');
+  else if(m==='intro')setIntroStyle('custom');
+  else if(m==='outro')setOutroStyle('custom');
+  document.querySelectorAll('.lt').forEach((t,j)=>t.classList.toggle('sel',j===i));upd();
+}
+
+/* QR */
+let lqr='';
+function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!==lqr){lqr=u;const src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}&bgcolor=ffffff&color=000000`;['qrDk','qrPp','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=src})}upd()}
+
+/* GOOGLE BOOKS SEARCH */
+document.getElementById('bkQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchBook()});
+let bkTimer=null;
+document.getElementById('bkQ').addEventListener('input',()=>{clearTimeout(bkTimer);bkTimer=setTimeout(()=>{if(document.getElementById('bkQ').value.trim().length>1)searchBook()},600)});
+
+async function searchBook(){
+  const q=document.getElementById('bkQ').value.trim();if(!q)return;
+  const res=document.getElementById('bkRes');
+  res.style.display='block';
+  res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
+  try{
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
+    const r=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=8&langRestrict=ru,en`,{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
+    const data=await r.json();
+    if(!data.items||!data.items.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
+    res.innerHTML='';
+    data.items.forEach(item=>{
+      const info=item.volumeInfo||{};
+      const div=document.createElement('div');div.className='ri';
+      const thumb=info.imageLinks?.thumbnail||info.imageLinks?.smallThumbnail||'';
+      const authors=(info.authors||[]).join(', ');
+      const year=info.publishedDate?info.publishedDate.slice(0,4):'';
+      div.innerHTML=`<img src="${thumb.replace('http:','https:')}" style="width:36px;height:52px;object-fit:cover;border-radius:3px;background:#1a1a1a;flex-shrink:0"><div><b style="display:block;color:#ddd;font-size:11px">${info.title||'—'}</b><span style="font-size:10px;color:#666">${authors}${year?' · '+year:''}</span></div>`;
+      div.onclick=()=>pickBook(item);
+      div.addEventListener('touchstart',e=>{e.preventDefault();pickBook(item)},{passive:false});
+      res.appendChild(div);
+    });
+  }catch(err){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">${err.name==='AbortError'?'Таймаут':'Ошибка сети'}</div>`}
+}
+
+function pickBook(item){
+  document.getElementById('bkRes').style.display='none';
+  const info=item.volumeInfo||{};
+  document.getElementById('bkTitle').value=info.title||'';
+  document.getElementById('bkAuthor').value=(info.authors||[]).join(', ');
+  document.getElementById('bkYear').value=info.publishedDate?info.publishedDate.slice(0,4):'';
+  document.getElementById('bkPages').value=info.pageCount||'';
+  document.getElementById('bkPublisher').value=info.publisher||'';
+  const cats=(info.categories||[]).join(', ');
+  document.getElementById('bkGenres').value=cats;
+  // cover
+  const thumb=info.imageLinks?.thumbnail||info.imageLinks?.smallThumbnail||'';
+  if(thumb){
+    const img=document.getElementById('bkCoverImg');
+    img.crossOrigin='anonymous';
+    img.src=thumb.replace('http:','https:');
+    img.style.display='block';
+  }
+  upd();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('bkRes').style.display='none'});
+
+/* SAVE */
+function save(){
+  const c=document.getElementById('card');
+  html2canvas(c,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
+    const dataUrl=cv.toDataURL('image/png');
+    const a=document.createElement('a');a.href=dataUrl;a.download=`kniga_${mode}_${Date.now()}.png`;a.click();
+    try{
+      const th=document.createElement('canvas');const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+      const thumb=th.toDataURL('image/jpeg',.75);
+      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+      const labels={intro:'Книги · Начало',book:'Книги · Книга',outro:'Книги · Конец'};
+      items.unshift({thumb,type:labels[mode]||'Книги',date:new Date().toLocaleDateString('ru-RU')});
+      if(items.length>50)items.pop();
+      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+    }catch(e){}
+  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+}
+
+/* AUTOSAVE */
+const AS_KEY='books_draft';
+function collectDraft(){
+  const ids=['bkTitle','bkAuthor','bkYear','bkPages','bkPublisher','bkGenres','bkQuote','bkRev','bkNick','bkDate','bkScore','iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+  const checks=['cRing','cTag','cQuote','cSpine','cPages','cYear','cPub','cDt','iEl','iSb','iBgEl','iIc','iNk','iDvEl','oShowTxt','oShowTg','oShowQr','oShowNk','oShowDv'];
+  const d={};
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value});
+  checks.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.checked});
+  d._bkSty=bkSty;d._introSty=introSty;d._outroSty=outroSty;d._scoreSys=scoreSys;d._scoreDisp=scoreDisp;d._revFont=revFont;d._mode=mode;d._lib=lib;d._bgS=bgS;d._SS=SS;
+  return d;
+}
+function autosave(){try{localStorage.setItem(AS_KEY,JSON.stringify(collectDraft()))}catch(e){}}
+function restore(){
+  try{
+    const raw=localStorage.getItem(AS_KEY);if(!raw)return;
+    const d=JSON.parse(raw);
+    const ids=['bkTitle','bkAuthor','bkYear','bkPages','bkPublisher','bkGenres','bkQuote','bkRev','bkNick','bkDate','bkScore','iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+    const checks=['cRing','cTag','cQuote','cSpine','cPages','cYear','cPub','cDt','iEl','iSb','iBgEl','iIc','iNk','iDvEl','oShowTxt','oShowTg','oShowQr','oShowNk','oShowDv'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.value=d[id]});
+    checks.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.checked=d[id]});
+    if(d._lib)lib=d._lib;if(d._bgS)Object.assign(bgS,d._bgS);if(d._SS)Object.assign(SS,d._SS);
+    if(d._bkSty)setBkStyle(d._bkSty);if(d._introSty)setIntroStyle(d._introSty);if(d._outroSty)setOutroStyle(d._outroSty);
+    if(d._scoreSys)setScoreSys(d._scoreSys);if(d._scoreDisp)setScoreDisp(d._scoreDisp);if(d._revFont)setRevFont(d._revFont);
+    renderLib();if(d._mode)setMode(d._mode);
+  }catch(e){}
+}
+
+restore();upd();
+</script>
+</body>
+</html>
