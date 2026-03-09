@@ -1250,7 +1250,7 @@ function _updCore(){
       applyBg(bgS.track.src,'trBlur','trDim','trSat');
       const op=parseInt(document.getElementById('trPnlOp')?.value||65)/100;
       document.getElementById('trPnlOpV').textContent=Math.round(op*100)+'%';
-      else{[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.08)!important`})}
+      [document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.08)!important`});
     }else{if(trSty!=='custom'){hideBgLayers();[document.getElementById('trInfoBox'),document.getElementById('trReviewBox')].forEach(el=>{if(el)el.style.cssText=''})}}
 
     // auto-fit review
