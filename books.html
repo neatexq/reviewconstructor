@@ -438,7 +438,7 @@ textarea{resize:vertical;min-height:75px}
   <div class="view show book-view" id="viewBook">
     <div class="bk-header">
       <div class="bk-cover-zone">
-        <img id="bkCoverImg" class="bk-cover" src="" alt="" crossorigin="anonymous">
+        <img id="bkCoverImg" class="bk-cover" src="" alt="">
         <div class="bk-spine" id="bkSpineEl"></div>
       </div>
       <div class="bk-meta">
@@ -750,6 +750,24 @@ function _updCore(){
 }
 function upd(){_updCore();autosave()}
 
+/* ЗАГРУЗКА ОБЛОЖКИ — через blob, обходит CORS */
+const coverCache={};
+async function loadCover(imgId, url){
+  const img=document.getElementById(imgId);
+  if(!img||!url)return;
+  if(coverCache[url]){img.src=coverCache[url];img.style.display='block';return}
+  try{
+    const r=await fetch(url,{mode:'cors'});
+    if(!r.ok)throw new Error(r.status);
+    const blob=await r.blob();
+    const blobUrl=URL.createObjectURL(blob);
+    coverCache[url]=blobUrl;
+    img.src=blobUrl;img.style.display='block';
+  }catch(e){
+    img.src=url;img.style.display='block';
+  }
+}
+
 /* LIBRARY */
 let lib=[];
 function addLib(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{lib.push(ev.target.result);renderLib();setBgFor(mode,lib.length-1)};r.readAsDataURL(file);e.target.value=''}
@@ -839,15 +857,13 @@ function pickBook(book){
   // жанры — фильтруем мусор (слишком длинные теги Open Library)
   const subj=(book.subject||[]).filter(s=>s.length<30&&!/^\d/.test(s)).slice(0,4);
   document.getElementById('bkGenres').value=subj.join(', ');
-  // обложка: большая версия
+  // обложка: большая версия, с fallback на M
   const imgUrl=getCoverUrl(book,'L');
+  const imgUrlM=getCoverUrl(book,'M');
   if(imgUrl){
-    const img=document.getElementById('bkCoverImg');
-    img.crossOrigin='anonymous';
-    img.src=imgUrl;
-    img.style.display='block';
-    // если L не грузится — пробуем M
-    img.onerror=()=>{const m=getCoverUrl(book,'M');if(m&&m!==imgUrl){img.src=m}else img.onerror=null};
+    loadCover('bkCoverImg', imgUrl).catch(()=>{if(imgUrlM)loadCover('bkCoverImg', imgUrlM)});
+  } else if(imgUrlM){
+    loadCover('bkCoverImg', imgUrlM);
   }
   upd();
 }
