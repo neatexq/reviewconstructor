@@ -760,28 +760,65 @@ function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!
 /* JIKAN API SEARCH (MyAnimeList) */
 document.getElementById('anQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchAnime()});
 let anTimer=null;
-document.getElementById('anQ').addEventListener('input',()=>{clearTimeout(anTimer);anTimer=setTimeout(()=>{if(document.getElementById('anQ').value.trim().length>1)searchAnime()},600)});
+document.getElementById('anQ').addEventListener('input',()=>{clearTimeout(anTimer);anTimer=setTimeout(()=>{if(document.getElementById('anQ').value.trim().length>1)searchAnime()},700)});
+
+// Транслитерация RU→EN для поиска
+function isRussian(s){return /[а-яёА-ЯЁ]/.test(s)}
+// Таблица популярных русских названий → японские/английские для поиска
+const RU_ALIASES={
+  'наруто':'naruto','атака титанов':'attack on titan','стальной алхимик':'fullmetal alchemist',
+  'ван пис':'one piece','ван-пис':'one piece','клинок демонов':'demon slayer',
+  'моя геройская академия':'my hero academia','токийский гуль':'tokyo ghoul',
+  'тетрадь смерти':'death note','хвост феи':'fairy tail','блич':'bleach',
+  'доктор стоун':'dr stone','охотник х охотник':'hunter x hunter',
+  'пираты':'one piece','черный клевер':'black clover','семь смертных грехов':'seven deadly sins',
+  'ковбой бибоп':'cowboy bebop','призрак в доспехах':'ghost in the shell',
+  'евангелион':'evangelion','нeon genesis':'neon genesis evangelion',
+  'ходячий замок':'howl moving castle','унесённые призраками':'spirited away',
+  'аниме':'','сезон':'season'
+};
+function ruToSearchQuery(q){
+  const low=q.toLowerCase().trim();
+  for(const [ru,en] of Object.entries(RU_ALIASES)){if(low.includes(ru)&&en)return en}
+  // простая транслитерация как fallback
+  const map={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'};
+  return q.toLowerCase().split('').map(c=>map[c]??c).join('');
+}
 
 async function searchAnime(){
   const q=document.getElementById('anQ').value.trim();if(!q)return;
   const res=document.getElementById('anRes');
   res.style.display='block';
   res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
+
+  // Если русский запрос — конвертируем в англ.
+  const searchQ=isRussian(q)?ruToSearchQuery(q):q;
+
   try{
-    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
-    const r=await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=8&sfw=true`,{signal:controller.signal});
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
+    const r=await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchQ)}&limit=8&sfw=true`,{signal:controller.signal});
     clearTimeout(timeout);
+    if(r.status===429){res.innerHTML='<div style="padding:12px;font-size:10px;color:#e63946">Слишком много запросов. Подожди секунду.</div>';return}
     if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
     const data=await r.json();
-    if(!data.data||!data.data.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
+    if(!data.data||!data.data.length){
+      // fallback: попробуем транслитерацию если был алиас без результата
+      res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено. Попробуй название на английском.</div>';return
+    }
     res.innerHTML='';
+    // показываем русское название в скобках если есть
     data.data.forEach(anime=>{
       const div=document.createElement('div');div.className='ri';
       const thumb=anime.images?.jpg?.small_image_url||anime.images?.jpg?.image_url||'';
       const year=anime.year||anime.aired?.prop?.from?.year||'';
       const eps=anime.episodes?anime.episodes+' эп.':'';
       const score=anime.score?'★'+anime.score:'';
-      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div><b style="display:block;color:#ddd;font-size:11px">${anime.title||'—'}</b><span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
+      // показываем и английское и японское название
+      const titleLine=anime.title_english&&anime.title_english!==anime.title
+        ?`${anime.title_english}`
+        :anime.title||'—';
+      const subLine=anime.title_japanese?`<span style="font-size:9px;color:#444">${anime.title_japanese}</span><br>`:'';
+      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div style="min-width:0"><b style="display:block;color:#ddd;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:290px">${titleLine}</b>${subLine}<span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
       div.onclick=()=>pickAnime(anime);
       div.addEventListener('touchstart',e=>{e.preventDefault();pickAnime(anime)},{passive:false});
       res.appendChild(div);
