@@ -105,7 +105,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .reviews-empty span{font-size:32px;display:block;margin-bottom:12px;opacity:.3}
 
 /* FULL REVIEW MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:250;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
 .modal{background:var(--bg2);border:1px solid var(--bor);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;position:relative}
 .modal-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--txt2);z-index:10}
@@ -216,7 +216,7 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
     <!-- Profile -->
     <div class="profile-card" id="profileCard">
       <div class="avatar-wrap" onclick="document.getElementById('avatarIn').click()" title="Сменить аватарку">
-        <img id="avatarImg" class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='36' r='20' fill='%23333'/%3E%3Ccircle cx='48' cy='90' r='30' fill='%23333'/%3E%3C/svg%3E" alt="">
+        <img id="avatarImg" class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%2318181f'/%3E%3Ccircle cx='48' cy='36' r='20' fill='%23444'/%3E%3Cellipse cx='48' cy='90' rx='30' ry='22' fill='%23444'/%3E%3C/svg%3E" alt="">
         <div class="avatar-edit">✏️</div>
       </div>
       <div class="profile-nick" id="profileNick">—</div>
@@ -298,13 +298,16 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
 </div>
 
 <!-- REVIEW VIEW MODAL -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-close" onclick="closeModal()">✕</div>
-    <img id="modalImg" class="modal-img" src="" alt="">
+    <div id="modalImgWrap" style="position:relative;overflow:hidden;border-radius:12px 12px 0 0;cursor:zoom-in;background:#0a0a0f">
+      <img id="modalImg" class="modal-img" src="" alt="" style="display:block;width:100%;transition:transform .2s;transform-origin:center center">
+    </div>
     <div class="modal-body">
       <div class="modal-type" id="modalType"></div>
       <div class="modal-title" id="modalTitle"></div>
+      <div id="modalReviewText" style="font-size:13px;color:#bbb;line-height:1.7;margin:10px 0 4px;white-space:pre-wrap;display:none"></div>
       <div class="modal-date" id="modalDate"></div>
       <button class="modal-download" onclick="downloadReview()">💾 Скачать PNG</button>
     </div>
@@ -333,14 +336,15 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
 </div>
 
 <!-- FRIEND PROFILE MODAL -->
-<div class="fprof-overlay" id="fprofOverlay">
+<div class="fprof-overlay" id="fprofOverlay" onclick="if(event.target===this)closeFprof()">
   <div class="fprof-box">
     <div class="fprof-close" onclick="closeFprof()">✕</div>
     <div class="fprof-header">
-      <img id="fprofAv" class="fprof-av" src="" alt="">
-      <div>
+      <img id="fprofAv" class="fprof-av" src="" alt="" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 72 72\'%3E%3Crect width=\'72\' height=\'72\' fill=\'%2318181f\'/%3E%3Ccircle cx=\'36\' cy=\'26\' r=\'14\' fill=\'%23555\'/%3E%3Cellipse cx=\'36\' cy=\'62\' rx=\'22\' ry=\'16\' fill=\'%23555\'/%3E%3C/svg%3E'">
+      <div style="flex:1">
         <div class="fprof-nick" id="fprofNick"></div>
         <div class="fprof-stats" id="fprofStats"></div>
+        <button id="fprofMsgBtn" onclick="fprofOpenMessages()" style="margin-top:10px;padding:7px 18px;border-radius:8px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(200,169,110,.1)'" onmouseout="this.style.background='transparent'">💬 Написать</button>
       </div>
     </div>
     <div id="fprofReviews" class="reviews-grid"></div>
@@ -624,9 +628,32 @@ window.openReview = function(rv){
   document.getElementById('modalType').textContent = rv.type||'';
   document.getElementById('modalTitle').textContent = rv.title||'—';
   document.getElementById('modalDate').textContent = rv.date||'';
+  // Review text (opinion)
+  const rtEl = document.getElementById('modalReviewText');
+  if(rv.reviewText || rv.text || rv.opinion){
+    rtEl.textContent = rv.reviewText || rv.text || rv.opinion || '';
+    rtEl.style.display = 'block';
+  } else { rtEl.style.display = 'none'; }
   document.getElementById('modalOverlay').classList.add('show');
+  // Zoom on scroll
+  const img = document.getElementById('modalImg');
+  const wrap = document.getElementById('modalImgWrap');
+  let zoom = 1;
+  img.style.transform = 'scale(1)';
+  wrap.onwheel = function(e){
+    e.preventDefault();
+    zoom = Math.min(4, Math.max(1, zoom - e.deltaY * 0.002));
+    img.style.transform = 'scale('+zoom+')';
+    wrap.style.cursor = zoom > 1 ? 'zoom-out' : 'zoom-in';
+  };
 }
-window.closeModal = function(){ document.getElementById('modalOverlay').classList.remove('show') }
+window.closeModal = function(){
+  document.getElementById('modalOverlay').classList.remove('show');
+  const img = document.getElementById('modalImg');
+  if(img){ img.style.transform='scale(1)'; }
+  const wrap = document.getElementById('modalImgWrap');
+  if(wrap){ wrap.style.cursor='zoom-in'; wrap.onwheel=null; }
+}
 window.downloadReview = function(){
   const imgSrc = viewingReview?.imgData||viewingReview?.fullUrl||viewingReview?.thumbUrl;
   if(!imgSrc)return;
@@ -823,6 +850,12 @@ window.openFriendProfile = async function(uid, u){
   reviews.sort((a,b)=>b.createdAt-a.createdAt);
   document.getElementById('fprofStats').textContent=reviews.length+' рецензий';
   renderReviews(document.getElementById('fprofReviews'), reviews, false);
+}
+window.fprofOpenMessages = function(){
+  const nickEl = document.getElementById('fprofNick');
+  if(!nickEl) return;
+  const nick = nickEl.textContent.replace('@','').trim();
+  if(nick) window.location.href = 'messages.html?u=' + encodeURIComponent(nick);
 }
 window.closeFprof = function(){ document.getElementById('fprofOverlay').classList.remove('show') }
 
