@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Сообщения — Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bor:#252530;--acc:#c8a96e;--txt:#e8e0d0;--txt2:#5a5060;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* NAV */
+.nav{flex-shrink:0;background:rgba(10,10,15,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--bor);height:54px;display:flex;align-items:center;padding:0 16px;gap:12px}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--acc);text-decoration:none}
+.nav-back{font-size:10px;color:var(--txt2);text-decoration:none;letter-spacing:1px;transition:color .2s}
+.nav-back:hover{color:var(--acc)}
+.nav-title{font-size:11px;font-weight:700;letter-spacing:1px;color:#ddd}
+.nav-right{margin-left:auto;font-size:10px;color:var(--acc);letter-spacing:1px}
+
+/* LAYOUT */
+.chat-layout{flex:1;display:flex;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:280px;border-right:1px solid var(--bor);display:flex;flex-direction:column;flex-shrink:0}
+@media(max-width:700px){
+  .sidebar{width:100%;display:none}.sidebar.mobile-show{display:flex}
+  .chat-area{display:none}.chat-area.mobile-show{display:flex}
+  .back-mobile{display:flex!important}
+}
+.sidebar-head{padding:12px 14px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between}
+.sidebar-title{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--txt2);text-transform:uppercase}
+.contacts-list{flex:1;overflow-y:auto}
+.contact{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.03);position:relative}
+.contact:hover,.contact.active{background:var(--bg3)}
+.contact.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);border-radius:0 2px 2px 0}
+.contact-av{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:2px solid var(--bor);object-fit:cover;flex-shrink:0;position:relative}
+.contact-info{flex:1;min-width:0}
+.contact-nick{font-size:11px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-last{font-size:9px;color:var(--txt2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-unread{min-width:18px;height:18px;background:var(--acc);border-radius:9px;font-size:9px;color:#1a1005;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.online-dot{width:9px;height:9px;border-radius:50%;background:var(--green);position:absolute;bottom:1px;right:1px;border:2px solid var(--bg2);box-shadow:0 0 6px rgba(34,197,94,.5)}
+
+/* CHAT */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-head{flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--bor);display:flex;align-items:center;gap:10px}
+.chat-head-av{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:2px solid var(--bor);object-fit:cover}
+.chat-head-info{flex:1}
+.chat-head-nick{font-size:12px;font-weight:700;color:#ddd}
+.chat-head-status{font-size:9px;color:var(--txt2);margin-top:1px}
+.back-mobile{display:none;font-size:18px;cursor:pointer;color:var(--txt2);margin-right:4px}
+
+.chat-empty{display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--txt2)}
+.chat-empty span{font-size:40px;opacity:.3}
+.chat-empty p{font-size:11px;letter-spacing:1px}
+
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}
+.msg{display:flex;gap:8px;animation:fadeUp .15s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.own{flex-direction:row-reverse}
+.msg-av{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);object-fit:cover;flex-shrink:0;align-self:flex-end}
+.msg-bubble{max-width:72%;padding:9px 13px;border-radius:14px;font-size:12px;line-height:1.5;word-break:break-word;position:relative}
+.msg .msg-bubble{background:var(--bg3);border-radius:4px 14px 14px 14px;color:var(--txt)}
+.msg.own .msg-bubble{background:linear-gradient(135deg,#2a1f0e,#3a2a10);border-radius:14px 4px 14px 14px;color:#e8d5aa}
+.msg-time{font-size:8px;color:var(--txt2);margin-top:3px;text-align:right}
+.msg-date-sep{text-align:center;font-size:9px;color:var(--txt2);letter-spacing:1px;margin:8px 0;text-transform:uppercase}
+
+/* INPUT */
+.chat-input-wrap{flex-shrink:0;padding:10px 14px;border-top:1px solid var(--bor);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--bor);border-radius:20px;padding:10px 16px;font-size:12px;color:var(--txt);font-family:'Space Mono',monospace;outline:none;resize:none;max-height:120px;min-height:42px;transition:border-color .2s;line-height:1.4}
+.chat-input:focus{border-color:var(--acc)}
+.chat-send{width:42px;height:42px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.chat-send:hover{background:#b8996e;transform:scale(1.05)}
+.chat-send:active{transform:scale(.96)}
+
+/* GUEST */
+.guest-msg{padding:20px;text-align:center;font-size:11px;color:var(--txt2)}
+.guest-msg a{color:var(--acc)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">◈</a>
+  <a href="feed.html" class="nav-back">← Лента</a>
+  <div class="nav-title">Сообщения</div>
+  <div class="nav-right" id="navNick"></div>
+</nav>
+
+<div class="chat-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">Чаты</div>
+    </div>
+    <div class="contacts-list" id="contactsList">
+      <div style="padding:20px;font-size:10px;color:var(--txt2);text-align:center">Загрузка...</div>
+    </div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-empty" id="chatEmpty">
+      <span>💬</span>
+      <p>Выбери чат слева</p>
+    </div>
+    <div id="chatMain" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="chat-head" id="chatHead">
+        <div class="back-mobile" onclick="backToList()">‹</div>
+        <img class="chat-head-av" id="chatHeadAv" src="" alt="">
+        <div class="chat-head-info">
+          <div class="chat-head-nick" id="chatHeadNick"></div>
+          <div class="chat-head-status" id="chatHeadStatus"></div>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" id="chatInput" placeholder="Написать сообщение..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, get, set, push, onValue, update, serverTimestamp, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyANeIRqb_oUJSUq2PsU1xGzOJKV29QOY74",
+  authDomain: "reviewconstructor-8d391.firebaseapp.com",
+  databaseURL: "https://reviewconstructor-8d391-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "reviewconstructor-8d391",
+  storageBucket: "reviewconstructor-8d391.firebasestorage.app",
+  messagingSenderId: "722321589337",
+  appId: "1:722321589337:web:81098aec4a3d9e9db21d48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const session = JSON.parse(localStorage.getItem('rc_session')||'null');
+const currentUser = session;
+let activeChatUid = null;
+let activeChatNick = null;
+let messagesUnsubscribe = null;
+let lastMsgDate = null;
+
+const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='14' r='8' fill='%23333'/%3E%3Ccircle cx='18' cy='34' r='12' fill='%23333'/%3E%3C/svg%3E`;
+
+if(!currentUser){
+  document.getElementById('contactsList').innerHTML=`<div class="guest-msg">Нужно <a href="profile.html">войти</a> чтобы пользоваться сообщениями</div>`;
+} else {
+  document.getElementById('navNick').textContent='@'+currentUser.nick;
+  loadContacts();
+  // check URL param
+  const urlParams = new URLSearchParams(location.search);
+  const openNick = urlParams.get('u');
+  if(openNick) openChatByNick(openNick);
+}
+
+async function loadContacts(){
+  const snap = await get(ref(db,`friends/${currentUser.uid}`));
+  const list = document.getElementById('contactsList');
+  if(!snap.exists()){
+    list.innerHTML='<div style="padding:20px;font-size:10px;color:var(--txt2);text-align:center">Нет друзей.<br><a href="profile.html" style="color:var(--acc)">Добавить друзей →</a></div>';
+    return;
+  }
+  list.innerHTML='';
+  const friends = Object.entries(snap.val());
+  for(const [uid, data] of friends){
+    const uSnap = await get(ref(db,`users/${uid}`));
+    if(!uSnap.exists()) continue;
+    const u = uSnap.val();
+    const chatId = getChatId(currentUser.uid, uid);
+    const onlineSnap = await get(ref(db,`online/${uid}`));
+    const isOnline = onlineSnap.exists() && (Date.now()-onlineSnap.val()<300000);
+    const lastMsgSnap = await get(query(ref(db,`chats/${chatId}/messages`), orderByChild('at'), limitToLast(1)));
+    let lastMsg = '';
+    if(lastMsgSnap.exists()){
+      const msgs = Object.values(lastMsgSnap.val());
+      lastMsg = msgs[0]?.text?.substring(0,40)||'';
+    }
+    const item = document.createElement('div');
+    item.className='contact';
+    item.id=`contact_${uid}`;
+    item.innerHTML=`
+      <div style="position:relative">
+        <img class="contact-av" src="${u.avatarUrl||PLACEHOLDER}" alt="" onerror="this.src='${PLACEHOLDER}'">
+        ${isOnline?'<div class="online-dot"></div>':''}
+      </div>
+      <div class="contact-info">
+        <div class="contact-nick">@${u.nick}</div>
+        <div class="contact-last">${lastMsg||'Начни общение'}</div>
+      </div>`;
+    item.onclick=()=>openChat(uid, u.nick, u.avatarUrl||'', isOnline);
+    list.appendChild(item);
+    // Watch for new messages (unread badge)
+    onValue(ref(db,`chats/${chatId}/unread_${currentUser.uid}`), snap=>{
+      const existing = document.getElementById(`contact_${uid}`);
+      if(!existing)return;
+      let badge = existing.querySelector('.contact-unread');
+      if(snap.exists() && snap.val()>0){
+        if(!badge){ badge=document.createElement('div'); badge.className='contact-unread'; existing.appendChild(badge); }
+        badge.textContent=snap.val();
+      } else if(badge){ badge.remove(); }
+    });
+  }
+}
+
+async function openChatByNick(nick){
+  const snap = await get(ref(db,`users_by_nick/${nick.toLowerCase()}`));
+  if(!snap.exists())return;
+  const uid = snap.val();
+  const uSnap = await get(ref(db,`users/${uid}`));
+  if(!uSnap.exists())return;
+  const u = uSnap.val();
+  const onlineSnap = await get(ref(db,`online/${uid}`));
+  const isOnline = onlineSnap.exists() && (Date.now()-onlineSnap.val()<300000);
+  openChat(uid, u.nick, u.avatarUrl||'', isOnline);
+}
+
+window.openChat = function(uid, nick, av, isOnline){
+  activeChatUid = uid;
+  activeChatNick = nick;
+  lastMsgDate = null;
+  // Highlight contact
+  document.querySelectorAll('.contact').forEach(c=>c.classList.remove('active'));
+  const contactEl = document.getElementById(`contact_${uid}`);
+  if(contactEl) contactEl.classList.add('active');
+  // Update header
+  document.getElementById('chatHead').querySelector('.chat-head-av').src = av||PLACEHOLDER;
+  document.getElementById('chatHeadNick').textContent = '@'+nick;
+  document.getElementById('chatHeadStatus').textContent = isOnline ? '🟢 В сети' : 'Не в сети';
+  document.getElementById('chatEmpty').style.display='none';
+  const chatMain = document.getElementById('chatMain');
+  chatMain.style.display='flex';
+  // Mobile
+  if(window.innerWidth<=700){
+    document.getElementById('sidebar').classList.remove('mobile-show');
+    document.getElementById('chatArea').classList.add('mobile-show');
+  }
+  // Mark read
+  const chatId = getChatId(currentUser.uid, uid);
+  set(ref(db,`chats/${chatId}/unread_${currentUser.uid}`),0);
+  // Unsubscribe prev
+  if(messagesUnsubscribe){ try{messagesUnsubscribe()}catch(e){} }
+  // Listen to messages in real-time
+  const msgRef = query(ref(db,`chats/${chatId}/messages`), orderByChild('at'), limitToLast(100));
+  const msgsEl = document.getElementById('messages');
+  msgsEl.innerHTML='';
+  messagesUnsubscribe = onValue(msgRef, snap=>{
+    if(!snap.exists()){ msgsEl.innerHTML='<div style="text-align:center;font-size:10px;color:var(--txt2);padding:20px">Начни общение!</div>'; return; }
+    const msgs = Object.entries(snap.val()).sort((a,b)=>a[1].at-b[1].at);
+    msgsEl.innerHTML='';
+    lastMsgDate=null;
+    msgs.forEach(([id,msg])=>{ appendMessage(msg, msgsEl); });
+    msgsEl.scrollTop=msgsEl.scrollHeight;
+    // Mark read
+    set(ref(db,`chats/${chatId}/unread_${currentUser.uid}`),0);
+  });
+  document.getElementById('chatInput').focus();
+}
+
+function appendMessage(msg, container){
+  // Date separator
+  const d = new Date(msg.at);
+  const dateStr = d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+  if(dateStr !== lastMsgDate){
+    lastMsgDate=dateStr;
+    const sep=document.createElement('div'); sep.className='msg-date-sep'; sep.textContent=dateStr;
+    container.appendChild(sep);
+  }
+  const isOwn = msg.fromUid === currentUser.uid;
+  const div=document.createElement('div'); div.className=`msg${isOwn?' own':''}`;
+  const av=msg.avatarUrl||PLACEHOLDER;
+  const time=new Date(msg.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`
+    <img class="msg-av" src="${av}" onerror="this.src='${PLACEHOLDER}'" alt="">
+    <div class="msg-bubble">${escapeHtml(msg.text)}<div class="msg-time">${time}</div></div>`;
+  container.appendChild(div);
+}
+
+window.sendMessage = async function(){
+  if(!currentUser||!activeChatUid) return;
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim(); if(!text)return;
+  input.value=''; autoResize(input);
+  const chatId=getChatId(currentUser.uid,activeChatUid);
+  const msg={fromUid:currentUser.uid,nick:currentUser.nick,avatarUrl:currentUser.avatarUrl||'',text,at:Date.now()};
+  await push(ref(db,`chats/${chatId}/messages`),msg);
+  // Increment unread for recipient
+  const unreadRef=ref(db,`chats/${chatId}/unread_${activeChatUid}`);
+  const unreadSnap=await get(unreadRef);
+  await set(unreadRef,(unreadSnap.exists()?unreadSnap.val():0)+1);
+  // Update last msg for contact list
+  await set(ref(db,`chats/${chatId}/lastMsg`),{text,at:Date.now()});
+}
+
+window.backToList = function(){
+  document.getElementById('sidebar').classList.add('mobile-show');
+  document.getElementById('chatArea').classList.remove('mobile-show');
+}
+
+window.handleKey = function(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+window.autoResize = function(el){
+  el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function getChatId(uid1,uid2){ return [uid1,uid2].sort().join('_'); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+</script>
+</body>
+</html>

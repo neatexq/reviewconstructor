@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Профиль — Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bor:#252530;--acc:#c8a96e;--txt:#e8e0d0;--txt2:#5a5060;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bor);height:54px;display:flex;align-items:center;padding:0 20px;gap:14px}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--acc)}
+.nav-back{font-size:10px;color:var(--txt2);letter-spacing:1px;transition:color .2s}
+.nav-back:hover{color:var(--acc)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-nick{font-size:10px;color:var(--acc);letter-spacing:1px}
+.nav-btn{padding:5px 14px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;border:1px solid var(--bor);background:var(--bg2);color:var(--txt2);transition:all .2s;text-decoration:none}
+.nav-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+.wrap{max-width:780px;margin:0 auto;padding:32px 16px 60px}
+
+/* PROFILE HERO */
+.hero{background:var(--bg2);border:1px solid var(--bor);border-radius:18px;padding:32px;display:flex;align-items:center;gap:24px;margin-bottom:28px}
+@media(max-width:600px){.hero{flex-direction:column;text-align:center;padding:24px 18px}}
+.hero-av{width:90px;height:90px;border-radius:50%;border:3px solid var(--bor);object-fit:cover;flex-shrink:0;background:var(--bg3)}
+.hero-info{flex:1}
+.hero-nick{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:#fff;line-height:1}
+.hero-joined{font-size:9px;color:var(--txt2);letter-spacing:1px;margin-top:4px}
+.hero-stats{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+@media(max-width:600px){.hero-stats{justify-content:center}}
+.hstat{display:flex;flex-direction:column;align-items:center;gap:1px}
+.hstat-n{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--acc)}
+.hstat-l{font-size:8px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase}
+.hero-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0}
+@media(max-width:600px){.hero-actions{align-items:center;width:100%}}
+.hero-btn{padding:9px 20px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;border:none;transition:all .2s;white-space:nowrap;width:100%}
+.hero-btn.add{background:var(--acc);color:#1a1005}
+.hero-btn.add:hover{background:#b8996e}
+.hero-btn.msg{background:var(--bg3);border:1px solid var(--bor);color:var(--txt2)}
+.hero-btn.msg:hover{border-color:var(--acc);color:var(--acc)}
+.hero-btn.pending{background:var(--bg3);border:1px solid var(--bor);color:var(--txt2);cursor:default}
+.hero-btn.friends{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);cursor:default}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--bor)}
+.tab{padding:10px 18px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2);transition:all .2s;text-transform:uppercase}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* REVIEWS GRID */
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+@media(max-width:480px){.reviews-grid{grid-template-columns:repeat(2,1fr);gap:8px}}
+.rv-card{background:var(--bg2);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s}
+.rv-card:hover{border-color:rgba(200,169,110,.3);transform:translateY(-2px)}
+.rv-img{width:100%;aspect-ratio:3/4;object-fit:contain;display:block;background:var(--bg3)}
+.rv-meta{padding:8px 10px}
+.rv-type{font-size:8px;color:var(--acc);letter-spacing:1.5px;text-transform:uppercase}
+.rv-title{font-size:11px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.rv-date{font-size:9px;color:var(--txt2);margin-top:2px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.stat-card{background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px}
+.stat-label{font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:var(--acc);line-height:1}
+.stat-sub{font-size:9px;color:var(--txt2);margin-top:2px}
+.genres-list{display:flex;flex-wrap:wrap;gap:6px}
+.genre-tag{padding:4px 10px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.15);border-radius:20px;font-size:10px;color:var(--acc);letter-spacing:.5px}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:200;display:none;align-items:center;justify-content:center;cursor:zoom-out}
+.lb.show{display:flex}
+.lb img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px}
+
+/* LOADING/EMPTY */
+.loading{padding:40px;text-align:center;color:var(--txt2);font-size:11px;letter-spacing:2px;grid-column:1/-1}
+.empty{padding:60px 20px;text-align:center;color:var(--txt2);grid-column:1/-1}
+.empty span{font-size:36px;display:block;margin-bottom:10px;opacity:.3}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:10px 18px;font-size:11px;color:var(--txt);z-index:400;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">◈</a>
+  <a href="feed.html" class="nav-back">← Лента</a>
+  <div class="nav-right">
+    <span class="nav-nick" id="navNick" style="display:none"></span>
+    <a href="profile.html" class="nav-btn" id="navBtn">Профиль</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="heroWrap"><div class="loading">Загрузка...</div></div>
+  <div class="tabs" id="tabs" style="display:none">
+    <div class="tab active" onclick="switchTab('reviews',this)">Рецензии</div>
+    <div class="tab" onclick="switchTab('stats',this)">Статистика</div>
+  </div>
+  <div id="tabContent"></div>
+</div>
+
+<div class="lb" id="lb" onclick="this.classList.remove('show')">
+  <img id="lbImg" src="" alt="">
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, get, set, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyANeIRqb_oUJSUq2PsU1xGzOJKV29QOY74",
+  authDomain: "reviewconstructor-8d391.firebaseapp.com",
+  databaseURL: "https://reviewconstructor-8d391-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "reviewconstructor-8d391",
+  storageBucket: "reviewconstructor-8d391.firebasestorage.app",
+  messagingSenderId: "722321589337",
+  appId: "1:722321589337:web:81098aec4a3d9e9db21d48"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const session = JSON.parse(localStorage.getItem('rc_session')||'null');
+const me = session;
+const PLACEHOLDER=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='14' r='8' fill='%23333'/%3E%3Ccircle cx='18' cy='34' r='12' fill='%23333'/%3E%3C/svg%3E`;
+
+if(me){
+  document.getElementById('navNick').textContent='@'+me.nick;
+  document.getElementById('navNick').style.display='block';
+}
+
+// Get target user from URL
+const params = new URLSearchParams(location.search);
+const targetNick = params.get('u');
+if(!targetNick){ document.getElementById('heroWrap').innerHTML='<div class="loading">Пользователь не найден</div>'; }
+else { loadProfile(targetNick); }
+
+let targetUser = null;
+let targetReviews = [];
+let currentTab = 'reviews';
+
+async function loadProfile(nick){
+  const nickSnap = await get(ref(db,`users_by_nick/${nick.toLowerCase()}`));
+  if(!nickSnap.exists()){ document.getElementById('heroWrap').innerHTML='<div class="loading">@'+nick+' не найден</div>'; return; }
+  const uid = nickSnap.val();
+  const uSnap = await get(ref(db,`users/${uid}`));
+  if(!uSnap.exists()){ document.getElementById('heroWrap').innerHTML='<div class="loading">Ошибка</div>'; return; }
+  targetUser = {...uSnap.val(), uid};
+  document.title = '@'+targetUser.nick+' — Reviews';
+  // Load reviews
+  const rvSnap = await get(ref(db,`reviews/${uid}`));
+  targetReviews = [];
+  if(rvSnap.exists()){
+    targetReviews = Object.entries(rvSnap.val()).map(([id,rv])=>({id,...rv}))
+      .filter(rv=>{
+        if(rv.privacy==='public')return true;
+        if(!me)return false;
+        if(me.uid===uid)return true;
+        if(rv.privacy==='friends'){
+          // check if me is friend of target
+          return false; // will be checked async
+        }
+        return false;
+      })
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  }
+  // Check relationship
+  let relationship = 'none'; // none | pending | friends | self
+  if(me){
+    if(me.uid===uid){ relationship='self'; }
+    else {
+      const fSnap = await get(ref(db,`friends/${me.uid}/${uid}`));
+      if(fSnap.exists()){ relationship='friends'; }
+      else {
+        const rSnap = await get(ref(db,`friend_requests/${uid}/${me.uid}`));
+        if(rSnap.exists()) relationship='pending';
+      }
+    }
+  }
+  renderHero(targetUser, targetReviews.length, relationship);
+  document.getElementById('tabs').style.display='flex';
+  renderReviews();
+}
+
+function renderHero(u, rvCount, rel){
+  const joined = u.joinedAt ? 'С '+new Date(u.joinedAt).toLocaleDateString('ru-RU',{month:'long',year:'numeric'}) : '';
+  let addBtn='', msgBtn='';
+  if(rel==='none'&&me){
+    addBtn=`<button class="hero-btn add" id="addBtn" onclick="addFriend()">+ Добавить в друзья</button>`;
+    msgBtn=`<button class="hero-btn msg" onclick="openMessages()">💬 Написать</button>`;
+  } else if(rel==='pending'){
+    addBtn=`<button class="hero-btn pending">✓ Запрос отправлен</button>`;
+    msgBtn=`<button class="hero-btn msg" onclick="openMessages()">💬 Написать</button>`;
+  } else if(rel==='friends'){
+    addBtn=`<button class="hero-btn friends">✓ В друзьях</button>`;
+    msgBtn=`<button class="hero-btn msg" onclick="openMessages()">💬 Написать</button>`;
+  } else if(rel==='self'){
+    addBtn=`<a href="profile.html" class="hero-btn msg" style="text-align:center;display:block">✏️ Редактировать профиль</a>`;
+  } else if(!me){
+    addBtn=`<a href="profile.html" class="hero-btn add" style="text-align:center;display:block">Войти чтобы добавить</a>`;
+  }
+  document.getElementById('heroWrap').innerHTML=`
+    <div class="hero">
+      <img class="hero-av" src="${u.avatarUrl||PLACEHOLDER}" alt="" onerror="this.src='${PLACEHOLDER}'">
+      <div class="hero-info">
+        <div class="hero-nick">@${u.nick}</div>
+        <div class="hero-joined">${joined}</div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="hstat-n">${rvCount}</div><div class="hstat-l">Рецензий</div></div>
+        </div>
+      </div>
+      <div class="hero-actions">${addBtn}${msgBtn}</div>
+    </div>`;
+}
+
+window.addFriend = async function(){
+  if(!me||!targetUser)return;
+  const snap = await get(ref(db,`friend_requests/${targetUser.uid}/${me.uid}`));
+  if(snap.exists()){ toast('Уже отправлено',''); return; }
+  await set(ref(db,`friend_requests/${targetUser.uid}/${me.uid}`),{fromUid:me.uid,fromNick:me.nick,sentAt:Date.now()});
+  await push(ref(db,`notifications/${targetUser.uid}`),{text:`@${me.nick} хочет добавить тебя в друзья`,at:Date.now()});
+  document.getElementById('addBtn').outerHTML=`<button class="hero-btn pending">✓ Запрос отправлен</button>`;
+  toast('Запрос отправлен!','ok');
+}
+
+window.openMessages = function(){
+  if(!me){ window.location.href='profile.html'; return; }
+  window.location.href=`messages.html?u=${encodeURIComponent(targetUser.nick)}`;
+}
+
+window.switchTab = function(tab, el){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(tab==='reviews') renderReviews();
+  else renderStats();
+}
+
+function renderReviews(){
+  const wrap=document.getElementById('tabContent');
+  if(!targetReviews.length){
+    wrap.innerHTML='<div class="reviews-grid"><div class="empty"><span>📝</span>Нет публичных рецензий</div></div>';
+    return;
+  }
+  wrap.innerHTML='<div class="reviews-grid" id="rvGrid"></div>';
+  const grid=document.getElementById('rvGrid');
+  targetReviews.forEach(rv=>{
+    const c=document.createElement('div');c.className='rv-card';
+    c.innerHTML=`<img class="rv-img" src="${rv.imgData||''}" alt="" onerror="this.style.display='none'">
+      <div class="rv-meta"><div class="rv-type">${rv.type||''}</div><div class="rv-title">${rv.title||'—'}</div><div class="rv-date">${rv.date||''}</div></div>`;
+    c.onclick=()=>{ document.getElementById('lbImg').src=rv.imgData||''; document.getElementById('lb').classList.add('show'); };
+    grid.appendChild(c);
+  });
+}
+
+function renderStats(){
+  const wrap=document.getElementById('tabContent');
+  if(!targetReviews.length){wrap.innerHTML='<div class="empty"><span>📊</span>Нет данных</div>';return;}
+  const byType={};
+  targetReviews.forEach(rv=>{ byType[rv.type]=(byType[rv.type]||0)+1; });
+  const sorted=Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  const total=targetReviews.length;
+  const perMonth=(total/Math.max(1,Math.ceil((Date.now()-(targetReviews[targetReviews.length-1]?.createdAt||Date.now()))/(1000*60*60*24*30)))).toFixed(1);
+  wrap.innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Всего рецензий</div><div class="stat-val">${total}</div></div>
+      <div class="stat-card"><div class="stat-label">В месяц</div><div class="stat-val">${perMonth}</div><div class="stat-sub">в среднем</div></div>
+      ${sorted.map(([type,count])=>`
+        <div class="stat-card">
+          <div class="stat-label">${type}</div>
+          <div class="stat-val">${count}</div>
+          <div class="stat-sub">${Math.round(count/total*100)}% от всех</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show '+(type||'');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3000);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('lb').classList.remove('show')});
+</script>
+</body>
+</html>

@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="social-widget.js"></script>
+<script src="templates.js"></script>
 <style>
 :root{--acc:#00e5ff;--acc2:#7c3aed;--bg:#0e0e12;--bg2:#16161c;--bg3:#1e1e26;--bor:#2a2a36;--txt:#e0e0f0;--txt2:#6b6b8a}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1210,6 +1211,34 @@ document.addEventListener('click',e=>{
 
 restore();
 upd();
+
+
+// ── РЕДАКТОР ОПУБЛИКОВАННОЙ ──
+(function(){
+  try{
+    const sig = JSON.parse(localStorage.getItem('rc_edit_signal')||'null');
+    if(sig && Date.now()-sig.openedAt < 10000){
+      localStorage.removeItem('rc_edit_signal');
+      // draft is already restored by autosave restore()
+      // show notification
+      setTimeout(()=>{
+        const t=document.createElement('div');
+        t.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#111118;border:1px solid #c8a96e;border-radius:10px;padding:12px 22px;font-size:11px;color:#c8a96e;z-index:9999;font-family:Space Mono,monospace;letter-spacing:1px;box-shadow:0 8px 30px rgba(0,0,0,.6);white-space:nowrap';
+        t.textContent='✏️ Редактирование рецензии — последний черновик загружен';
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(),4000);
+      },500);
+    }
+  }catch(e){}
+})();
+
+// ── ШАБЛОНЫ ──
+if(typeof injectTemplateBtn !== 'undefined'){
+  injectTemplateBtn('games_draft', collectDraft, function(draft){
+    applyDraft(draft);
+    upd();
+  });
+}
 
 // ── ПУБЛИКАЦИЯ ──
 let _privMode = 'public';

@@ -99,6 +99,8 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .review-priv{position:absolute;top:8px;right:8px;font-size:10px;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 6px;color:rgba(255,255,255,.5)}
 .review-del{position:absolute;top:8px;left:8px;width:22px;height:22px;background:rgba(239,68,68,.85);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#fff}
 .review-card:hover .review-del{display:flex}
+.review-edit{position:absolute;top:8px;left:36px;width:22px;height:22px;background:rgba(200,169,110,.85);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#1a1005}
+.review-card:hover .review-edit{display:flex}
 .reviews-empty{text-align:center;padding:60px 20px;color:var(--txt2);font-size:12px;grid-column:1/-1}
 .reviews-empty span{font-size:32px;display:block;margin-bottom:12px;opacity:.3}
 
@@ -183,6 +185,8 @@ input[type=file]{display:none}
 <!-- NAV -->
 <nav class="nav">
   <a href="index.html" class="nav-logo">◈ REVIEWS</a>
+  <a href="feed.html" style="font-size:10px;color:var(--txt2);letter-spacing:1px;transition:color .2s;padding:4px 8px;border-radius:5px" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--txt2)'">Лента</a>
+  <a href="messages.html" id="navMsgsLink" style="font-size:10px;color:var(--txt2);letter-spacing:1px;transition:color .2s;padding:4px 8px;border-radius:5px" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--txt2)'">Сообщения</a>
   <div class="nav-right">
     <div id="navGuest" style="display:flex;gap:8px">
       <button class="nav-btn" onclick="showAuth('login')">Войти</button>
@@ -210,6 +214,7 @@ input[type=file]{display:none}
       </div>
       <div class="profile-nick" id="profileNick">—</div>
       <div class="profile-joined" id="profileJoined">—</div>
+      <div id="myPublicLink" style="display:none;font-size:9px;color:var(--acc);letter-spacing:.5px;cursor:pointer;margin-top:2px" onclick="copyPublicLink()">🔗 Скопировать ссылку на профиль</div>
       <div class="profile-stats">
         <div class="pstat"><div class="pstat-n" id="statReviews">0</div><div class="pstat-l">Рецензий</div></div>
         <div class="pstat"><div class="pstat-n" id="statFriends">0</div><div class="pstat-l">Друзей</div></div>
@@ -251,7 +256,8 @@ input[type=file]{display:none}
   <!-- MAIN -->
   <div class="main">
     <div class="main-tabs">
-      <div class="main-tab active" onclick="switchTab('my')">Мои рецензии</div>
+      <div class="main-tab active" onclick="switchTab('my',this)">Мои рецензии</div>
+      <div class="main-tab" onclick="switchTab('stats',this)">Статистика</div>
     </div>
     <div id="reviewsGrid" class="reviews-grid">
       <div class="loading" style="grid-column:1/-1">Загрузка...</div>
@@ -463,6 +469,7 @@ function setCurrentUser(user){
   loadFriends();
   loadNotifications();
   document.getElementById('logoutBtn').style.display='block';
+  document.getElementById('myPublicLink').style.display='block';
   // make avatar clickable to upload
   document.querySelector('.avatar-wrap').onclick = ()=>document.getElementById('avatarIn').click();
   // обработать очередь публикаций сразу
@@ -514,6 +521,53 @@ window.uploadAvatar = async function(e){
 }
 
 // ─────────────────────── REVIEWS ───────────────────────
+window.switchTab = function(tab, el){
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(tab==='my') loadMyReviews();
+  else if(tab==='stats') loadStats();
+}
+
+window.copyPublicLink = function(){
+  if(!currentUser)return;
+  const url=`${location.origin}${location.pathname.replace('profile.html','')}user.html?u=${encodeURIComponent(currentUser.nick)}`;
+  navigator.clipboard?.writeText(url);
+  toast('Ссылка скопирована ✓','ok');
+}
+
+async function loadStats(){
+  const grid=document.getElementById('reviewsGrid');
+  grid.style.gridTemplateColumns='repeat(auto-fill,minmax(150px,1fr))';
+  grid.innerHTML='<div style="grid-column:1/-1;padding:20px;font-size:10px;color:var(--txt2)">Загрузка...</div>';
+  const snap=await get(ref(db,`reviews/${currentUser.uid}`));
+  if(!snap.exists()){grid.innerHTML='<div class="reviews-empty"><span>📊</span>Нет данных для статистики</div>';return;}
+  const reviews=Object.values(snap.val());
+  const byType={};
+  reviews.forEach(rv=>{ byType[rv.type]=(byType[rv.type]||0)+1; });
+  const sorted=Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  const total=reviews.length;
+  const oldest=reviews.reduce((a,b)=>(a.createdAt||Infinity)<(b.createdAt||Infinity)?a:b,reviews[0]);
+  const months=Math.max(1,Math.ceil((Date.now()-(oldest?.createdAt||Date.now()))/(1000*60*60*24*30)));
+  const perMonth=(total/months).toFixed(1);
+  grid.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
+      <div style="font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Всего</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${total}</div>
+      <div style="font-size:9px;color:var(--txt2);margin-top:2px">рецензий</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
+      <div style="font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">В месяц</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${perMonth}</div>
+      <div style="font-size:9px;color:var(--txt2);margin-top:2px">в среднем</div>
+    </div>
+    ${sorted.map(([type,count])=>`
+    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
+      <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:8px">${type}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${count}</div>
+      <div style="font-size:9px;color:var(--txt2);margin-top:2px">${Math.round(count/total*100)}% от всех</div>
+    </div>`).join('')}`;
+}
+
 window.loadMyReviews = async function(){
   if(!currentUser)return;
   const grid = document.getElementById('reviewsGrid');
@@ -539,13 +593,21 @@ function renderReviews(grid, reviews, isOwn){
       <div class="review-meta">
         <div class="review-type">${rv.type||'Рецензия'}</div>
         <div class="review-title">${rv.title||'—'}</div>
-        <div class="review-date">${rv.date||''}</div>
+        <div class="review-date" style="display:flex;align-items:center;justify-content:space-between">
+          <span>${rv.date||''}</span>
+          <span id="likeCount_${rv.id}" style="font-size:9px;color:var(--txt2)"></span>
+        </div>
       </div>
       <div class="review-priv">${privLabel}</div>
-      ${isOwn?`<div class="review-del" onclick="deleteReview(event,'${rv.id}')">✕</div>`:''}
+      ${isOwn?`<div class="review-del" onclick="deleteReview(event,'${rv.id}')">✕</div><div class="review-edit" onclick="editReview(event,'${rv.id}',this)" data-type="${(rv.type||'').replace(/"/g,'')}">✏️</div>`:''}
     `;
     card.onclick = ()=>openReview(rv);
     grid.appendChild(card);
+    // load like count
+    onValue(ref(db,`likes/${rv.id}`), snap=>{
+      const el=document.getElementById(`likeCount_${rv.id}`);
+      if(el&&snap.exists()) el.textContent='❤️ '+Object.keys(snap.val()).length;
+    });
   });
 }
 
@@ -573,6 +635,21 @@ window.deleteReview = async function(e, id){
   await remove(ref(db,`reviews/${currentUser.uid}/${id}`));
   toast('Рецензия удалена','ok');
   loadMyReviews();
+}
+
+window.editReview = function(e, id, el){
+  e.stopPropagation();
+  const type = el.getAttribute('data-type') || '';
+  const pageMap = [
+    ['Игры','games.html'],['Кино','cinema.html'],
+    ['Музыка','music.html'],['Книги','books.html'],['Аниме','anime.html']
+  ];
+  let page = null;
+  for(const [key,val] of pageMap){ if(type.includes(key)){page=val;break;} }
+  if(!page){ toast('Не удалось определить тип рецензии','err'); return; }
+  localStorage.setItem('rc_edit_signal', JSON.stringify({id, type, openedAt: Date.now()}));
+  toast('Открываем редактор...','');
+  setTimeout(()=>{ window.location.href = page; }, 600);
 }
 
 // ─────────────────────── PUBLISH (called from constructors) ───────────────────────
