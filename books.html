@@ -786,17 +786,27 @@ function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!
 /* GOOGLE BOOKS SEARCH */
 document.getElementById('bkQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchBook()});
 let bkTimer=null;
-document.getElementById('bkQ').addEventListener('input',()=>{clearTimeout(bkTimer);bkTimer=setTimeout(()=>{if(document.getElementById('bkQ').value.trim().length>1)searchBook()},600)});
+document.getElementById('bkQ').addEventListener('input',()=>{clearTimeout(bkTimer);bkTimer=setTimeout(()=>{if(document.getElementById('bkQ').value.trim().length>1)searchBook()},900)});
 
+let bkLastSearch=0;
 async function searchBook(){
   const q=document.getElementById('bkQ').value.trim();if(!q)return;
+  // rate-limit: не чаще раза в 1.5 сек
+  const now=Date.now();if(now-bkLastSearch<1500){clearTimeout(bkTimer);bkTimer=setTimeout(searchBook,1500-(now-bkLastSearch));return}
+  bkLastSearch=now;
   const res=document.getElementById('bkRes');
   res.style.display='block';
   res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
   try{
-    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
-    const r=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=8&langRestrict=ru,en`,{signal:controller.signal});
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
+    // без langRestrict — Google Books поддерживает русский без него
+    const r=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=8&printType=books`,{signal:controller.signal});
     clearTimeout(timeout);
+    if(r.status===429){
+      res.innerHTML='<div style="padding:12px;font-size:10px;color:#e63946">Слишком много запросов. Подожди пару секунд.</div>';
+      bkLastSearch=Date.now()+3000; // блокируем ещё на 3 сек
+      return;
+    }
     if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
     const data=await r.json();
     if(!data.items||!data.items.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
