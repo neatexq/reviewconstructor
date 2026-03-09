@@ -6,6 +6,7 @@
 <title>Книги-Конструктор</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="social-widget.js"></script>
 <style>
 :root{--acc:#c8a96e;--acc2:#7c5c2e;--bg:#0f0d0b;--bg2:#171410;--bg3:#1e1a15;--bor:#2e2820;--txt:#e8e0d0;--txt2:#6b5f4a}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -915,6 +916,7 @@ function restore(){
 }
 
 restore();upd();
+if(typeof injectPublishBtn==="function")injectPublishBtn();
 </script>
 </body>
 </html>
