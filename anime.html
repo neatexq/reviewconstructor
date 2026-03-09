@@ -437,7 +437,7 @@ textarea{resize:vertical;min-height:75px}
   <!-- ANIME VIEW -->
   <div class="view show anime-view" id="viewAnime">
     <div class="an-header">
-      <img id="anCoverImg" class="an-cover" src="" alt="" crossorigin="anonymous">
+      <img id="anCoverImg" class="an-cover" src="" alt="">
       <div class="an-meta">
         <div class="an-eyebrow" id="anEyebrow">АНИМЕ</div>
         <div class="an-title" id="anTitleEl">НАЗВАНИЕ АНИМЕ</div>
@@ -728,6 +728,26 @@ function _updCore(){
 }
 function upd(){_updCore();autosave()}
 
+/* ЗАГРУЗКА ОБЛОЖКИ — через blob, обходит CORS */
+const coverCache={};
+async function loadCover(imgId, url){
+  const img=document.getElementById(imgId);
+  if(!img||!url)return;
+  // если уже в кэше — сразу
+  if(coverCache[url]){img.src=coverCache[url];img.style.display='block';return}
+  try{
+    const r=await fetch(url,{mode:'cors'});
+    if(!r.ok)throw new Error(r.status);
+    const blob=await r.blob();
+    const blobUrl=URL.createObjectURL(blob);
+    coverCache[url]=blobUrl;
+    img.src=blobUrl;img.style.display='block';
+  }catch(e){
+    // CORS не прошёл — ставим src напрямую (для html2canvas allowTaint справится)
+    img.src=url;img.style.display='block';
+  }
+}
+
 /* LIBRARY */
 let lib=[];
 function addLib(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{lib.push(ev.target.result);renderLib();setBgFor(mode,lib.length-1)};r.readAsDataURL(file);e.target.value=''}
@@ -801,17 +821,18 @@ const SEASON_RU={'winter':'Зима','spring':'Весна','summer':'Лето','
 
 async function pickAnime(anime){
   document.getElementById('anRes').style.display='none';
-  // Используем русское название
   document.getElementById('anTitle').value=anime.russian||anime.name||'';
-  // японское поле оставляем пустым (скрыто по умолчанию)
   document.getElementById('anTitleJp').value='';
   const year=anime.aired_on?anime.aired_on.slice(0,4):'';
   document.getElementById('anYear').value=year;
-  // сезон
   let seasonStr='';
   if(anime.season){const parts=anime.season.match(/^(\w+)_(\d+)$/);if(parts)seasonStr=(SEASON_RU[parts[1]]||parts[1])+' '+parts[2]}
   document.getElementById('anSeason').value=seasonStr;
-  // загружаем детали для жанров и студии
+  // сразу показываем preview-обложку пока грузятся детали
+  const previewSrc=anime.image?.preview?'https://shikimori.one'+anime.image.preview:'';
+  if(previewSrc)loadCover('anCoverImg', previewSrc);
+  upd();
+  // параллельно грузим детали (жанры, студия, большая обложка)
   try{
     const det=await fetch(`https://shikimori.one/api/animes/${anime.id}`,{headers:{'User-Agent':'AnimeConstructor/1.0'}});
     if(det.ok){
@@ -819,20 +840,13 @@ async function pickAnime(anime){
       document.getElementById('anEps').value=d.episodes||d.episodes_aired||'';
       const genres=(d.genres||[]).map(g=>GENRE_RU[g.name]||g.russian||g.name).slice(0,4).join(', ');
       document.getElementById('anGenres').value=genres;
-      const studio=(d.studios||[]).slice(0,1).map(s=>s.name).join('');
-      document.getElementById('anStudio').value=studio;
+      document.getElementById('anStudio').value=(d.studios||[]).slice(0,1).map(s=>s.name).join('');
       if(d.score&&d.score!=='0.0')document.getElementById('anScore').value=parseFloat(d.score).toFixed(1);
-      // обложка — большая версия
-      const imgSrc=d.image?.original?'https://shikimori.one'+d.image.original:(d.image?.preview?'https://shikimori.one'+d.image.preview:'');
-      if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
+      const bigSrc=d.image?.original?'https://shikimori.one'+d.image.original:'';
+      if(bigSrc)loadCover('anCoverImg', bigSrc);
+      upd();
     }
-  }catch(e){
-    // fallback: маленькая обложка из поиска
-    document.getElementById('anEps').value=anime.episodes||anime.episodes_aired||'';
-    const imgSrc=anime.image?.original?'https://shikimori.one'+anime.image.original:(anime.image?.preview?'https://shikimori.one'+anime.image.preview:'');
-    if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
-  }
-  upd();
+  }catch(e){}
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('anRes').style.display='none'});
 
