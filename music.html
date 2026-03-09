@@ -1338,6 +1338,13 @@ function _updCore(){
     const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
     S('L1',il1);S('L2',il2);V('Ey',iEl);V('Sb',iSb);V('Bg',iBg);V('Ico',iIc);V('Nk',iNk);V('Dv',iDv);
     S('Sb',iSv);S('Bg',isPaper?iBv.toUpperCase():iBv);S('Nk',iNv);
+    ['L1','L2'].forEach(key=>{
+      const el=document.getElementById(pre+key);
+      if(!el)return;
+      el.style.fontSize='';
+      let fs=66;el.style.fontSize=fs+'px';
+      while(el.scrollWidth>el.parentElement.clientWidth&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+    });
   });
   if(mode==='intro'){
     if(introSty==='custom'){
@@ -1361,6 +1368,14 @@ function _updCore(){
     const tx=document.getElementById(pre+'Txt');if(tx){tx.innerHTML=oTv.replace(/\n/g,'<br>');tx.style.display=oST?'block':'none'}
     V('Dv',oSDv);V('TgBlk',oSTg,true);V('QrBlk',oSQr,true);V('Nk',oSNk);
     S('Tg',tgS);S('Nk',nkO);
+    // auto-fit title font size so long words don't overflow
+    ['H1','H2'].forEach(key=>{
+      const el=document.getElementById(pre+key);
+      if(!el)return;
+      el.style.fontSize='';
+      let fs=66;el.style.fontSize=fs+'px';
+      while(el.scrollWidth>el.parentElement.clientWidth&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+    });
   });
   if(mode==='outro'){
     if(outroSty==='custom'){
