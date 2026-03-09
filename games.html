@@ -348,9 +348,15 @@ textarea{resize:vertical;min-height:75px}
       <div class="cs" style="background:linear-gradient(90deg,#00ff88,#00e5ff)" onclick="setSC('game','matrix',this)"></div>
       <div class="cs" style="background:#00e5ff" onclick="setSC('game','cyan',this)"></div>
     </div>
-    <h4>1. Обложка игры</h4>
-    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи обложку в библиотеку ↓ и нажми на неё — станет обложкой</div>
-    <h4>2. Элементы</h4>
+    <h4>1. Поиск игры</h4>
+    <div class="search-wrap" style="display:flex;gap:5px;position:relative">
+      <input type="text" id="gmQ" placeholder="Название игры..." onkeydown="if(event.key==='Enter')searchGame()">
+      <button class="btn" onclick="searchGame()" style="width:42px;padding:0;font-size:14px;flex-shrink:0">🔍</button>
+      <div id="gmRes" style="background:var(--bg);border:1px solid var(--bor);display:none;position:absolute;left:0;right:0;top:100%;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.7);border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto"></div>
+    </div>
+    <h4>2. Обложка игры</h4>
+    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи обложку в библиотеку ↓ и нажми на неё — станет обложкой. Или найди игру поиском — обложка подтянется автоматически.</div>
+    <h4>3. Элементы</h4>
     <div class="tblock"><div class="tg">
       <label><input type="checkbox" id="cRing" checked onchange="upd()"> Кольцо оценки</label>
       <label><input type="checkbox" id="cTag" checked onchange="upd()"> Теги жанра</label>
@@ -1094,6 +1100,118 @@ function renderLib(){
 
 // stripe toggle init
 document.getElementById('stGame').classList.add('on');
+
+/* ── RAWG SEARCH ── */
+function getRawgKey(){return 'f677e19d5e6a476a90c341f672c63a80'}
+
+let gmSearchTimer=null;
+document.getElementById('gmQ').addEventListener('input',()=>{
+  clearTimeout(gmSearchTimer);
+  gmSearchTimer=setTimeout(()=>{if(document.getElementById('gmQ').value.trim().length>1)searchGame()},500);
+});
+
+async function searchGame(){
+  const q=document.getElementById('gmQ').value.trim();
+  if(!q)return;
+  const key=getRawgKey();
+  if(!key){
+    return;
+  }
+  const res=document.getElementById('gmRes');
+  res.style.display='block';
+  res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+    const r=await fetch(`https://api.rawg.io/api/games?key=${key}&search=${encodeURIComponent(q)}&page_size=8&ordering=-rating`,{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}. Проверь API ключ.</div>`;return;}
+    const data=await r.json();
+    if(!data.results||!data.results.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return;}
+    res.innerHTML='';
+    data.results.forEach(game=>{
+      const div=document.createElement('div');
+      div.className='ri';
+      div.style.cssText='padding:10px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:11px;display:flex;align-items:center;gap:9px;color:#bbb;-webkit-tap-highlight-color:rgba(0,229,255,.2);user-select:none';
+      div.onmouseover=()=>div.style.background='var(--bg2)';
+      div.onmouseout=()=>div.style.background='';
+      const imgSrc=game.background_image||'';
+      const year=game.released?game.released.slice(0,4):'';
+      const rating=game.metacritic?`<span style="color:var(--acc);font-size:9px;font-weight:700">MC:${game.metacritic}</span>`:'';
+      div.innerHTML=`<img src="${imgSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0" crossorigin="anonymous"><div><b style="display:block;color:#ddd;font-size:11px">${game.name}</b><span style="font-size:10px;color:#555">${year}${year?' · ':''}${(game.genres||[]).slice(0,2).map(g=>g.name).join(', ')||''}</span>${rating?'<br>'+rating:''}</div>`;
+      div.onclick=()=>pickGame(game);
+      div.addEventListener('touchstart',e=>{e.preventDefault();pickGame(game)},{passive:false});
+      res.appendChild(div);
+    });
+  }catch(err){
+    if(err.name==='AbortError')res.innerHTML='<div style="padding:12px;font-size:10px;color:#e63946">Таймаут запроса</div>';
+    else res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка сети</div>`;
+  }
+}
+
+async function pickGame(game){
+  document.getElementById('gmRes').style.display='none';
+  document.getElementById('gmQ').value=game.name;
+
+  // fill basic fields immediately
+  document.getElementById('gmTitle').value=game.name||'';
+  const year=game.released?game.released.slice(0,4):'';
+  document.getElementById('gmYear').value=year;
+  // genres
+  const genres=(game.genres||[]).map(g=>g.name).join(', ');
+  document.getElementById('gmGenres').value=genres;
+  // platforms
+  const platNames=(game.platforms||[]).map(p=>p.platform.name.toLowerCase());
+  document.getElementById('plPC').checked=platNames.some(p=>p.includes('pc')||p.includes('windows')||p.includes('linux')||p.includes('mac'));
+  document.getElementById('plPS5').checked=platNames.some(p=>p.includes('playstation 5'));
+  document.getElementById('plPS4').checked=platNames.some(p=>p.includes('playstation 4'));
+  document.getElementById('plXbox').checked=platNames.some(p=>p.includes('xbox'));
+  document.getElementById('plSwitch').checked=platNames.some(p=>p.includes('nintendo switch'));
+  document.getElementById('plMobile').checked=platNames.some(p=>p.includes('ios')||p.includes('android'));
+  // metacritic as score
+  if(game.metacritic){
+    const mc=game.metacritic;
+    document.getElementById('gmScore').value=Math.round(mc/10*10)/10;
+  }
+  // cover image
+  if(game.background_image){
+    const img=document.getElementById('gmCoverImg');
+    img.crossOrigin='anonymous';
+    img.src=game.background_image;
+    img.style.display='block';
+  }
+  upd();
+
+  // fetch full details for developer/publisher/playtime
+  const key=getRawgKey();
+  if(key&&game.id){
+    try{
+      const r=await fetch(`https://api.rawg.io/api/games/${game.id}?key=${key}`);
+      if(r.ok){
+        const d=await r.json();
+        // developer
+        const devs=(d.developers||[]).map(x=>x.name).join(', ');
+        if(devs)document.getElementById('gmStudio').value=devs;
+        // publisher
+        const pubs=(d.publishers||[]).map(x=>x.name).join(', ');
+        if(pubs)document.getElementById('gmPublisher').value=pubs;
+        // playtime
+        if(d.playtime)document.getElementById('gmDuration').value=d.playtime+'ч';
+        // better cover (portrait if available)
+        if(d.background_image){
+          const img=document.getElementById('gmCoverImg');
+          img.src=d.background_image;
+        }
+        upd();
+      }
+    }catch(e){}
+  }
+}
+
+// close dropdown on outside click
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap'))document.getElementById('gmRes').style.display='none';
+});
 
 restore();
 upd();
