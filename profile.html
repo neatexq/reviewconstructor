@@ -532,7 +532,7 @@ function renderReviews(grid, reviews, isOwn){
     const card = document.createElement('div'); card.className='review-card';
     const privLabel = {public:'🌍',friends:'👥',selected:'👤'}[rv.privacy||'public']||'🌍';
     card.innerHTML=`
-      <img class="review-thumb" src="${rv.thumbUrl||''}" alt="" onerror="this.style.background='#222'">
+      <img class="review-thumb" src="${rv.imgData||rv.thumbUrl||''}" alt="" onerror="this.style.background='#222'" style="aspect-ratio:unset;object-fit:contain">
       <div class="review-meta">
         <div class="review-type">${rv.type||'Рецензия'}</div>
         <div class="review-title">${rv.title||'—'}</div>
@@ -548,7 +548,7 @@ function renderReviews(grid, reviews, isOwn){
 
 window.openReview = function(rv){
   viewingReview = rv;
-  document.getElementById('modalImg').src = rv.thumbUrl||'';
+  document.getElementById('modalImg').src = rv.imgData||rv.thumbUrl||'';
   document.getElementById('modalType').textContent = rv.type||'';
   document.getElementById('modalTitle').textContent = rv.title||'—';
   document.getElementById('modalDate').textContent = rv.date||'';
@@ -556,9 +556,10 @@ window.openReview = function(rv){
 }
 window.closeModal = function(){ document.getElementById('modalOverlay').classList.remove('show') }
 window.downloadReview = function(){
-  if(!viewingReview?.fullUrl && !viewingReview?.thumbUrl)return;
+  const imgSrc = viewingReview?.imgData||viewingReview?.fullUrl||viewingReview?.thumbUrl;
+  if(!imgSrc)return;
   const a = document.createElement('a');
-  a.href = viewingReview.fullUrl||viewingReview.thumbUrl;
+  a.href = imgSrc;
   a.download = `review_${Date.now()}.png`; a.click();
 }
 
@@ -572,25 +573,6 @@ window.deleteReview = async function(e, id){
 }
 
 // ─────────────────────── PUBLISH (called from constructors) ───────────────────────
-window.publishReview = async function(data){
-  if(!currentUser){ toast('Нужно войти в аккаунт 👆','err'); showAuth('login'); return }
-  toast('Публикуем...','');
-  const id = 'rv_'+Date.now();
-  // Храним base64 прямо в Realtime Database — thumb 200px (~15KB), full 400px (~40KB)
-  const rv = {
-    id, type: data.type||'Рецензия', title: data.title||'Без названия',
-    thumbUrl: data.thumbDataUrl,   // уже сжатый JPEG 200px из social-widget
-    fullUrl:  data.fullDataUrl,    // PNG карточки
-    privacy: currentPrivacy,
-    privacyFriends: currentPrivacy==='selected'?[...selectedFriendsForPriv]:[],
-    createdAt: Date.now(),
-    date: new Date().toLocaleDateString('ru-RU')
-  };
-  await set(ref(db,`reviews/${currentUser.uid}/${id}`), rv);
-  toast('Рецензия опубликована! 🎉','ok');
-  document.getElementById('statReviews').textContent = parseInt(document.getElementById('statReviews').textContent||0)+1;
-}
-
 // ─────────────────────── PRIVACY ───────────────────────
 window.openPrivSettings = async function(){
   if(!currentUser){ toast('Нужно войти','err'); return }
@@ -784,21 +766,26 @@ async function processPublishQueue(){
   const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
   if(!queue.length)return;
   localStorage.removeItem('rc_publish_queue');
-  toast(`Публикуем ${queue.length} рецензий...`,'');
+  toast(`Публикуем ${queue.length} ${queue.length===1?'рецензию':'рецензий'}...`,'');
   for(const item of queue){
     try{
       const id='rv_'+item.queuedAt+'_'+Math.random().toString(36).slice(2,5);
-      // base64 прямо в Realtime Database
+      // imgData — JPEG 600px 90% качества, сохраняем прямо в Realtime DB
+      const imgData = item.imgData || item.thumbDataUrl || item.fullDataUrl || '';
       await set(ref(db,`reviews/${currentUser.uid}/${id}`),{
-        id,type:item.type||'Рецензия',title:item.title||'—',
-        thumbUrl:item.thumbDataUrl,
-        fullUrl:item.fullDataUrl,
+        id,
+        type:item.type||'Рецензия',
+        title:item.title||'—',
+        imgData,                          // единственное поле с изображением
         privacy:item.privacy||'public',
         privacyFriends:item.privacyFriends||[],
         createdAt:item.queuedAt||Date.now(),
         date:new Date(item.queuedAt||Date.now()).toLocaleDateString('ru-RU')
       });
-    }catch(e){console.error('publish queue err',e)}
+    }catch(e){
+      console.error('publish queue err',e);
+      toast('Ошибка публикации: '+e.message,'err');
+    }
   }
   toast('Опубликовано! 🎉','ok');
   loadMyReviews();
@@ -816,8 +803,8 @@ async function cacheFriends(){
   localStorage.setItem('rc_friends_cache',JSON.stringify(list));
 }
 
-// run queue on load
-setTimeout(()=>{if(currentUser){processPublishQueue();cacheFriends()}},800);
+// run queue immediately on load
+setTimeout(()=>{if(currentUser){processPublishQueue();cacheFriends()}},300);
 </script>
 </body>
 </html>

@@ -1217,29 +1217,40 @@ let _privFriends = [];
 const _PRIV_LABELS = {public:'🌍 Публично', friends:'👥 Друзьям', selected:'👤 Избранным'};
 
 function publishCard(){
-  const session = JSON.parse(localStorage.getItem('rc_session')||'null');
+  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
   if(!session){
     if(confirm('Нужно войти в аккаунт. Перейти на страницу профиля?')) window.location.href='profile.html';
     return;
   }
-  const card = document.getElementById('card'); if(!card) return;
-  const saveBtn = document.querySelector('.savebtn');
-  if(saveBtn){ saveBtn.textContent='⏳ Сохранение...'; saveBtn.disabled=true; }
+  const card=document.getElementById('card');if(!card)return;
+  const pubBtn=document.querySelector('[onclick="publishCard()"]');
+  if(pubBtn){pubBtn.textContent='⏳...';pubBtn.disabled=true;}
   html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
-    const fullDataUrl = cv.toDataURL('image/png');
-    const th=document.createElement('canvas');
-    const sc=Math.min(1, 400/cv.width);
-    th.width=Math.round(cv.width*sc); th.height=Math.round(cv.height*sc);
-    th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
-    const thumbDataUrl = th.toDataURL('image/jpeg',.78);
-    const titleEl = document.getElementById('gTitle');
-    const title = titleEl?.value || 'Рецензия';
-    const queue = JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
-    queue.push({thumbDataUrl, fullDataUrl, type:'🎮 Игры', title, privacy:_privMode, privacyFriends:[..._privFriends], queuedAt:Date.now()});
-    try{ localStorage.setItem('rc_publish_queue', JSON.stringify(queue)); }catch(e){ alert('Рецензия слишком большая для сохранения'); return; }
-    if(saveBtn){ saveBtn.textContent='💾 СКАЧАТЬ PNG'; saveBtn.disabled=false; }
-    if(confirm('Рецензия сохранена! Открыть профиль для публикации?')) window.location.href='profile.html';
-  }).catch(()=>{ if(saveBtn){ saveBtn.textContent='💾 СКАЧАТЬ PNG'; saveBtn.disabled=false; } });
+    // Сохраняем в 600px ширину JPEG 90% — отличное качество, ~80-100KB
+    const TARGET_W=600;
+    const sc=Math.min(1, TARGET_W/cv.width);
+    const out=document.createElement('canvas');
+    out.width=Math.round(cv.width*sc);
+    out.height=Math.round(cv.height*sc);
+    out.getContext('2d').drawImage(cv,0,0,out.width,out.height);
+    const imgData=out.toDataURL('image/jpeg',0.90);
+    const titleEl=document.getElementById('gTitle');
+    const title=titleEl?.value||'Рецензия';
+    const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+    queue.push({imgData,type:'🎮 Игры',title,privacy:_privMode,privacyFriends:[..._privFriends],queuedAt:Date.now()});
+    try{localStorage.setItem('rc_publish_queue',JSON.stringify(queue));}
+    catch(e){
+      if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+      alert('Ошибка: рецензия слишком большая. Попробуй упростить карточку.');
+      return;
+    }
+    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+    // Сразу переходим в профиль для публикации
+    window.location.href='profile.html';
+  }).catch(e=>{
+    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+    alert('Ошибка рендера: '+e.message);
+  });
 }
 
 function openPrivSettings(){
@@ -1270,5 +1281,23 @@ function swToggleFriend(uid,checked){
   else _privFriends=_privFriends.filter(u=>u!==uid);
 }
 </script>
+
+<!-- PRIVACY MODAL -->
+<div id="swPrivOverlay" onclick="if(event.target===this)this.style.display='none'" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:#111118;border:1px solid #252530;border-radius:14px;width:300px;padding:20px;font-family:'Space Mono',monospace">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#6b5f4a;text-transform:uppercase;margin-bottom:14px">Видимость рецензии</div>
+    <div id="swpo_public" onclick="swSetPriv('public')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid rgba(200,169,110,.25);background:rgba(200,169,110,.08);margin-bottom:4px;transition:all .15s">
+      <span style="font-size:18px">🌍</span><div><b style="display:block;font-size:11px;color:#ddd">Публично</b><span style="font-size:9px;color:#6b5f4a">Видят все</span></div>
+    </div>
+    <div id="swpo_friends" onclick="swSetPriv('friends')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;margin-bottom:4px;transition:all .15s">
+      <span style="font-size:18px">👥</span><div><b style="display:block;font-size:11px;color:#ddd">Только друзья</b><span style="font-size:9px;color:#6b5f4a">Видят твои друзья</span></div>
+    </div>
+    <div id="swpo_selected" onclick="swSetPriv('selected')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s">
+      <span style="font-size:18px">👤</span><div><b style="display:block;font-size:11px;color:#ddd">Выбрать друзей</b><span style="font-size:9px;color:#6b5f4a">Конкретные люди</span></div>
+    </div>
+    <div id="swFriendsList" style="display:none;flex-direction:column;gap:4px;padding:8px 12px;max-height:150px;overflow-y:auto"></div>
+    <button onclick="document.getElementById('swPrivOverlay').style.display='none'" style="width:100%;padding:9px;background:#c8a96e;border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px">Готово ✓</button>
+  </div>
+</div>
 </body>
 </html>
