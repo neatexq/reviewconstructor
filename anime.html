@@ -324,7 +324,7 @@ textarea{resize:vertical;min-height:75px}
     <div class="tblock"><div class="tg">
       <label><input type="checkbox" id="cRing" checked onchange="upd()"> Кольцо оценки</label>
       <label><input type="checkbox" id="cTag" checked onchange="upd()"> Теги жанра</label>
-      <label><input type="checkbox" id="cJpTitle" checked onchange="upd()"> Японское название</label>
+      <label><input type="checkbox" id="cJpTitle" onchange="upd()"> Японское название</label>
       <label><input type="checkbox" id="cVerdict" checked onchange="upd()"> Вердикт</label>
       <label><input type="checkbox" id="cStudio" checked onchange="upd()"> Студия</label>
       <label><input type="checkbox" id="cEps" checked onchange="upd()"> Эпизоды</label>
@@ -355,7 +355,7 @@ textarea{resize:vertical;min-height:75px}
     <div class="rrow"><label>Радиус</label><input type="range" id="coverRadius" min="0" max="20" value="6" oninput="upd()"><span class="rval" id="coverRadiusV">6px</span></div>
     <h4>8. Название аниме</h4>
     <input type="text" id="anTitle" placeholder="Название (RU/EN)" oninput="upd()">
-    <input type="text" id="anTitleJp" placeholder="日本語タイトル (необязательно)" oninput="upd()">
+    <input type="text" id="anTitleJp" placeholder="Японское название (необязательно)" oninput="upd()">
     <h4>9. Детали</h4>
     <input type="text" id="anStudio" placeholder="Студия" oninput="upd()">
     <div class="row2">
@@ -441,7 +441,7 @@ textarea{resize:vertical;min-height:75px}
       <div class="an-meta">
         <div class="an-eyebrow" id="anEyebrow">АНИМЕ</div>
         <div class="an-title" id="anTitleEl">НАЗВАНИЕ АНИМЕ</div>
-        <div class="an-title-jp" id="anTitleJpEl">日本語タイトル</div>
+        <div class="an-title-jp" id="anTitleJpEl"></div>
         <div class="an-studio" id="anStudioEl">Студия</div>
         <div class="an-tags" id="anTagsEl"></div>
         <div class="an-score-area" id="anScoreArea">
@@ -757,68 +757,42 @@ function setBgFor(m,i){
 let lqr='';
 function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!==lqr){lqr=u;const src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}&bgcolor=ffffff&color=000000`;['qrDk','qrPs','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=src})}upd()}
 
-/* JIKAN API SEARCH (MyAnimeList) */
+/* ANILIST API SEARCH — поддерживает русские названия */
 document.getElementById('anQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchAnime()});
 let anTimer=null;
-document.getElementById('anQ').addEventListener('input',()=>{clearTimeout(anTimer);anTimer=setTimeout(()=>{if(document.getElementById('anQ').value.trim().length>1)searchAnime()},700)});
-
-// Транслитерация RU→EN для поиска
-function isRussian(s){return /[а-яёА-ЯЁ]/.test(s)}
-// Таблица популярных русских названий → японские/английские для поиска
-const RU_ALIASES={
-  'наруто':'naruto','атака титанов':'attack on titan','стальной алхимик':'fullmetal alchemist',
-  'ван пис':'one piece','ван-пис':'one piece','клинок демонов':'demon slayer',
-  'моя геройская академия':'my hero academia','токийский гуль':'tokyo ghoul',
-  'тетрадь смерти':'death note','хвост феи':'fairy tail','блич':'bleach',
-  'доктор стоун':'dr stone','охотник х охотник':'hunter x hunter',
-  'пираты':'one piece','черный клевер':'black clover','семь смертных грехов':'seven deadly sins',
-  'ковбой бибоп':'cowboy bebop','призрак в доспехах':'ghost in the shell',
-  'евангелион':'evangelion','нeon genesis':'neon genesis evangelion',
-  'ходячий замок':'howl moving castle','унесённые призраками':'spirited away',
-  'аниме':'','сезон':'season'
-};
-function ruToSearchQuery(q){
-  const low=q.toLowerCase().trim();
-  for(const [ru,en] of Object.entries(RU_ALIASES)){if(low.includes(ru)&&en)return en}
-  // простая транслитерация как fallback
-  const map={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'};
-  return q.toLowerCase().split('').map(c=>map[c]??c).join('');
-}
+document.getElementById('anQ').addEventListener('input',()=>{clearTimeout(anTimer);anTimer=setTimeout(()=>{if(document.getElementById('anQ').value.trim().length>1)searchAnime()},600)});
 
 async function searchAnime(){
   const q=document.getElementById('anQ').value.trim();if(!q)return;
   const res=document.getElementById('anRes');
   res.style.display='block';
   res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
-
-  // Если русский запрос — конвертируем в англ.
-  const searchQ=isRussian(q)?ruToSearchQuery(q):q;
-
+  // AniList GraphQL — хранит title.russian, бесплатно без ключа
+  const query=`query($q:String){Page(perPage:8){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{romaji english native userPreferred}coverImage{medium large}startDate{year}episodes season seasonYear studios(isMain:true){nodes{name}}genres averageScore status}}}`;
   try{
     const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
-    const r=await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchQ)}&limit=8&sfw=true`,{signal:controller.signal});
+    const r=await fetch('https://graphql.anilist.co',{
+      method:'POST',signal:controller.signal,
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({query,variables:{q}})
+    });
     clearTimeout(timeout);
     if(r.status===429){res.innerHTML='<div style="padding:12px;font-size:10px;color:#e63946">Слишком много запросов. Подожди секунду.</div>';return}
     if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
     const data=await r.json();
-    if(!data.data||!data.data.length){
-      // fallback: попробуем транслитерацию если был алиас без результата
-      res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено. Попробуй название на английском.</div>';return
-    }
+    const items=data?.data?.Page?.media;
+    if(!items||!items.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
     res.innerHTML='';
-    // показываем русское название в скобках если есть
-    data.data.forEach(anime=>{
+    items.forEach(anime=>{
       const div=document.createElement('div');div.className='ri';
-      const thumb=anime.images?.jpg?.small_image_url||anime.images?.jpg?.image_url||'';
-      const year=anime.year||anime.aired?.prop?.from?.year||'';
+      const thumb=anime.coverImage?.medium||'';
+      // показываем лучшее доступное название для отображения в списке
+      const displayTitle=anime.title.userPreferred||anime.title.romaji||'—';
+      const subTitle=anime.title.english&&anime.title.english!==displayTitle?anime.title.english:'';
+      const year=anime.startDate?.year||anime.seasonYear||'';
       const eps=anime.episodes?anime.episodes+' эп.':'';
-      const score=anime.score?'★'+anime.score:'';
-      // показываем и английское и японское название
-      const titleLine=anime.title_english&&anime.title_english!==anime.title
-        ?`${anime.title_english}`
-        :anime.title||'—';
-      const subLine=anime.title_japanese?`<span style="font-size:9px;color:#444">${anime.title_japanese}</span><br>`:'';
-      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div style="min-width:0"><b style="display:block;color:#ddd;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:290px">${titleLine}</b>${subLine}<span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
+      const score=anime.averageScore?'★'+(anime.averageScore/10).toFixed(1):'';
+      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div style="min-width:0;overflow:hidden"><b style="display:block;color:#ddd;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${displayTitle}</b>${subTitle?`<span style="font-size:9px;color:#555;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${subTitle}</span>`:''}<span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
       div.onclick=()=>pickAnime(anime);
       div.addEventListener('touchstart',e=>{e.preventDefault();pickAnime(anime)},{passive:false});
       res.appendChild(div);
@@ -826,25 +800,29 @@ async function searchAnime(){
   }catch(err){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">${err.name==='AbortError'?'Таймаут':'Ошибка сети'}</div>`}
 }
 
+// Переводы сезонов
+const SEASONS={WINTER:'Зима',SPRING:'Весна',SUMMER:'Лето',FALL:'Осень'};
+
 function pickAnime(anime){
   document.getElementById('anRes').style.display='none';
-  document.getElementById('anTitle').value=anime.title_english||anime.title||'';
-  document.getElementById('anTitleJp').value=anime.title_japanese||'';
-  document.getElementById('anStudio').value=(anime.studios||[]).map(s=>s.name).join(', ')||'';
-  document.getElementById('anYear').value=anime.year||anime.aired?.prop?.from?.year||'';
-  document.getElementById('anSeason').value=anime.season?capitalize(anime.season)+' '+(anime.year||''):'';
+  // Название: приоритет romaji (латиница) — вставляем в поле, русское в японское если есть
+  // Но раз пользователь хочет русские названия — используем userPreferred или english или romaji
+  const titleMain=anime.title.english||anime.title.romaji||anime.title.userPreferred||'';
+  document.getElementById('anTitle').value=titleMain;
+  // японское поле — оригинальное японское название (hiragana/kanji)
+  document.getElementById('anTitleJp').value=anime.title.native||'';
+  document.getElementById('anStudio').value=(anime.studios?.nodes||[]).slice(0,1).map(s=>s.name).join('')||'';
+  const year=anime.startDate?.year||anime.seasonYear||'';
+  document.getElementById('anYear').value=year;
+  const seasonRu=anime.season?SEASONS[anime.season]||anime.season:'';
+  document.getElementById('anSeason').value=seasonRu&&year?`${seasonRu} ${year}`:'';
   document.getElementById('anEps').value=anime.episodes||'';
-  document.getElementById('anGenres').value=(anime.genres||[]).map(g=>g.name).join(', ');
-  if(anime.score){
-    const sc=Math.min(anime.score,10);
-    document.getElementById('anScore').value=Math.round(sc*10)/10;
-  }
-  const img=document.getElementById('anCoverImg');
-  const imgSrc=anime.images?.jpg?.large_image_url||anime.images?.jpg?.image_url||'';
-  if(imgSrc){img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
+  document.getElementById('anGenres').value=(anime.genres||[]).slice(0,4).join(', ');
+  if(anime.averageScore){document.getElementById('anScore').value=Math.round(anime.averageScore/10*10)/10}
+  const imgSrc=anime.coverImage?.large||anime.coverImage?.medium||'';
+  if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
   upd();
 }
-function capitalize(s){return s?s[0].toUpperCase()+s.slice(1):''}
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('anRes').style.display='none'});
 
 /* SAVE */
