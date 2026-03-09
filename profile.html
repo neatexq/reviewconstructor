@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Профиль — Конструктор рецензий</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bor:#252530;
+  --acc:#c8a96e;--acc2:#9b7940;--txt:#e8e0d0;--txt2:#6b5f4a;
+  --green:#22c55e;--red:#ef4444;--blue:#3b82f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);min-height:100vh}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bor);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--acc);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-btn{padding:6px 16px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;border:1px solid var(--bor);background:var(--bg2);color:var(--txt2);text-decoration:none;transition:all .2s}
+.nav-btn:hover{border-color:var(--acc);color:var(--acc)}
+.nav-btn.primary{background:var(--acc);border-color:var(--acc);color:#1a1005}
+.nav-btn.primary:hover{background:#b8996e}
+.nav-nick{font-size:11px;color:var(--acc);letter-spacing:1px}
+.nav-notif{position:relative;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--bor);background:var(--bg2);font-size:14px;transition:all .2s}
+.nav-notif:hover{border-color:var(--acc)}
+.notif-badge{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:var(--red);border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;display:none}
+
+/* LAYOUT */
+.page{max-width:1100px;margin:0 auto;padding:32px 20px;display:grid;grid-template-columns:280px 1fr;gap:28px}
+@media(max-width:800px){.page{grid-template-columns:1fr;padding:16px 14px;gap:16px}}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+
+/* PROFILE CARD */
+.profile-card{background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.avatar-wrap{position:relative;cursor:pointer}
+.avatar{width:96px;height:96px;border-radius:50%;background:var(--bg3);border:3px solid var(--bor);object-fit:cover;display:block;transition:all .2s}
+.avatar-wrap:hover .avatar{border-color:var(--acc)}
+.avatar-edit{position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--bg2)}
+.profile-nick{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff}
+.profile-joined{font-size:9px;color:var(--txt2);letter-spacing:1px}
+.profile-stats{display:flex;gap:16px;width:100%;justify-content:center;margin-top:4px}
+.pstat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.pstat-n{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:700;color:var(--acc)}
+.pstat-l{font-size:8px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase}
+.edit-profile-btn{width:100%;padding:8px;border:1px solid var(--bor);border-radius:7px;background:var(--bg3);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s;letter-spacing:1px}
+.edit-profile-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+/* SIDEBAR PANELS */
+.panel{background:var(--bg2);border:1px solid var(--bor);border-radius:14px;overflow:hidden}
+.panel-head{padding:12px 16px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt2)}
+.panel-action{font-size:10px;color:var(--acc);cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;letter-spacing:.5px}
+.panel-action:hover{text-decoration:underline}
+
+/* FRIENDS LIST */
+.friend-item{padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bor);cursor:pointer;transition:background .15s}
+.friend-item:last-child{border-bottom:none}
+.friend-item:hover{background:var(--bg3)}
+.friend-av{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:2px solid var(--bor);object-fit:cover;flex-shrink:0;position:relative}
+.friend-info{flex:1;min-width:0}
+.friend-nick{font-size:11px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.friend-status{font-size:9px;letter-spacing:.5px}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px rgba(34,197,94,.5)}
+
+/* ADD FRIEND */
+.add-friend-form{padding:12px 16px;display:flex;gap:7px}
+.add-friend-form input{flex:1;padding:6px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:11px;color:var(--txt);font-family:'Space Mono',monospace;outline:none}
+.add-friend-form input:focus{border-color:var(--acc)}
+.add-friend-form button{padding:6px 12px;background:var(--acc);border:none;border-radius:6px;color:#1a1005;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;white-space:nowrap}
+
+/* NOTIFICATIONS */
+.notif-item{padding:10px 16px;border-bottom:1px solid var(--bor);font-size:11px;color:#bbb}
+.notif-item:last-child{border-bottom:none}
+.notif-item b{color:var(--acc)}
+.notif-btns{display:flex;gap:6px;margin-top:6px}
+.notif-btn{padding:4px 12px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;border:none}
+.notif-btn.accept{background:var(--green);color:#fff}
+.notif-btn.decline{background:var(--bg3);color:var(--txt2);border:1px solid var(--bor)}
+
+/* MAIN CONTENT */
+.main{display:flex;flex-direction:column;gap:20px}
+.main-tabs{display:flex;gap:6px;border-bottom:1px solid var(--bor);padding-bottom:0}
+.main-tab{padding:10px 20px;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2);transition:all .2s;font-family:'Space Mono',monospace;text-transform:uppercase}
+.main-tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* REVIEWS GRID */
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.review-card{background:var(--bg2);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.review-card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.review-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:var(--bg3)}
+.review-meta{padding:10px 12px}
+.review-type{font-size:8px;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
+.review-title{font-size:12px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.review-date{font-size:9px;color:var(--txt2);margin-top:2px}
+.review-priv{position:absolute;top:8px;right:8px;font-size:10px;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 6px;color:rgba(255,255,255,.5)}
+.review-del{position:absolute;top:8px;left:8px;width:22px;height:22px;background:rgba(239,68,68,.85);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#fff}
+.review-card:hover .review-del{display:flex}
+.reviews-empty{text-align:center;padding:60px 20px;color:var(--txt2);font-size:12px;grid-column:1/-1}
+.reviews-empty span{font-size:32px;display:block;margin-bottom:12px;opacity:.3}
+
+/* FULL REVIEW MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bor);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--txt2);z-index:10}
+.modal-img{width:100%;border-radius:12px 12px 0 0;display:block}
+.modal-body{padding:20px}
+.modal-type{font-size:9px;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:4px}
+.modal-date{font-size:10px;color:var(--txt2);margin-bottom:16px}
+.modal-download{width:100%;padding:10px;background:var(--acc);border:none;border-radius:8px;color:#1a1005;font-size:12px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px}
+
+/* AUTH MODAL */
+.auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.auth-overlay.show{display:flex}
+.auth-box{background:var(--bg2);border:1px solid var(--bor);border-radius:18px;width:100%;max-width:400px;padding:32px;position:relative}
+.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--acc);text-align:center;margin-bottom:4px}
+.auth-sub{font-size:10px;color:var(--txt2);text-align:center;letter-spacing:1px;margin-bottom:24px}
+.auth-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg3);padding:3px;border-radius:8px}
+.auth-tab{flex:1;padding:7px;text-align:center;font-size:10px;font-weight:700;cursor:pointer;border-radius:6px;color:var(--txt2);transition:all .2s;font-family:'Space Mono',monospace;letter-spacing:1px}
+.auth-tab.active{background:var(--acc);color:#1a1005}
+.auth-field{margin-bottom:12px}
+.auth-field label{font-size:9px;color:var(--txt2);letter-spacing:1px;display:block;margin-bottom:4px;text-transform:uppercase}
+.auth-field input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--bor);border-radius:8px;font-size:13px;color:var(--txt);font-family:'Space Mono',monospace;outline:none;transition:border-color .2s}
+.auth-field input:focus{border-color:var(--acc)}
+.auth-submit{width:100%;padding:12px;background:var(--acc);border:none;border-radius:8px;color:#1a1005;font-size:13px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:2px;margin-top:4px;transition:all .2s}
+.auth-submit:hover{background:#b8996e}
+.auth-err{font-size:10px;color:var(--red);text-align:center;min-height:16px;margin-top:8px}
+.auth-skip{display:block;text-align:center;margin-top:14px;font-size:10px;color:var(--txt2);cursor:pointer;letter-spacing:.5px}
+.auth-skip:hover{color:var(--acc)}
+
+/* PRIVACY MODAL */
+.priv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:250;display:none;align-items:center;justify-content:center}
+.priv-overlay.show{display:flex}
+.priv-box{background:var(--bg2);border:1px solid var(--bor);border-radius:14px;width:320px;padding:20px}
+.priv-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:14px}
+.priv-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+.priv-opt:hover{background:var(--bg3)}
+.priv-opt.sel{background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.25)}
+.priv-opt-ico{font-size:18px;width:30px;text-align:center}
+.priv-opt-info b{display:block;font-size:11px;color:#ddd}
+.priv-opt-info span{font-size:9px;color:var(--txt2);letter-spacing:.5px}
+.priv-friends-list{padding:8px 12px;max-height:180px;overflow-y:auto;display:none;flex-direction:column;gap:4px}
+.priv-friend-chk{display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;padding:4px 0;cursor:pointer}
+.priv-friend-chk input{accent-color:var(--acc)}
+.priv-done{width:100%;padding:9px;background:var(--acc);border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px}
+
+/* PUBLISH BUTTON */
+.publish-row{display:flex;gap:6px;margin-top:4px}
+.publish-btn{flex:1;padding:10px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#1a1005;font-family:'Space Mono',monospace;letter-spacing:1px;transition:opacity .2s}
+.publish-btn:hover{opacity:.9}
+.publish-gear{width:38px;height:38px;border-radius:7px;border:1px solid var(--bor);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.publish-gear:hover{border-color:var(--acc)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:12px 20px;font-size:12px;color:var(--txt);z-index:400;transition:transform .3s;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--red);color:var(--red)}
+
+/* FRIEND PROFILE MODAL */
+.fprof-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.fprof-overlay.show{display:flex}
+.fprof-box{background:var(--bg2);border:1px solid var(--bor);border-radius:16px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:28px;position:relative}
+.fprof-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--txt2)}
+.fprof-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.fprof-av{width:72px;height:72px;border-radius:50%;background:var(--bg3);border:3px solid var(--bor);object-fit:cover}
+.fprof-nick{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff}
+.fprof-stats{font-size:10px;color:var(--txt2);margin-top:2px}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--txt2);font-size:11px;letter-spacing:2px}
+
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">◈ REVIEWS</a>
+  <div class="nav-right">
+    <div id="navGuest" style="display:flex;gap:8px">
+      <button class="nav-btn" onclick="showAuth('login')">Войти</button>
+      <button class="nav-btn primary" onclick="showAuth('register')">Регистрация</button>
+    </div>
+    <div id="navUser" style="display:none;align-items:center;gap:10px">
+      <span class="nav-nick" id="navNick"></span>
+      <div class="nav-notif" onclick="openNotifPanel()" title="Уведомления">
+        🔔<span class="notif-badge" id="notifBadge">0</span>
+      </div>
+      <button class="nav-btn" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <!-- Profile -->
+    <div class="profile-card" id="profileCard">
+      <div class="avatar-wrap" onclick="document.getElementById('avatarIn').click()" title="Сменить аватарку">
+        <img id="avatarImg" class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='36' r='20' fill='%23333'/%3E%3Ccircle cx='48' cy='90' r='30' fill='%23333'/%3E%3C/svg%3E" alt="">
+        <div class="avatar-edit">✏️</div>
+      </div>
+      <div class="profile-nick" id="profileNick">—</div>
+      <div class="profile-joined" id="profileJoined">—</div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-n" id="statReviews">0</div><div class="pstat-l">Рецензий</div></div>
+        <div class="pstat"><div class="pstat-n" id="statFriends">0</div><div class="pstat-l">Друзей</div></div>
+      </div>
+      <div id="guestNote" style="font-size:10px;color:var(--txt2);text-align:center;line-height:1.6;display:none">
+        Войди или зарегистрируйся<br>чтобы сохранять рецензии
+      </div>
+      <button class="edit-profile-btn" id="editProfileBtn" onclick="showAuth('register')" style="display:none">✦ СОЗДАТЬ АККАУНТ</button>
+    </div>
+
+    <!-- Friends -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Друзья</span>
+        <button class="panel-action" onclick="toggleAddFriend()">+ Добавить</button>
+      </div>
+      <div id="addFriendForm" class="add-friend-form" style="display:none">
+        <input id="friendNickIn" placeholder="@никнейм" maxlength="30">
+        <button onclick="sendFriendReq()">→</button>
+      </div>
+      <div id="friendsList"><div class="loading">...</div></div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="panel" id="notifPanel">
+      <div class="panel-head">
+        <span class="panel-title">Уведомления</span>
+        <button class="panel-action" onclick="clearNotifs()">Очистить</button>
+      </div>
+      <div id="notifList"><div style="padding:14px 16px;font-size:10px;color:var(--txt2)">Нет уведомлений</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-tabs">
+      <div class="main-tab active" onclick="switchTab('my')">Мои рецензии</div>
+    </div>
+    <div id="reviewsGrid" class="reviews-grid">
+      <div class="loading" style="grid-column:1/-1">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">◈ REVIEWS</div>
+    <div class="auth-sub">Конструктор рецензий</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabReg" onclick="switchAuth('register')">Регистрация</div>
+      <div class="auth-tab" id="tabLog" onclick="switchAuth('login')">Войти</div>
+    </div>
+    <div id="authRegForm">
+      <div class="auth-field"><label>Никнейм</label><input id="regNick" placeholder="@твой_ник" maxlength="20" oninput="this.value=this.value.replace(/[^a-zA-Zа-яёА-ЯЁ0-9_]/g,'')"></div>
+      <div class="auth-field"><label>Пароль</label><input id="regPass" type="password" placeholder="Минимум 6 символов"></div>
+      <div class="auth-field"><label>Повтори пароль</label><input id="regPass2" type="password" placeholder="Ещё раз"></div>
+      <button class="auth-submit" onclick="register()">СОЗДАТЬ АККАУНТ</button>
+    </div>
+    <div id="authLogForm" style="display:none">
+      <div class="auth-field"><label>Никнейм</label><input id="logNick" placeholder="@твой_ник"></div>
+      <div class="auth-field"><label>Пароль</label><input id="logPass" type="password" placeholder="Пароль"></div>
+      <button class="auth-submit" onclick="login()">ВОЙТИ</button>
+    </div>
+    <div class="auth-err" id="authErr"></div>
+    <span class="auth-skip" onclick="skipAuth()">Позже →</span>
+  </div>
+</div>
+
+<!-- REVIEW VIEW MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal()">✕</div>
+    <img id="modalImg" class="modal-img" src="" alt="">
+    <div class="modal-body">
+      <div class="modal-type" id="modalType"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-date" id="modalDate"></div>
+      <button class="modal-download" onclick="downloadReview()">💾 Скачать PNG</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="priv-overlay" id="privOverlay">
+  <div class="priv-box">
+    <div class="priv-title">Видимость рецензии</div>
+    <div class="priv-opt sel" id="privPublic" onclick="selectPriv('public')">
+      <div class="priv-opt-ico">🌍</div>
+      <div class="priv-opt-info"><b>Публично</b><span>Видят все</span></div>
+    </div>
+    <div class="priv-opt" id="privFriends" onclick="selectPriv('friends')">
+      <div class="priv-opt-ico">👥</div>
+      <div class="priv-opt-info"><b>Только друзья</b><span>Видят только твои друзья</span></div>
+    </div>
+    <div class="priv-opt" id="privSelected" onclick="selectPriv('selected')">
+      <div class="priv-opt-ico">👤</div>
+      <div class="priv-opt-info"><b>Выбрать друзей</b><span>Выбери кому показывать</span></div>
+    </div>
+    <div class="priv-friends-list" id="privFriendsList"></div>
+    <button class="priv-done" onclick="closePriv()">Готово ✓</button>
+  </div>
+</div>
+
+<!-- FRIEND PROFILE MODAL -->
+<div class="fprof-overlay" id="fprofOverlay">
+  <div class="fprof-box">
+    <div class="fprof-close" onclick="closeFprof()">✕</div>
+    <div class="fprof-header">
+      <img id="fprofAv" class="fprof-av" src="" alt="">
+      <div>
+        <div class="fprof-nick" id="fprofNick"></div>
+        <div class="fprof-stats" id="fprofStats"></div>
+      </div>
+    </div>
+    <div id="fprofReviews" class="reviews-grid"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<input type="file" id="avatarIn" accept="image/*" onchange="uploadAvatar(event)">
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set, get, push, onValue, update, remove, serverTimestamp, query, orderByChild, equalTo } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+// ══ ВСТАВЬ СВОЙ firebaseConfig ЗДЕСЬ ══
+const firebaseConfig = {
+  apiKey: "AIzaSyANeIRqb_oUJSUq2PsU1xGzOJKV29QOY74",
+  authDomain: "reviewconstructor-8d391.firebaseapp.com",
+  databaseURL: "https://reviewconstructor-8d391-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "reviewconstructor-8d391",
+  storageBucket: "reviewconstructor-8d391.firebasestorage.app",
+  messagingSenderId: "722321589337",
+  appId: "1:722321589337:web:81098aec4a3d9e9db21d48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+// Storage не используется — всё хранится в Realtime Database
+
+// ── STATE ──
+let currentUser = null; // {uid, nick, joinedAt}
+let currentPrivacy = 'public';
+let selectedFriendsForPriv = new Set();
+let pendingPublishData = null;
+let viewingReview = null;
+let friendsMap = {}; // uid → {nick, online, avatarUrl}
+
+// ── SESSION ──
+function saveSession(user){ localStorage.setItem('rc_session', JSON.stringify(user)) }
+function loadSession(){ try{ return JSON.parse(localStorage.getItem('rc_session')) }catch(e){ return null } }
+function clearSession(){ localStorage.removeItem('rc_session') }
+
+// ── SIMPLE HASH (не cryptographic, просто чтоб не хранить plain) ──
+async function hashPass(pass){
+  const enc = new TextEncoder().encode(pass);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ─────────────────────── AUTH ───────────────────────
+window.showAuth = function(tab){
+  document.getElementById('authOverlay').classList.add('show');
+  switchAuth(tab||'register');
+}
+window.skipAuth = function(){
+  document.getElementById('authOverlay').classList.remove('show');
+  showGuestState();
+}
+window.switchAuth = function(tab){
+  document.getElementById('authRegForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('authLogForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('tabReg').classList.toggle('active', tab==='register');
+  document.getElementById('tabLog').classList.toggle('active', tab==='login');
+  document.getElementById('authErr').textContent='';
+}
+
+window.register = async function(){
+  const nick = document.getElementById('regNick').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  const err = document.getElementById('authErr');
+  if(!nick||nick.length<2){ err.textContent='Никнейм минимум 2 символа'; return }
+  if(!pass||pass.length<6){ err.textContent='Пароль минимум 6 символов'; return }
+  if(pass!==pass2){ err.textContent='Пароли не совпадают'; return }
+  err.textContent='Проверяем...';
+  // check nick unique
+  const snap = await get(ref(db, `users_by_nick/${nick.toLowerCase()}`));
+  if(snap.exists()){ err.textContent='Этот никнейм уже занят'; return }
+  const uid = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  const hash = await hashPass(pass);
+  const userData = { uid, nick, passHash: hash, joinedAt: Date.now(), avatarUrl:'' };
+  await set(ref(db, `users/${uid}`), userData);
+  await set(ref(db, `users_by_nick/${nick.toLowerCase()}`), uid);
+  saveSession({uid, nick, joinedAt: userData.joinedAt});
+  document.getElementById('authOverlay').classList.remove('show');
+  setCurrentUser({uid, nick, joinedAt: userData.joinedAt});
+  toast('Добро пожаловать, @'+nick+' 🎉', 'ok');
+}
+
+window.login = async function(){
+  const nick = document.getElementById('logNick').value.trim();
+  const pass = document.getElementById('logPass').value;
+  const err = document.getElementById('authErr');
+  if(!nick||!pass){ err.textContent='Заполни все поля'; return }
+  err.textContent='Входим...';
+  const snap = await get(ref(db, `users_by_nick/${nick.toLowerCase()}`));
+  if(!snap.exists()){ err.textContent='Пользователь не найден'; return }
+  const uid = snap.val();
+  const uSnap = await get(ref(db, `users/${uid}`));
+  if(!uSnap.exists()){ err.textContent='Ошибка данных'; return }
+  const user = uSnap.val();
+  const hash = await hashPass(pass);
+  if(user.passHash!==hash){ err.textContent='Неверный пароль'; return }
+  saveSession({uid, nick: user.nick, joinedAt: user.joinedAt});
+  document.getElementById('authOverlay').classList.remove('show');
+  setCurrentUser({uid, nick: user.nick, joinedAt: user.joinedAt, avatarUrl: user.avatarUrl||''});
+  toast('С возвращением, @'+user.nick+' ✦', 'ok');
+}
+
+window.logout = function(){
+  clearSession();
+  currentUser = null;
+  setOnline(false);
+  location.reload();
+}
+
+// ─────────────────────── USER STATE ───────────────────────
+function setCurrentUser(user){
+  currentUser = user;
+  document.getElementById('navGuest').style.display='none';
+  document.getElementById('navUser').style.display='flex';
+  document.getElementById('navNick').textContent='@'+user.nick;
+  document.getElementById('profileNick').textContent='@'+user.nick;
+  document.getElementById('guestNote').style.display='none';
+  document.getElementById('editProfileBtn').style.display='none';
+  const d = new Date(user.joinedAt);
+  document.getElementById('profileJoined').textContent='С '+d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+  if(user.avatarUrl) document.getElementById('avatarImg').src = user.avatarUrl;
+  setOnline(true);
+  loadMyReviews();
+  loadFriends();
+  loadNotifications();
+  // make avatar clickable to upload
+  document.querySelector('.avatar-wrap').onclick = ()=>document.getElementById('avatarIn').click();
+}
+
+function showGuestState(){
+  document.getElementById('profileNick').textContent='Гость';
+  document.getElementById('profileJoined').textContent='';
+  document.getElementById('guestNote').style.display='block';
+  document.getElementById('editProfileBtn').style.display='block';
+  document.getElementById('editProfileBtn').textContent='✦ ВОЙТИ / РЕГИСТРАЦИЯ';
+  document.getElementById('editProfileBtn').onclick=()=>showAuth('register');
+  document.getElementById('friendsList').innerHTML='<div style="padding:14px 16px;font-size:10px;color:var(--txt2)">Войди чтобы видеть друзей</div>';
+  document.getElementById('reviewsGrid').innerHTML='<div class="reviews-empty"><span>🔒</span>Войди чтобы видеть свои рецензии</div>';
+}
+
+async function setOnline(online){
+  if(!currentUser)return;
+  await set(ref(db,`online/${currentUser.uid}`), online ? Date.now() : null);
+}
+window.addEventListener('beforeunload',()=>{ if(currentUser) setOnline(false) });
+
+// ─────────────────────── AVATAR ───────────────────────
+window.uploadAvatar = async function(e){
+  if(!currentUser){ toast('Войди в аккаунт','err'); return }
+  const file = e.target.files[0]; if(!file)return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    const img = new Image(); img.src = ev.target.result;
+    img.onload = async ()=>{
+      // сжимаем до 80x80 JPEG (~3-5KB) — влезает в Realtime DB
+      const cv = document.createElement('canvas'); cv.width=80; cv.height=80;
+      const ctx = cv.getContext('2d');
+      const s = Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,80,80);
+      const dataUrl = cv.toDataURL('image/jpeg',.7);
+      // сохраняем base64 прямо в Realtime Database (бесплатно)
+      await update(ref(db,`users/${currentUser.uid}`),{avatarUrl:dataUrl});
+      document.getElementById('avatarImg').src = dataUrl;
+      currentUser.avatarUrl = dataUrl;
+      saveSession(currentUser);
+      toast('Аватарка обновлена ✦','ok');
+    };
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+// ─────────────────────── REVIEWS ───────────────────────
+window.loadMyReviews = async function(){
+  if(!currentUser)return;
+  const grid = document.getElementById('reviewsGrid');
+  grid.innerHTML='<div class="loading" style="grid-column:1/-1">Загрузка...</div>';
+  const snap = await get(ref(db,`reviews/${currentUser.uid}`));
+  const reviews = snap.exists() ? Object.entries(snap.val()).map(([id,v])=>({id,...v})) : [];
+  reviews.sort((a,b)=>b.createdAt-a.createdAt);
+  document.getElementById('statReviews').textContent = reviews.length;
+  renderReviews(grid, reviews, true);
+}
+
+function renderReviews(grid, reviews, isOwn){
+  if(!reviews.length){
+    grid.innerHTML=`<div class="reviews-empty"><span>📝</span>${isOwn?'Ещё нет рецензий.<br>Создай свою первую!':'Нет рецензий'}</div>`;
+    return;
+  }
+  grid.innerHTML='';
+  reviews.forEach(rv=>{
+    const card = document.createElement('div'); card.className='review-card';
+    const privLabel = {public:'🌍',friends:'👥',selected:'👤'}[rv.privacy||'public']||'🌍';
+    card.innerHTML=`
+      <img class="review-thumb" src="${rv.thumbUrl||''}" alt="" onerror="this.style.background='#222'">
+      <div class="review-meta">
+        <div class="review-type">${rv.type||'Рецензия'}</div>
+        <div class="review-title">${rv.title||'—'}</div>
+        <div class="review-date">${rv.date||''}</div>
+      </div>
+      <div class="review-priv">${privLabel}</div>
+      ${isOwn?`<div class="review-del" onclick="deleteReview(event,'${rv.id}')">✕</div>`:''}
+    `;
+    card.onclick = ()=>openReview(rv);
+    grid.appendChild(card);
+  });
+}
+
+window.openReview = function(rv){
+  viewingReview = rv;
+  document.getElementById('modalImg').src = rv.thumbUrl||'';
+  document.getElementById('modalType').textContent = rv.type||'';
+  document.getElementById('modalTitle').textContent = rv.title||'—';
+  document.getElementById('modalDate').textContent = rv.date||'';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+window.closeModal = function(){ document.getElementById('modalOverlay').classList.remove('show') }
+window.downloadReview = function(){
+  if(!viewingReview?.fullUrl && !viewingReview?.thumbUrl)return;
+  const a = document.createElement('a');
+  a.href = viewingReview.fullUrl||viewingReview.thumbUrl;
+  a.download = `review_${Date.now()}.png`; a.click();
+}
+
+window.deleteReview = async function(e, id){
+  e.stopPropagation();
+  if(!currentUser)return;
+  if(!confirm('Удалить рецензию?'))return;
+  await remove(ref(db,`reviews/${currentUser.uid}/${id}`));
+  toast('Рецензия удалена','ok');
+  loadMyReviews();
+}
+
+// ─────────────────────── PUBLISH (called from constructors) ───────────────────────
+window.publishReview = async function(data){
+  if(!currentUser){ toast('Нужно войти в аккаунт 👆','err'); showAuth('login'); return }
+  toast('Публикуем...','');
+  const id = 'rv_'+Date.now();
+  // Храним base64 прямо в Realtime Database — thumb 200px (~15KB), full 400px (~40KB)
+  const rv = {
+    id, type: data.type||'Рецензия', title: data.title||'Без названия',
+    thumbUrl: data.thumbDataUrl,   // уже сжатый JPEG 200px из social-widget
+    fullUrl:  data.fullDataUrl,    // PNG карточки
+    privacy: currentPrivacy,
+    privacyFriends: currentPrivacy==='selected'?[...selectedFriendsForPriv]:[],
+    createdAt: Date.now(),
+    date: new Date().toLocaleDateString('ru-RU')
+  };
+  await set(ref(db,`reviews/${currentUser.uid}/${id}`), rv);
+  toast('Рецензия опубликована! 🎉','ok');
+  document.getElementById('statReviews').textContent = parseInt(document.getElementById('statReviews').textContent||0)+1;
+}
+
+// ─────────────────────── PRIVACY ───────────────────────
+window.openPrivSettings = async function(){
+  if(!currentUser){ toast('Нужно войти','err'); return }
+  // populate friends list
+  const list = document.getElementById('privFriendsList');
+  list.innerHTML='';
+  Object.values(friendsMap).forEach(f=>{
+    const lbl = document.createElement('label'); lbl.className='priv-friend-chk';
+    lbl.innerHTML=`<input type="checkbox" value="${f.uid}" ${selectedFriendsForPriv.has(f.uid)?'checked':''}> @${f.nick}`;
+    lbl.querySelector('input').onchange = e=>{
+      if(e.target.checked) selectedFriendsForPriv.add(f.uid);
+      else selectedFriendsForPriv.delete(f.uid);
+    };
+    list.appendChild(lbl);
+  });
+  document.getElementById('privOverlay').classList.add('show');
+}
+window.selectPriv = function(p){
+  currentPrivacy=p;
+  ['public','friends','selected'].forEach(k=>{
+    document.getElementById('priv'+k[0].toUpperCase()+k.slice(1)).classList.toggle('sel',k===p);
+  });
+  document.getElementById('privFriendsList').style.display = p==='selected'?'flex':'none';
+}
+window.closePriv = function(){ document.getElementById('privOverlay').classList.remove('show') }
+
+// ─────────────────────── FRIENDS ───────────────────────
+window.toggleAddFriend = function(){
+  const f=document.getElementById('addFriendForm');
+  f.style.display=f.style.display==='none'?'flex':'none';
+  if(f.style.display==='flex') document.getElementById('friendNickIn').focus();
+}
+
+window.sendFriendReq = async function(){
+  if(!currentUser){ toast('Войди в аккаунт','err'); return }
+  const nick = document.getElementById('friendNickIn').value.trim().replace('@','');
+  if(!nick){ return }
+  if(nick.toLowerCase()===currentUser.nick.toLowerCase()){ toast('Нельзя добавить себя 😅','err'); return }
+  const snap = await get(ref(db,`users_by_nick/${nick.toLowerCase()}`));
+  if(!snap.exists()){ toast('Пользователь @'+nick+' не найден','err'); return }
+  const targetUid = snap.val();
+  // check already friends
+  const fSnap = await get(ref(db,`friends/${currentUser.uid}/${targetUid}`));
+  if(fSnap.exists()){ toast('Уже в друзьях','err'); return }
+  // check req already sent
+  const rSnap = await get(ref(db,`friend_requests/${targetUid}/${currentUser.uid}`));
+  if(rSnap.exists()){ toast('Запрос уже отправлен','err'); return }
+  await set(ref(db,`friend_requests/${targetUid}/${currentUser.uid}`),{
+    fromUid: currentUser.uid, fromNick: currentUser.nick, sentAt: Date.now()
+  });
+  document.getElementById('friendNickIn').value='';
+  toast('Запрос отправлен @'+nick+' ✓','ok');
+}
+
+async function loadFriends(){
+  if(!currentUser)return;
+  const snap = await get(ref(db,`friends/${currentUser.uid}`));
+  const list = document.getElementById('friendsList');
+  if(!snap.exists()){ list.innerHTML='<div style="padding:14px 16px;font-size:10px;color:var(--txt2)">Пока нет друзей</div>'; return }
+  const friends = Object.entries(snap.val());
+  document.getElementById('statFriends').textContent = friends.length;
+  list.innerHTML='';
+  friendsMap={};
+  for(const [uid,data] of friends){
+    const uSnap = await get(ref(db,`users/${uid}`));
+    if(!uSnap.exists())continue;
+    const u = uSnap.val();
+    const onlineSnap = await get(ref(db,`online/${uid}`));
+    const isOnline = onlineSnap.exists() && (Date.now()-onlineSnap.val()<300000); // 5 min
+    friendsMap[uid]={uid,nick:u.nick,avatarUrl:u.avatarUrl||'',online:isOnline};
+    const item = document.createElement('div'); item.className='friend-item';
+    item.innerHTML=`
+      <img class="friend-av" src="${u.avatarUrl||'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 34 34\'%3E%3Ccircle cx=\'17\' cy=\'13\' r=\'8\' fill=\'%23333\'/%3E%3Ccircle cx=\'17\' cy=\'32\' r=\'12\' fill=\'%23333\'/%3E%3C/svg%3E'}" alt="">
+      <div class="friend-info">
+        <div class="friend-nick">@${u.nick}</div>
+        <div class="friend-status" style="color:${isOnline?'var(--green)':'var(--txt2)'}">${isOnline?'В сети':'Не в сети'}</div>
+      </div>
+      ${isOnline?'<div class="online-dot"></div>':''}
+    `;
+    item.onclick=()=>openFriendProfile(uid,u);
+    list.appendChild(item);
+  }
+}
+
+async function loadNotifications(){
+  if(!currentUser)return;
+  // watch friend requests
+  onValue(ref(db,`friend_requests/${currentUser.uid}`), async snap=>{
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    if(!snap.exists()){ list.innerHTML='<div style="padding:14px 16px;font-size:10px;color:var(--txt2)">Нет уведомлений</div>'; badge.style.display='none'; return }
+    const reqs = Object.entries(snap.val());
+    badge.style.display='flex'; badge.textContent=reqs.length;
+    list.innerHTML='';
+    reqs.forEach(([fromUid,data])=>{
+      const item = document.createElement('div'); item.className='notif-item';
+      item.innerHTML=`<b>@${data.fromNick}</b> хочет добавить тебя в друзья
+        <div class="notif-btns">
+          <button class="notif-btn accept" onclick="acceptFriend('${fromUid}','${data.fromNick}')">Принять</button>
+          <button class="notif-btn decline" onclick="declineFriend('${fromUid}','${data.fromNick}')">Отклонить</button>
+        </div>`;
+      list.appendChild(item);
+    });
+    // also load response notifications
+    const respSnap = await get(ref(db,`notifications/${currentUser.uid}`));
+    if(respSnap.exists()){
+      Object.values(respSnap.val()).forEach(n=>{
+        const item=document.createElement('div');item.className='notif-item';
+        item.textContent=n.text;
+        list.appendChild(item);
+      });
+    }
+  });
+}
+
+window.openNotifPanel = function(){
+  document.getElementById('notifPanel').scrollIntoView({behavior:'smooth'});
+}
+window.clearNotifs = async function(){
+  if(!currentUser)return;
+  await remove(ref(db,`notifications/${currentUser.uid}`));
+  loadNotifications();
+}
+
+window.acceptFriend = async function(fromUid, fromNick){
+  if(!currentUser)return;
+  await Promise.all([
+    set(ref(db,`friends/${currentUser.uid}/${fromUid}`),{nick:fromNick,since:Date.now()}),
+    set(ref(db,`friends/${fromUid}/${currentUser.uid}`),{nick:currentUser.nick,since:Date.now()}),
+    remove(ref(db,`friend_requests/${currentUser.uid}/${fromUid}`)),
+    push(ref(db,`notifications/${fromUid}`),{text:`@${currentUser.nick} принял(а) твой запрос в друзья ✓`,at:Date.now()})
+  ]);
+  toast('@'+fromNick+' теперь твой друг! 🎉','ok');
+  loadFriends(); loadNotifications();
+}
+window.declineFriend = async function(fromUid, fromNick){
+  if(!currentUser)return;
+  await Promise.all([
+    remove(ref(db,`friend_requests/${currentUser.uid}/${fromUid}`)),
+    push(ref(db,`notifications/${fromUid}`),{text:`@${currentUser.nick} отклонил(а) твой запрос`,at:Date.now()})
+  ]);
+  toast('Запрос отклонён','');
+  loadNotifications();
+}
+
+// ─────────────────────── FRIEND PROFILE ───────────────────────
+window.openFriendProfile = async function(uid, u){
+  document.getElementById('fprofOverlay').classList.add('show');
+  document.getElementById('fprofNick').textContent='@'+u.nick;
+  document.getElementById('fprofAv').src=u.avatarUrl||'';
+  document.getElementById('fprofReviews').innerHTML='<div class="loading" style="grid-column:1/-1">Загрузка...</div>';
+  const snap = await get(ref(db,`reviews/${uid}`));
+  let reviews = snap.exists() ? Object.entries(snap.val()).map(([id,v])=>({id,...v})) : [];
+  // filter by privacy
+  reviews = reviews.filter(rv=>{
+    if(rv.privacy==='public') return true;
+    if(rv.privacy==='friends') return friendsMap[uid]!=null;
+    if(rv.privacy==='selected') return (rv.privacyFriends||[]).includes(currentUser?.uid);
+    return false;
+  });
+  reviews.sort((a,b)=>b.createdAt-a.createdAt);
+  document.getElementById('fprofStats').textContent=reviews.length+' рецензий';
+  renderReviews(document.getElementById('fprofReviews'), reviews, false);
+}
+window.closeFprof = function(){ document.getElementById('fprofOverlay').classList.remove('show') }
+
+// ─────────────────────── TOAST ───────────────────────
+window.toast = function(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(type||'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ─────────────────────── INIT ───────────────────────
+const session = loadSession();
+if(session){ setCurrentUser(session) }
+else{
+  showGuestState();
+  // show auth after 1.5s if first visit
+  if(!localStorage.getItem('rc_seen')){ localStorage.setItem('rc_seen','1'); setTimeout(()=>showAuth('register'),1500) }
+}
+
+// expose for constructors
+window._rcUser = ()=>currentUser;
+window._rcPublish = publishReview;
+window._rcPrivacy = ()=>currentPrivacy;
+
+// ── Process publish queue from constructors ──
+async function processPublishQueue(){
+  if(!currentUser)return;
+  const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+  if(!queue.length)return;
+  localStorage.removeItem('rc_publish_queue');
+  toast(`Публикуем ${queue.length} рецензий...`,'');
+  for(const item of queue){
+    try{
+      const id='rv_'+item.queuedAt+'_'+Math.random().toString(36).slice(2,5);
+      // base64 прямо в Realtime Database
+      await set(ref(db,`reviews/${currentUser.uid}/${id}`),{
+        id,type:item.type||'Рецензия',title:item.title||'—',
+        thumbUrl:item.thumbDataUrl,
+        fullUrl:item.fullDataUrl,
+        privacy:item.privacy||'public',
+        privacyFriends:item.privacyFriends||[],
+        createdAt:item.queuedAt||Date.now(),
+        date:new Date(item.queuedAt||Date.now()).toLocaleDateString('ru-RU')
+      });
+    }catch(e){console.error('publish queue err',e)}
+  }
+  toast('Опубликовано! 🎉','ok');
+  loadMyReviews();
+}
+
+// ── Cache friends list for social-widget.js ──
+async function cacheFriends(){
+  if(!currentUser)return;
+  const snap=await get(ref(db,`friends/${currentUser.uid}`));
+  if(!snap.exists()){localStorage.setItem('rc_friends_cache','[]');return}
+  const list=[];
+  for(const [uid,data] of Object.entries(snap.val())){
+    list.push({uid,nick:data.nick||uid});
+  }
+  localStorage.setItem('rc_friends_cache',JSON.stringify(list));
+}
+
+// run queue on load
+setTimeout(()=>{if(currentUser){processPublishQueue();cacheFriends()}},800);
+</script>
+</body>
+</html>
