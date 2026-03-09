@@ -465,6 +465,9 @@ function setCurrentUser(user){
   document.getElementById('logoutBtn').style.display='block';
   // make avatar clickable to upload
   document.querySelector('.avatar-wrap').onclick = ()=>document.getElementById('avatarIn').click();
+  // обработать очередь публикаций сразу
+  processPublishQueue();
+  cacheFriends();
 }
 
 function showGuestState(){
@@ -757,38 +760,56 @@ else{
 
 // expose for constructors
 window._rcUser = ()=>currentUser;
-window._rcPublish = publishReview;
 window._rcPrivacy = ()=>currentPrivacy;
 
 // ── Process publish queue from constructors ──
 async function processPublishQueue(){
-  if(!currentUser)return;
+  if(!currentUser){ console.log('[queue] no user'); return; }
   const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+  console.log('[queue] found', queue.length, 'items');
   if(!queue.length)return;
   localStorage.removeItem('rc_publish_queue');
-  toast(`Публикуем ${queue.length} ${queue.length===1?'рецензию':'рецензий'}...`,'');
+  toast(`Публикуем...`,'');
   for(const item of queue){
     try{
       const id='rv_'+item.queuedAt+'_'+Math.random().toString(36).slice(2,5);
-      // imgData — JPEG 600px 90% качества, сохраняем прямо в Realtime DB
-      const imgData = item.imgData || item.thumbDataUrl || item.fullDataUrl || '';
+      let imgData = item.imgData || item.thumbDataUrl || item.fullDataUrl || '';
+      console.log('[queue] imgData length:', imgData.length);
+      // Дополнительное сжатие если > 100KB base64
+      if(imgData.length > 130000) imgData = await recompressImage(imgData, 380, 0.80);
+      console.log('[queue] final imgData length:', imgData.length);
       await set(ref(db,`reviews/${currentUser.uid}/${id}`),{
         id,
         type:item.type||'Рецензия',
         title:item.title||'—',
-        imgData,                          // единственное поле с изображением
+        imgData,
         privacy:item.privacy||'public',
         privacyFriends:item.privacyFriends||[],
         createdAt:item.queuedAt||Date.now(),
         date:new Date(item.queuedAt||Date.now()).toLocaleDateString('ru-RU')
       });
+      console.log('[queue] saved:', id);
     }catch(e){
-      console.error('publish queue err',e);
-      toast('Ошибка публикации: '+e.message,'err');
+      console.error('[queue] ERROR:', e);
+      toast('Ошибка: '+e.message,'err');
     }
   }
   toast('Опубликовано! 🎉','ok');
   loadMyReviews();
+}
+
+function recompressImage(dataUrl, maxW, quality){
+  return new Promise(resolve=>{
+    const img=new Image(); img.src=dataUrl;
+    img.onload=()=>{
+      const sc=Math.min(1,maxW/img.width);
+      const cv=document.createElement('canvas');
+      cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      resolve(cv.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(dataUrl);
+  });
 }
 
 // ── Cache friends list for social-widget.js ──
@@ -803,8 +824,7 @@ async function cacheFriends(){
   localStorage.setItem('rc_friends_cache',JSON.stringify(list));
 }
 
-// run queue immediately on load
-setTimeout(()=>{if(currentUser){processPublishQueue();cacheFriends()}},300);
+// queue обрабатывается в setCurrentUser()
 </script>
 </body>
 </html>
