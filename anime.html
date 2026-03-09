@@ -223,40 +223,6 @@ textarea{resize:vertical;min-height:75px}
   .card-wrap{transform:scale(var(--card-scale,.55));transform-origin:top center;margin-bottom:calc((800px * var(--card-scale,.55)) - 800px)}
 }
 
-/* ── TEMPLATE BUTTONS ── */
-.tpl-btn-row{display:flex;gap:6px;margin-top:6px}
-.tpl-save-btn{flex:1;padding:9px;border:1px solid rgba(255,255,255,.15);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;letter-spacing:.5px;transition:all .2s}
-.tpl-save-btn:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.8);background:rgba(255,255,255,.07)}
-.tpl-open-btn{padding:9px 11px;border:1px solid rgba(255,255,255,.15);border-radius:7px;font-size:14px;cursor:pointer;background:rgba(255,255,255,.04);transition:all .2s;flex-shrink:0}
-.tpl-open-btn:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.07)}
-/* overlays */
-.tpl-ov{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9997;display:none;align-items:center;justify-content:center;padding:16px}
-.tpl-ov.show{display:flex}
-.tpl-box{background:#111118;border:1px solid #252530;border-radius:16px;width:100%;max-width:460px;max-height:82vh;overflow-y:auto;padding:22px;position:relative;font-family:'Space Mono',monospace}
-.tpl-box-ttl{font-size:10px;font-weight:700;letter-spacing:2px;color:#6b5f4a;text-transform:uppercase;margin-bottom:14px}
-.tpl-close{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;border:1px solid #252530;background:#18181f;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#555}
-.tpl-close:hover{border-color:#c8a96e;color:#c8a96e}
-.tpl-list{display:flex;flex-direction:column;gap:8px}
-.tpl-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid #252530;border-radius:10px;cursor:pointer;transition:all .18s}
-.tpl-item:hover{border-color:#c8a96e;background:rgba(200,169,110,.05)}
-.tpl-thumb{width:40px;height:54px;object-fit:cover;border-radius:5px;background:#1a1a24;flex-shrink:0}
-.tpl-nothumb{width:40px;height:54px;border-radius:5px;background:#1a1a24;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.tpl-info{flex:1;min-width:0}
-.tpl-iname{font-size:12px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tpl-idate{font-size:9px;color:#6b5f4a;margin-top:3px}
-.tpl-del{width:24px;height:24px;border-radius:50%;border:1px solid #333;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:#555;flex-shrink:0;transition:all .2s}
-.tpl-del:hover{border-color:#ef4444;color:#ef4444}
-.tpl-empty{text-align:center;padding:28px 12px;color:#6b5f4a;font-size:11px;line-height:1.9}
-.tpl-empty-ico{font-size:28px;display:block;margin-bottom:8px;opacity:.35}
-.tpl-name-ov{position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:9998;display:none;align-items:center;justify-content:center;padding:16px}
-.tpl-name-ov.show{display:flex}
-.tpl-name-box{background:#111118;border:1px solid #252530;border-radius:14px;width:100%;max-width:320px;padding:22px;font-family:'Space Mono',monospace}
-.tpl-name-ttl{font-size:10px;font-weight:700;letter-spacing:2px;color:#6b5f4a;text-transform:uppercase;margin-bottom:12px}
-.tpl-name-inp{width:100%;padding:9px 11px;background:#0d0d14;border:1px solid #252530;border-radius:7px;font-size:13px;color:#e8e0d0;font-family:'Space Mono',monospace;outline:none;margin-bottom:10px}
-.tpl-name-inp:focus{border-color:#c8a96e}
-.tpl-name-btns{display:flex;gap:7px}
-.tpl-name-ok{flex:1;padding:8px;background:#c8a96e;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;color:#1a1005}
-.tpl-name-cancel{padding:8px 12px;border:1px solid #252530;border-radius:7px;font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;color:#6b5f4a;background:transparent}
 </style>
 </head>
 <body>
@@ -460,12 +426,7 @@ textarea{resize:vertical;min-height:75px}
   <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
   <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
   <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
-  <div class="tpl-btn-row">
-    <button class="tpl-save-btn" onclick="tplStartSave()">⭐ Сохранить шаблон</button>
-    <button class="tpl-open-btn" onclick="tplOpen()" title="Мои шаблоны">📂</button>
-  </div>
-
-  <div style="display:flex;gap:6px;margin-top:6px">
+<div style="display:flex;gap:6px;margin-top:6px">
     <button class="btn" onclick="publishCard()" style="flex:1;padding:10px;background:#ff4d7d;border-color:#ff4d7d;color:#fff;font-size:12px;font-weight:700;letter-spacing:1px">📤 ОПУБЛИКОВАТЬ</button>
     <button class="btn" onclick="openPrivSettings()" title="Настройки видимости" style="width:38px;padding:0;font-size:16px;background:transparent;border-color:#333">⚙️</button>
   </div>
@@ -957,84 +918,7 @@ function swToggleFriend(uid,checked){
   else _privFriends=_privFriends.filter(u=>u!==uid);
 }
 
-const _TPL_KEY = 'anime_tpl';
-
-// ═══ ШАБЛОНЫ ═══
-var _tplPending = null;
-function tplGetKey(){ return 'rc_tpl_' + (_TPL_KEY||'draft'); }
-function tplLoad(){ try{ return JSON.parse(localStorage.getItem(tplGetKey())||'[]'); }catch(e){ return []; } }
-function tplSave(list){ try{ localStorage.setItem(tplGetKey(), JSON.stringify(list)); }catch(e){} }
-
-function tplOpen(){
-  var list = tplLoad();
-  var el = document.getElementById('tplList');
-  if(!list.length){
-    el.innerHTML = '<div class="tpl-empty"><span class="tpl-empty-ico">📂</span>Нет сохранённых шаблонов.<br>Нажми «⭐ Сохранить шаблон»</div>';
-  } else {
-    el.innerHTML = '';
-    list.forEach(function(tpl, idx){
-      var d = new Date(tpl.savedAt).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-      var item = document.createElement('div'); item.className = 'tpl-item';
-      item.innerHTML = (tpl.thumb
-        ? '<img class="tpl-thumb" src="'+tpl.thumb+'" alt="">'
-        : '<div class="tpl-nothumb">📄</div>') +
-        '<div class="tpl-info"><div class="tpl-iname">'+tpl.name+'</div><div class="tpl-idate">'+d+'</div></div>'+
-        '<div class="tpl-del" onclick="tplDelete('+idx+',event)">✕</div>';
-      item.addEventListener('click', function(e){ if(!e.target.classList.contains('tpl-del')) tplApply(idx); });
-      el.appendChild(item);
-    });
-  }
-  document.getElementById('tplOv').classList.add('show');
-}
-function tplClose(){ document.getElementById('tplOv').classList.remove('show'); }
-function tplDelete(idx, e){
-  e && e.stopPropagation();
-  var list = tplLoad(); list.splice(idx,1); tplSave(list); tplOpen();
-}
-function tplApply(idx){
-  var list = tplLoad(); var tpl = list[idx];
-  if(!tpl){ return; }
-  try{ applyDraft(tpl.draft); upd(); tplClose(); _tplToast('Шаблон «'+tpl.name+'» применён ✓'); }
-  catch(e){ _tplToast('Ошибка применения'); }
-}
-function tplStartSave(){
-  _tplPending = collectDraft();
-  // try capture thumb
-  var card = document.getElementById('card');
-  if(card && typeof html2canvas !== 'undefined'){
-    html2canvas(card,{scale:.4,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(function(cv){
-      _tplPending._thumb = cv.toDataURL('image/jpeg',.55);
-      _showTplNameModal();
-    }).catch(function(){ _showTplNameModal(); });
-  } else { _showTplNameModal(); }
-}
-function _showTplNameModal(){
-  var inp = document.getElementById('tplNameInp'); inp.value = '';
-  document.getElementById('tplNameOv').classList.add('show');
-  setTimeout(function(){ inp.focus(); }, 100);
-}
-function tplConfirmSave(){
-  var name = document.getElementById('tplNameInp').value.trim();
-  if(!name){ document.getElementById('tplNameInp').style.borderColor='#ef4444'; return; }
-  document.getElementById('tplNameInp').style.borderColor='';
-  document.getElementById('tplNameOv').classList.remove('show');
-  var list = tplLoad();
-  list.unshift({ name: name, draft: _tplPending, thumb: (_tplPending&&_tplPending._thumb)||null, savedAt: Date.now() });
-  if(list.length>20) list.length=20;
-  tplSave(list); _tplPending=null;
-  _tplToast('Шаблон «'+name+'» сохранён ⭐');
-}
-function tplCancelSave(){
-  document.getElementById('tplNameOv').classList.remove('show'); _tplPending=null;
-}
-document.getElementById('tplNameInp').addEventListener('keydown',function(e){
-  if(e.key==='Enter') tplConfirmSave();
-  if(e.key==='Escape') tplCancelSave();
-});
-var _tplToastEl=null;
-function _tplToast(msg){
-  if(!_tplToastEl){ _tplToastEl=document.createElement('div'); _tplToastEl.style.cssText='position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(50px);background:#111118;border:1px solid #c8a96e;border-radius:9px;padding:9px 18px;font-size:11px;color:#c8a96e;z-index:9999;transition:transform .25s;font-family:Space Mono,monospace;white-space:nowrap;pointer-events:none'; document.body.appendChild(_tplToastEl); }
-  _tplToastEl.textContent=msg; _tplToastEl.style.transform='translateX(-50%) translateY(0)';
+_tplToastEl.textContent=msg; _tplToastEl.style.transform='translateX(-50%) translateY(0)';
   clearTimeout(_tplToastEl._t); _tplToastEl._t=setTimeout(function(){ _tplToastEl.style.transform='translateX(-50%) translateY(50px)'; },2600);
 }
 
@@ -1057,11 +941,6 @@ function _tplToast(msg){
     <button onclick="document.getElementById('swPrivOverlay').style.display='none'" style="width:100%;padding:9px;background:#c8a96e;border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px">Готово ✓</button>
   </div>
 </div>
-
-<!-- TEMPLATE MODALS -->
-<div class="tpl-ov" id="tplOv" onclick="if(event.target===this)tplClose()">
-  <div class="tpl-box">
-    <div class="tpl-box-ttl">📂 Мои шаблоны</div>
     <div class="tpl-close" onclick="tplClose()">✕</div>
     <div class="tpl-list" id="tplList"></div>
   </div>

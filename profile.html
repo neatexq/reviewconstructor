@@ -628,31 +628,51 @@ window.openReview = function(rv){
   document.getElementById('modalType').textContent = rv.type||'';
   document.getElementById('modalTitle').textContent = rv.title||'—';
   document.getElementById('modalDate').textContent = rv.date||'';
-  // Review text (opinion)
+  // Review text
   const rtEl = document.getElementById('modalReviewText');
-  if(rv.reviewText || rv.text || rv.opinion){
-    rtEl.textContent = rv.reviewText || rv.text || rv.opinion || '';
-    rtEl.style.display = 'block';
-  } else { rtEl.style.display = 'none'; }
+  const txt = rv.reviewText || rv.text || rv.opinion || '';
+  if(txt){ rtEl.textContent = txt; rtEl.style.display = 'block'; }
+  else { rtEl.style.display = 'none'; }
   document.getElementById('modalOverlay').classList.add('show');
-  // Zoom on scroll
+  // Zoom + drag
   const img = document.getElementById('modalImg');
   const wrap = document.getElementById('modalImgWrap');
-  let zoom = 1;
-  img.style.transform = 'scale(1)';
+  let zoom = 1, tx = 0, ty = 0, dragging = false, sx = 0, sy = 0, stx = 0, sty = 0;
+  img.style.transform = 'scale(1) translate(0px,0px)';
+  img.style.transformOrigin = 'center center';
+  function applyTransform(){ img.style.transform = 'scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
   wrap.onwheel = function(e){
     e.preventDefault();
-    zoom = Math.min(4, Math.max(1, zoom - e.deltaY * 0.002));
-    img.style.transform = 'scale('+zoom+')';
-    wrap.style.cursor = zoom > 1 ? 'zoom-out' : 'zoom-in';
+    zoom = Math.min(4, Math.max(1, zoom - e.deltaY * 0.003));
+    if(zoom===1){ tx=0; ty=0; }
+    wrap.style.cursor = zoom > 1 ? 'grab' : 'zoom-in';
+    applyTransform();
   };
+  wrap.onmousedown = function(e){
+    if(zoom<=1) return;
+    dragging=true; sx=e.clientX; sy=e.clientY; stx=tx; sty=ty;
+    wrap.style.cursor='grabbing'; e.preventDefault();
+  };
+  window._modalMouseMove = function(e){
+    if(!dragging) return;
+    tx = stx + (e.clientX-sx)/zoom;
+    ty = sty + (e.clientY-sy)/zoom;
+    applyTransform();
+  };
+  window._modalMouseUp = function(){
+    if(dragging){ dragging=false; wrap.style.cursor = zoom>1?'grab':'zoom-in'; }
+  };
+  document.addEventListener('mousemove', window._modalMouseMove);
+  document.addEventListener('mouseup', window._modalMouseUp);
 }
 window.closeModal = function(){
   document.getElementById('modalOverlay').classList.remove('show');
   const img = document.getElementById('modalImg');
-  if(img){ img.style.transform='scale(1)'; }
+  if(img){ img.style.transform='scale(1) translate(0px,0px)'; }
   const wrap = document.getElementById('modalImgWrap');
-  if(wrap){ wrap.style.cursor='zoom-in'; wrap.onwheel=null; }
+  if(wrap){ wrap.style.cursor='zoom-in'; wrap.onwheel=null; wrap.onmousedown=null; }
+  if(window._modalMouseMove) document.removeEventListener('mousemove', window._modalMouseMove);
+  if(window._modalMouseUp) document.removeEventListener('mouseup', window._modalMouseUp);
 }
 window.downloadReview = function(){
   const imgSrc = viewingReview?.imgData||viewingReview?.fullUrl||viewingReview?.thumbUrl;
