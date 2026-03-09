@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Игры-Конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--acc:#00e5ff;--acc2:#7c3aed;--bg:#0e0e12;--bg2:#16161c;--bg3:#1e1e26;--bor:#2a2a36;--txt:#e0e0f0;--txt2:#6b6b8a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);display:flex;gap:20px;padding:20px;justify-content:center;min-height:100vh;color:var(--txt)}
+
+.ctrl{width:420px;background:var(--bg2);border:1px solid var(--bor);padding:16px;border-radius:12px;display:flex;flex-direction:column;gap:8px;max-height:97vh;overflow-y:auto;align-self:flex-start;flex-shrink:0}
+.ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.ctrl-head{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:3px;color:#fff;border-bottom:3px solid var(--acc);padding-bottom:8px;margin-bottom:2px}
+h4{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;padding-bottom:3px;border-bottom:1px solid var(--bor);margin-top:4px;font-family:'Space Mono',monospace}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:12px;font-family:'Space Mono',monospace;color:var(--txt);outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+select option{background:var(--bg)}
+textarea{resize:vertical;min-height:75px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+
+.tabs{display:flex;gap:4px}
+.tab{flex:1;padding:7px 3px;border:1px solid var(--bor);border-radius:7px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .2s;text-align:center;font-family:'Space Mono',monospace}
+.tab.active{background:var(--acc);border-color:var(--acc);color:#000}
+.sec{display:none;flex-direction:column;gap:7px}
+.sec.show{display:flex}
+
+.sbrow{display:flex;gap:4px;flex-wrap:wrap}
+.sb{padding:5px 10px;border:1px solid var(--bor);border-radius:5px;background:var(--bg);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Space Mono',monospace;letter-spacing:.3px}
+.sb.active{border-color:var(--acc);color:var(--acc);background:rgba(0,229,255,.08)}
+
+.tblock{background:var(--bg);border:1px solid var(--bor);padding:8px;border-radius:7px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.tg label{font-size:10px;display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 4px;border-radius:4px;color:#aaa;letter-spacing:.2px}
+.tg label:hover{background:rgba(255,255,255,.03)}
+.tg input[type=checkbox]{accent-color:var(--acc);width:12px;height:12px}
+
+.srow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--bor);padding:7px 10px;border-radius:7px}
+.srow label{font-size:9px;color:var(--txt2);min-width:42px;letter-spacing:.3px;text-transform:uppercase}
+.stog{padding:2px 9px;border:1px solid var(--bor);border-radius:4px;background:var(--bg2);font-size:10px;font-weight:700;cursor:pointer;color:var(--txt2);font-family:'Space Mono',monospace;transition:all .2s}
+.stog.on{background:var(--acc);border-color:var(--acc);color:#000}
+.cs{width:20px;height:20px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.cs.active{border-color:#fff;transform:scale(1.25)}
+
+.lib-grid{display:flex;flex-wrap:wrap;gap:6px;background:var(--bg);padding:7px;border-radius:8px;border:1px solid var(--bor)}
+.lt{position:relative;width:52px;height:52px;cursor:pointer;border:2px solid transparent;border-radius:7px;overflow:hidden;transition:border-color .15s;flex-shrink:0}
+.lt img{width:100%;height:100%;object-fit:cover;display:block}
+.lt:hover{border-color:#3498db}.lt.sel{border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc)}
+.ldel{position:absolute;top:1px;right:1px;width:14px;height:14px;background:rgba(0,229,255,.9);border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#000;cursor:pointer;opacity:0;transition:opacity .15s}
+.lt:hover .ldel{opacity:1}
+.ladd{width:52px;height:52px;border:2px dashed var(--bor);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#444;transition:all .15s;flex-shrink:0}
+.ladd:hover{border-color:var(--acc);color:var(--acc)}
+.usebtns{display:flex;gap:5px;flex-wrap:wrap}
+.ubtn{padding:4px 9px;border:1px solid var(--bor);border-radius:5px;background:var(--bg);font-size:10px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;color:var(--txt2);font-family:'Space Mono',monospace;transition:all .15s}
+.ubtn.active{background:var(--acc);border-color:var(--acc);color:#000}
+
+.rrow{display:flex;align-items:center;gap:7px}
+.rrow label{font-size:9px;color:var(--txt2);min-width:70px;flex-shrink:0;letter-spacing:.3px;text-transform:uppercase}
+.rrow input[type=range]{flex:1;accent-color:var(--acc)}
+.rval{font-size:10px;font-weight:700;min-width:34px;color:var(--txt)}
+
+.btn{width:100%;padding:7px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3);color:var(--txt2);font-family:'Space Mono',monospace;letter-spacing:.3px;transition:all .2s;border:1px solid var(--bor)}
+.btn:hover{background:var(--bor);color:var(--txt)}
+.savebtn{background:var(--acc)!important;border-color:var(--acc)!important;color:#000!important;padding:12px;margin-top:4px;font-size:13px;letter-spacing:2px;font-family:'Orbitron',sans-serif!important}
+.savebtn:hover{background:#00b8cc!important}
+.delbtn{background:var(--bg)!important;border-color:var(--acc)!important;color:var(--acc)!important}
+
+/* ── CARD 600×800 ── */
+.card-outer{flex-shrink:0;align-self:flex-start}
+.card-wrap{width:600px;height:800px;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.8);flex-shrink:0;align-self:flex-start}
+.view{position:absolute;inset:0;display:none;flex-direction:column;z-index:2}
+.view.show{display:flex}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;display:none}
+.card-dim{position:absolute;inset:0;z-index:1;pointer-events:none;display:none}
+.top-stripe{position:absolute;top:0;left:0;right:0;height:6px;z-index:30;display:none}
+
+/* ── THEMES ── */
+/* DARK */
+.th-dark{background:#080810}
+.th-dark .gm-eyebrow{color:rgba(0,229,255,.4)}
+.th-dark .gm-title{color:#fff}
+.th-dark .gm-studio{color:rgba(255,255,255,.45)}
+.th-dark .gm-tag{background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.15);color:rgba(0,229,255,.55)}
+.th-dark .gm-infobox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.th-dark .gm-infobox b{color:rgba(255,255,255,.22)}
+.th-dark .gm-infobox span{color:rgba(255,255,255,.75)}
+.th-dark .gm-review{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+.th-dark .gm-review-lbl{color:rgba(255,255,255,.28)}
+.th-dark .gm-review-txt{color:rgba(255,255,255,.88)}
+.th-dark .gm-footer-nick{color:rgba(255,255,255,.18)}
+.th-dark .gm-footer-date{color:rgba(255,255,255,.18)}
+.th-dark .gm-score-ring-bg{stroke:rgba(255,255,255,.07)}
+.th-dark .gm-score-num{fill:#fff}
+.th-dark .gm-divider{background:rgba(255,255,255,.07)}
+.th-dark .gm-verdict{color:rgba(255,255,255,.55)}
+/* LIGHT */
+.th-light{background:#f0f0f8}
+.th-light .gm-eyebrow{color:rgba(0,0,0,.35)}
+.th-light .gm-title{color:#0a0a14}
+.th-light .gm-studio{color:rgba(0,0,0,.45)}
+.th-light .gm-tag{background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);color:rgba(0,0,0,.5)}
+.th-light .gm-infobox{background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.th-light .gm-infobox b{color:rgba(0,0,0,.28)}
+.th-light .gm-infobox span{color:#111}
+.th-light .gm-review{background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.th-light .gm-review-lbl{color:#999}
+.th-light .gm-review-txt{color:#111}
+.th-light .gm-footer-nick{color:rgba(0,0,0,.2)}
+.th-light .gm-footer-date{color:rgba(0,0,0,.2)}
+.th-light .gm-score-ring-bg{stroke:rgba(0,0,0,.07)}
+.th-light .gm-score-num{fill:#0a0a14}
+.th-light .gm-divider{background:rgba(0,0,0,.08)}
+.th-light .gm-verdict{color:rgba(0,0,0,.5)}
+/* NEON */
+.th-neon{background:#050508}
+.th-neon .gm-eyebrow{color:rgba(180,0,255,.6)}
+.th-neon .gm-title{color:#fff;text-shadow:0 0 30px rgba(180,0,255,.4)}
+.th-neon .gm-studio{color:rgba(255,255,255,.4)}
+.th-neon .gm-tag{background:rgba(180,0,255,.1);border:1px solid rgba(180,0,255,.3);color:rgba(200,80,255,.8)}
+.th-neon .gm-infobox{background:rgba(180,0,255,.06);border:1px solid rgba(180,0,255,.2)}
+.th-neon .gm-infobox b{color:rgba(180,0,255,.5)}
+.th-neon .gm-infobox span{color:rgba(255,255,255,.8)}
+.th-neon .gm-review{background:rgba(0,0,0,.4);border:1px solid rgba(180,0,255,.15)}
+.th-neon .gm-review-lbl{color:rgba(180,0,255,.5)}
+.th-neon .gm-review-txt{color:rgba(255,255,255,.88)}
+.th-neon .gm-footer-nick{color:rgba(180,0,255,.3)}
+.th-neon .gm-footer-date{color:rgba(180,0,255,.3)}
+.th-neon .gm-score-ring-bg{stroke:rgba(180,0,255,.12)}
+.th-neon .gm-score-num{fill:#fff}
+.th-neon .gm-divider{background:rgba(180,0,255,.2)}
+.th-neon .gm-verdict{color:rgba(200,80,255,.6)}
+/* CUSTOM */
+.th-custom .gm-eyebrow{color:rgba(0,229,255,.5)}
+.th-custom .gm-title{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.th-custom .gm-studio{color:rgba(255,255,255,.5)}
+.th-custom .gm-tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55)}
+.th-custom .gm-infobox{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1)}
+.th-custom .gm-infobox b{color:rgba(255,255,255,.25)}
+.th-custom .gm-infobox span{color:rgba(255,255,255,.85)}
+.th-custom .gm-review{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1)}
+.th-custom .gm-review-lbl{color:rgba(255,255,255,.35)}
+.th-custom .gm-review-txt{color:rgba(255,255,255,.9)}
+.th-custom .gm-footer-nick{color:rgba(255,255,255,.18)}
+.th-custom .gm-footer-date{color:rgba(255,255,255,.18)}
+.th-custom .gm-score-ring-bg{stroke:rgba(255,255,255,.1)}
+.th-custom .gm-score-num{fill:#fff}
+.th-custom .gm-divider{background:rgba(255,255,255,.1)}
+.th-custom .gm-verdict{color:rgba(255,255,255,.55)}
+
+/* ── GAME VIEW ── */
+.game-view{padding:24px 26px 20px;display:flex;flex-direction:column;height:100%;gap:10px}
+.gm-header{display:flex;gap:16px;align-items:flex-start;flex-shrink:0}
+.gm-cover-zone{position:relative;flex-shrink:0}
+.gm-cover{width:160px;height:210px;object-fit:cover;display:block;background:#111;flex-shrink:0}
+.gm-cover-shine{position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 50%);pointer-events:none}
+.gm-meta{flex:1;display:flex;flex-direction:column;gap:6px;padding-top:2px;min-width:0}
+.gm-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase}
+.gm-title{font-family:'Orbitron',sans-serif;font-size:22px;line-height:1.05;letter-spacing:.5px;word-break:break-word}
+.gm-studio{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px}
+.gm-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.gm-tag{font-size:8px;padding:2px 7px;border-radius:2px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace}
+.gm-score-area{display:flex;align-items:center;gap:10px;margin-top:4px}
+.gm-score-ring svg{width:68px;height:68px}
+.gm-score-ring-bg{fill:none;stroke-width:7}
+.gm-score-ring-fill{fill:none;stroke-width:7;stroke-linecap:round;stroke-dasharray:201.1;stroke-dashoffset:201.1;transform-origin:50% 50%;transform:rotate(-90deg)}
+.gm-score-num{font-family:'Orbitron',sans-serif;font-size:20px;dominant-baseline:middle;text-anchor:middle}
+.gm-stars-col{display:flex;flex-direction:column;gap:2px}
+.gm-stars-row{display:flex;align-items:center}
+.gm-score-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase}
+.gm-num-only{display:none;font-family:'Orbitron',sans-serif;font-size:56px;line-height:1;color:var(--acc)}
+
+.gm-infobox{padding:9px 12px;border-radius:7px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;flex-shrink:0}
+.gm-infobox .ic{display:flex;flex-direction:column;gap:1px}
+.gm-infobox b{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;display:block;font-family:'Space Mono',monospace}
+.gm-infobox span{font-size:10px;font-family:'Space Mono',monospace;line-height:1.4}
+
+.gm-divider{height:1px;flex-shrink:0;border-radius:1px}
+
+.gm-review{border-radius:9px;padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}
+.gm-review-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;flex-shrink:0}
+.gm-review-txt{font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.45;flex:1;overflow:hidden;white-space:pre-wrap;font-weight:600}
+.rv-font-mono .gm-review-txt{font-family:'Space Mono',monospace;font-size:11px;line-height:1.5;font-weight:400}
+.rv-font-orbitron .gm-review-txt{font-family:'Orbitron',sans-serif;font-size:11px;line-height:1.4;font-weight:700}
+.rv-font-montserrat .gm-review-txt{font-family:'Montserrat',sans-serif;font-size:13px;line-height:1.5;font-weight:400}
+.rv-font-playfair .gm-review-txt{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;line-height:1.5;font-weight:400}
+
+.gm-verdict{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;flex-shrink:0;margin-top:2px}
+
+.gm-footer{display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0}
+.gm-footer-nick{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px}
+.gm-footer-date{font-family:'Space Mono',monospace;font-size:9px;margin-top:2px;letter-spacing:1px}
+
+/* platform badges */
+.gm-platforms{display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.gm-plat{font-family:'Space Mono',monospace;font-size:8px;padding:2px 7px;border-radius:3px;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4)}
+.th-light .gm-plat{border-color:rgba(0,0,0,.15);color:rgba(0,0,0,.4)}
+
+/* neon accent overrides */
+.th-neon .gm-score-ring-fill{stroke:#b400ff}
+.th-neon .gm-num-only{color:#b400ff}
+.th-neon .gm-tag{border-color:rgba(180,0,255,.35)}
+
+/* ── INTRO / OUTRO ── */
+.io-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:50px 44px;z-index:2}
+
+/* dark intro/outro */
+.io-dk-bg{position:absolute;inset:0;background:#07070e;z-index:0}
+.io-dk-deco{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 25%,rgba(0,229,255,.08) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(124,58,237,.07) 0%,transparent 50%);z-index:0}
+.io-dk-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);background-size:40px 40px;z-index:0}
+.io-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--acc);text-transform:uppercase;position:relative;z-index:2}
+.io-title{font-family:'Orbitron',sans-serif;font-size:54px;line-height:.92;color:#fff;letter-spacing:2px;position:relative;z-index:2}
+.io-title em{display:block;-webkit-text-stroke:2px var(--acc);color:transparent;font-style:normal}
+.io-sub{font-family:'Space Mono',monospace;font-size:12px;color:rgba(255,255,255,.35);max-width:320px;line-height:1.6;position:relative;z-index:2;letter-spacing:.5px}
+.io-badge{background:var(--acc);color:#000;padding:7px 20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;border-radius:3px;position:relative;z-index:2}
+.io-div{width:40px;height:2px;background:var(--acc);position:relative;z-index:2}
+.io-nick{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:2px;position:relative;z-index:2}
+.io-icons{font-size:22px;opacity:.1;letter-spacing:12px;position:relative;z-index:2}
+
+/* light intro/outro */
+.io-lt-bg{position:absolute;inset:0;background:linear-gradient(150deg,#eeeef8,#ddddf0);z-index:0}
+.io-lt-deco{position:absolute;top:0;left:0;right:0;height:6px;z-index:1}
+.io-lt-title{font-family:'Orbitron',sans-serif;font-size:48px;line-height:.92;color:#0a0a14;letter-spacing:2px;position:relative;z-index:2}
+.io-lt-title em{display:block;color:var(--acc);font-style:normal}
+.io-lt-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:#888;text-transform:uppercase;position:relative;z-index:2}
+.io-lt-sub{font-family:'Space Mono',monospace;font-size:12px;color:#888;max-width:320px;line-height:1.6;position:relative;z-index:2}
+.io-lt-badge{background:#0a0a14;color:#fff;padding:7px 20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;position:relative;z-index:2}
+.io-lt-div{width:40px;height:2px;background:var(--acc);position:relative;z-index:2}
+.io-lt-nick{font-family:'Space Mono',monospace;font-size:10px;color:#bbb;letter-spacing:2px;position:relative;z-index:2}
+
+/* pnl */
+.pnl-solid{background:rgba(0,0,0,.6);border:1px solid rgba(0,229,255,.12);border-radius:14px;padding:28px 34px;display:flex;flex-direction:column;align-items:center;gap:12px}
+
+/* outro extra */
+.outro-tgname{font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:2px;color:#2AABEE;position:relative;z-index:2}
+.outro-qr{width:90px;height:90px;background:#fff;border-radius:8px;padding:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2}
+.outro-qr img{width:100%;height:100%;border-radius:3px}
+
+/* ─── MOBILE ─── */
+@media(hover:none){.ldel{opacity:1!important}}
+@media(max-width:900px){
+  body{flex-direction:column;align-items:stretch;padding:12px;gap:14px;min-height:auto}
+  .ctrl{width:100%;max-height:none;overflow-y:visible;border-radius:12px;align-self:auto}
+  .card-outer{align-self:center;width:100%;display:flex;justify-content:center}
+  .card-wrap{transform-origin:top center}
+}
+@media(max-width:640px){
+  .tab{font-size:10px;padding:10px 3px}
+  .btn{padding:11px;font-size:13px}
+  .savebtn{padding:14px!important;font-size:13px!important}
+  input[type=text],input[type=number],input[type=date],textarea,select{font-size:16px!important;padding:9px 11px}
+  h4{font-size:9px;padding-bottom:5px;margin-top:6px}
+  .card-outer{overflow:visible}
+  .card-wrap{transform:scale(var(--card-scale,.55));transform-origin:top center;margin-bottom:calc((800px * var(--card-scale,.55)) - 800px)}
+}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <div class="ctrl-head" style="display:flex;align-items:center;gap:10px">
+    <a href="index.html" style="font-size:16px;text-decoration:none;color:var(--txt2);border:1px solid var(--bor);border-radius:5px;padding:2px 8px;transition:all .15s;font-family:Space Mono,monospace" title="На главную">←</a>
+    🎮 ИГРЫ-КОНСТРУКТОР
+  </div>
+  <div class="tabs">
+    <button class="tab" onclick="setMode('intro')">▶ Начало</button>
+    <button class="tab active" onclick="setMode('game')">🎮 Игра</button>
+    <button class="tab" onclick="setMode('outro')">◀ Конец</button>
+  </div>
+
+  <!-- INTRO -->
+  <div class="sec" id="sec-intro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="introSB">
+      <button class="sb active" onclick="setIntroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setIntroStyle('light')">☀️ Светлый</button>
+      <button class="sb" onclick="setIntroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="iCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="iCustBtns"></div>
+      <div id="iCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="iBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="iBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="iDim" min="0" max="90" value="50" oninput="upd()"><span class="rval" id="iDimV">50%</span></div>
+        <h4>Панель</h4>
+        <div class="sbrow"><button class="sb active" id="iPnlS" onclick="setIntroPnl('solid')">▪ Тёмная</button><button class="sb" id="iPnlN" onclick="setIntroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('intro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stIntro" onclick="togS('intro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#00e5ff,#7c3aed)" onclick="setSC('intro','cyber',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#b400ff,#e63946)" onclick="setSC('intro','neon',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#00ff88,#00e5ff)" onclick="setSC('intro','matrix',this)"></div>
+      <div class="cs" style="background:#00e5ff" onclick="setSC('intro','cyan',this)"></div>
+    </div>
+    <h4>Тип заставки</h4>
+    <select id="introType" onchange="introTC()">
+      <option value="0">Обзоры игр</option>
+      <option value="1">Топ игр</option>
+      <option value="2">Игра недели</option>
+      <option value="3">Новинки</option>
+      <option value="c">✏️ Свой текст →</option>
+    </select>
+    <input type="text" id="ic1" placeholder="Строка 1..." oninput="upd()" style="display:none">
+    <input type="text" id="ic2" placeholder="Строка 2 (акцент)..." oninput="upd()" style="display:none">
+    <h4>Текст</h4>
+    <input type="text" id="iSubTxt" value="Честная игровая критика" oninput="upd()">
+    <input type="text" id="iBgTxt" value="ИГРАЕМ 🎮" oninput="upd()">
+    <input type="text" id="iNkTxt" placeholder="@твой_ник" oninput="upd()">
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="iEl" checked onchange="upd()"> Метка</label>
+      <label><input type="checkbox" id="iSb" checked onchange="upd()"> Подзаголовок</label>
+      <label><input type="checkbox" id="iBg" checked onchange="upd()"> Бейдж</label>
+      <label><input type="checkbox" id="iIc" checked onchange="upd()"> Иконки 🎮</label>
+      <label><input type="checkbox" id="iNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="iDvEl" checked onchange="upd()"> Линия</label>
+    </div></div>
+  </div>
+
+  <!-- GAME -->
+  <div class="sec show" id="sec-game">
+    <h4>Стиль карточки</h4>
+    <div class="sbrow" id="gmSB">
+      <button class="sb active" onclick="setGmStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setGmStyle('light')">☀️ Светлый</button>
+      <button class="sb" onclick="setGmStyle('neon')">💜 Неон</button>
+      <button class="sb" onclick="setGmStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="gmCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="gmCustBtns"></div>
+      <div id="gmCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="gmBlur" min="0" max="20" value="5" oninput="upd()"><span class="rval" id="gmBlurV">5px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="gmDim" min="0" max="90" value="50" oninput="upd()"><span class="rval" id="gmDimV">50%</span></div>
+        <div class="rrow"><label>Насыщ.</label><input type="range" id="gmSat" min="0" max="200" value="100" oninput="upd()"><span class="rval" id="gmSatV">100%</span></div>
+        <div class="rrow"><label>Прозрачность</label><input type="range" id="gmPnlOp" min="10" max="95" value="60" oninput="upd()"><span class="rval" id="gmPnlOpV">60%</span></div>
+        <button class="btn delbtn" onclick="clearBg('game')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog on" id="stGame" onclick="togS('game')">Вкл ✓</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#00e5ff,#7c3aed)" onclick="setSC('game','cyber',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#b400ff,#e63946)" onclick="setSC('game','neon',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#00ff88,#00e5ff)" onclick="setSC('game','matrix',this)"></div>
+      <div class="cs" style="background:#00e5ff" onclick="setSC('game','cyan',this)"></div>
+    </div>
+    <h4>1. Обложка игры</h4>
+    <div class="tblock" style="font-size:10px;color:#555;padding:8px">Загрузи обложку в библиотеку ↓ и нажми на неё — станет обложкой</div>
+    <h4>2. Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="cRing" checked onchange="upd()"> Кольцо оценки</label>
+      <label><input type="checkbox" id="cTag" checked onchange="upd()"> Теги жанра</label>
+      <label><input type="checkbox" id="cPlat" checked onchange="upd()"> Платформы</label>
+      <label><input type="checkbox" id="cVerdict" checked onchange="upd()"> Вердикт</label>
+      <label><input type="checkbox" id="cDev" checked onchange="upd()"> Разработчик</label>
+      <label><input type="checkbox" id="cYrl" checked onchange="upd()"> Год / Издатель</label>
+      <label><input type="checkbox" id="cDuration" checked onchange="upd()"> Длительность</label>
+      <label><input type="checkbox" id="cDt" checked onchange="upd()"> Дата</label>
+    </div></div>
+    <h4>3. Система оценок</h4>
+    <div class="sbrow" id="scoreSysSB">
+      <button class="sb active" onclick="setScoreSys('10')">1–10</button>
+      <button class="sb" onclick="setScoreSys('5')">1–5</button>
+    </div>
+    <h4>4. Отображение оценки</h4>
+    <div class="sbrow" id="scoreDispSB">
+      <button class="sb active" onclick="setScoreDisp('both')">Кольцо + ⭐</button>
+      <button class="sb" onclick="setScoreDisp('ring')">Только кольцо</button>
+      <button class="sb" onclick="setScoreDisp('stars')">Только ⭐</button>
+      <button class="sb" onclick="setScoreDisp('number')">Только число</button>
+    </div>
+    <h4>5. Шрифт рецензии</h4>
+    <div class="sbrow" id="revFontSB">
+      <button class="sb active" onclick="setRevFont('rajdhani')">Rajdhani</button>
+      <button class="sb" onclick="setRevFont('mono')">Mono</button>
+      <button class="sb" onclick="setRevFont('orbitron')">Orbitron</button>
+      <button class="sb" onclick="setRevFont('montserrat')">Modern</button>
+      <button class="sb" onclick="setRevFont('playfair')">Serif</button>
+    </div>
+    <h4>6. Скругление обложки</h4>
+    <div class="rrow"><label>Радиус</label><input type="range" id="coverRadius" min="0" max="20" value="4" oninput="upd()"><span class="rval" id="coverRadiusV">4px</span></div>
+    <h4>7. Название и студия</h4>
+    <input type="text" id="gmTitle" placeholder="Название игры" oninput="upd()">
+    <input type="text" id="gmStudio" placeholder="Студия-разработчик" oninput="upd()">
+    <h4>8. Детали</h4>
+    <div class="row2">
+      <input type="text" id="gmYear" placeholder="Год" oninput="upd()">
+      <input type="text" id="gmPublisher" placeholder="Издатель" oninput="upd()">
+    </div>
+    <input type="text" id="gmDuration" placeholder="Продолжительность (напр. 40ч)" oninput="upd()">
+    <input type="text" id="gmGenres" placeholder="Жанры (через запятую)" oninput="upd()">
+    <h4>9. Платформы</h4>
+    <div class="tblock"><div class="tg" id="platGrid">
+      <label><input type="checkbox" id="plPC" onchange="upd()"> PC</label>
+      <label><input type="checkbox" id="plPS5" onchange="upd()"> PS5</label>
+      <label><input type="checkbox" id="plPS4" onchange="upd()"> PS4</label>
+      <label><input type="checkbox" id="plXbox" onchange="upd()"> Xbox</label>
+      <label><input type="checkbox" id="plSwitch" onchange="upd()"> Switch</label>
+      <label><input type="checkbox" id="plMobile" onchange="upd()"> Mobile</label>
+    </div></div>
+    <h4>10. Рецензия</h4>
+    <textarea id="gmRev" oninput="upd()" placeholder="Твой текст об игре..."></textarea>
+    <h4>11. Вердикт</h4>
+    <input type="text" id="gmVerdict" placeholder="Например: Шедевр / Обязательно к прохождению" oninput="upd()">
+    <h4>12. Оценка и дата</h4>
+    <div class="row2">
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ОЦЕНКА</label><input type="number" id="gmScore" step="0.5" min="0.5" max="10" value="8.5" oninput="upd()"></div>
+      <div><label style="font-size:8px;color:#555;letter-spacing:1px;display:block;margin-bottom:3px">ДАТА</label><input type="date" id="gmDate" oninput="upd()"></div>
+    </div>
+    <h4>13. Ник</h4>
+    <input type="text" id="gmNick" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <!-- OUTRO -->
+  <div class="sec" id="sec-outro">
+    <h4>Стиль</h4>
+    <div class="sbrow" id="outroSB">
+      <button class="sb active" onclick="setOutroStyle('dark')">🌑 Тёмный</button>
+      <button class="sb" onclick="setOutroStyle('light')">☀️ Светлый</button>
+      <button class="sb" onclick="setOutroStyle('custom')">🖼 Фото</button>
+    </div>
+    <div id="oCustBlock" style="display:none">
+      <h4>Фото фон</h4>
+      <div class="usebtns" id="oCustBtns"></div>
+      <div id="oCustCtrls" style="display:none;flex-direction:column;gap:7px;margin-top:4px">
+        <div class="rrow"><label>Размытие</label><input type="range" id="oBlur" min="0" max="20" value="0" oninput="upd()"><span class="rval" id="oBlurV">0px</span></div>
+        <div class="rrow"><label>Затемнение</label><input type="range" id="oDim" min="0" max="90" value="50" oninput="upd()"><span class="rval" id="oDimV">50%</span></div>
+        <h4>Панель</h4>
+        <div class="sbrow"><button class="sb active" id="oPnlS" onclick="setOutroPnl('solid')">▪ Тёмная</button><button class="sb" id="oPnlN" onclick="setOutroPnl('none')">✕ Нет</button></div>
+        <button class="btn delbtn" onclick="clearBg('outro')">✕ Убрать фото</button>
+      </div>
+    </div>
+    <h4>Полоска</h4>
+    <div class="srow"><label>Вкл</label><button class="stog" id="stOutro" onclick="togS('outro')">Выкл</button>
+      <div class="cs active" style="background:linear-gradient(90deg,#00e5ff,#7c3aed)" onclick="setSC('outro','cyber',this)"></div>
+      <div class="cs" style="background:linear-gradient(90deg,#b400ff,#e63946)" onclick="setSC('outro','neon',this)"></div>
+      <div class="cs" style="background:#00e5ff" onclick="setSC('outro','cyan',this)"></div>
+    </div>
+    <h4>Заголовок</h4>
+    <input type="text" id="oH1" value="СПАСИБО" oninput="upd()">
+    <input type="text" id="oH2" value="ЗА ПРОСМОТР" oninput="upd()">
+    <h4>Текст</h4>
+    <textarea id="oTxt" rows="3" oninput="upd()">Ставь лайк если понравилось!
+Подписывайся на новые обзоры 🎮</textarea>
+    <h4>Элементы</h4>
+    <div class="tblock"><div class="tg">
+      <label><input type="checkbox" id="oShowTxt" checked onchange="upd()"> Текст</label>
+      <label><input type="checkbox" id="oShowTg" checked onchange="upd()"> Telegram</label>
+      <label><input type="checkbox" id="oShowQr" checked onchange="upd()"> QR-код</label>
+      <label><input type="checkbox" id="oShowNk" checked onchange="upd()"> Ник</label>
+      <label><input type="checkbox" id="oShowDv" checked onchange="upd()"> Линия</label>
+    </div></div>
+    <h4>Данные</h4>
+    <input type="text" id="oTg" placeholder="@твой_канал" oninput="upd()">
+    <input type="text" id="oQrUrl" placeholder="https://t.me/твой_канал" oninput="updQr()">
+    <input type="text" id="oNk" placeholder="@твой_ник" oninput="upd()">
+  </div>
+
+  <h4>📷 Библиотека фото</h4>
+  <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
+  <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
+  <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
+</div>
+
+<!-- CARD 600x800 -->
+<div class="card-outer" id="cardOuter">
+<div id="card" class="card-wrap th-dark">
+  <div class="card-bg" id="cardBg"></div>
+  <div class="card-dim" id="cardDim"></div>
+  <div class="top-stripe" id="topStripe"></div>
+
+  <!-- GAME VIEW -->
+  <div class="view show game-view" id="viewGame">
+    <div class="gm-header">
+      <div class="gm-cover-zone">
+        <img id="gmCoverImg" class="gm-cover" src="" alt="" crossorigin="anonymous">
+        <div class="gm-cover-shine"></div>
+      </div>
+      <div class="gm-meta">
+        <div class="gm-eyebrow" id="gmEyebrow">ИГРА</div>
+        <div class="gm-title" id="gmTitleEl">НАЗВАНИЕ ИГРЫ</div>
+        <div class="gm-studio" id="gmStudioEl">Студия-разработчик</div>
+        <div class="gm-tags" id="gmTagsEl"></div>
+        <div class="gm-score-area" id="gmScoreArea">
+          <div class="gm-score-ring" id="gmRingWrap">
+            <svg viewBox="0 0 80 80">
+              <circle class="gm-score-ring-bg" cx="40" cy="40" r="32"/>
+              <circle class="gm-score-ring-fill" id="gmRingFill" cx="40" cy="40" r="32" stroke="#00e5ff"/>
+              <text class="gm-score-num" id="gmRingNum" x="40" y="41">8.5</text>
+            </svg>
+          </div>
+          <div class="gm-stars-col" id="gmStarsCol">
+            <div class="gm-stars-row" id="gmStarsEl"></div>
+            <div class="gm-score-label" id="gmScoreLabel">8.5 / 10</div>
+          </div>
+          <div class="gm-num-only" id="gmNumOnly">8.5</div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-platforms" id="gmPlatEl"></div>
+    <div class="gm-infobox" id="gmInfoBox">
+      <div class="ic" id="icDev"><b>Разработчик</b><span id="gmInfoDev">—</span></div>
+      <div class="ic" id="icYrl"><b>Год / Издатель</b><span id="gmInfoYrl">—</span></div>
+      <div class="ic" id="icDuration"><b>Длительность</b><span id="gmInfoDur">—</span></div>
+    </div>
+    <div class="gm-divider" id="gmDivider"></div>
+    <div class="gm-review" id="gmReviewBox">
+      <div class="gm-review-lbl">Рецензия:</div>
+      <div class="gm-review-txt" id="gmRevEl">Твой текст об игре...</div>
+    </div>
+    <div class="gm-verdict" id="gmVerdictEl">— Обязательно к прохождению</div>
+    <div class="gm-footer">
+      <div class="gm-footer-nick" id="gmNickEl">@gaming</div>
+      <div style="text-align:right"><div class="gm-footer-date" id="gmDateEl"></div></div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="view" id="viewIntro">
+    <!-- dark -->
+    <div id="io-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div>
+      <div class="io-dk-deco"></div>
+      <div class="io-dk-grid"></div>
+      <div class="io-wrap">
+        <div id="dkIco" class="io-icons">🎮 🕹️ 👾</div>
+        <div id="dkEy" class="io-eyebrow">Новый выпуск</div>
+        <div class="io-title"><span id="dkL1">ОБЗОРЫ</span><em id="dkL2">ИГР</em></div>
+        <div id="dkDv" class="io-div"></div>
+        <div id="dkSb" class="io-sub">Честная игровая критика</div>
+        <div id="dkBg" class="io-badge">ИГРАЕМ 🎮</div>
+        <div id="dkNk" class="io-nick">@gaming</div>
+      </div>
+    </div>
+    <!-- light -->
+    <div id="io-light" style="position:absolute;inset:0;display:none">
+      <div class="io-lt-bg"></div>
+      <div class="io-lt-deco" id="introLtDeco"></div>
+      <div class="io-wrap">
+        <div id="ltIco" class="io-icons" style="opacity:.15">🎮 🕹️ 👾</div>
+        <div id="ltEy" class="io-lt-eyebrow">Новый выпуск</div>
+        <div class="io-lt-title"><span id="ltL1">ОБЗОРЫ</span><em id="ltL2">ИГР</em></div>
+        <div id="ltDv" class="io-lt-div"></div>
+        <div id="ltSb" class="io-lt-sub">Честная игровая критика</div>
+        <div id="ltBg" class="io-lt-badge">ИГРАЕМ 🎮</div>
+        <div id="ltNk" class="io-lt-nick">@gaming</div>
+      </div>
+    </div>
+    <!-- custom -->
+    <div id="io-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="cuPanel" class="pnl-solid">
+          <div id="cuIco" class="io-icons" style="opacity:.25">🎮 🕹️ 👾</div>
+          <div id="cuEy" class="io-eyebrow">Новый выпуск</div>
+          <div class="io-title"><span id="cuL1">ОБЗОРЫ</span><em id="cuL2">ИГР</em></div>
+          <div id="cuDv" class="io-div"></div>
+          <div id="cuSb" class="io-sub">Честная игровая критика</div>
+          <div id="cuBg" class="io-badge">ИГРАЕМ 🎮</div>
+          <div id="cuNk" class="io-nick">@gaming</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTRO -->
+  <div class="view" id="viewOutro">
+    <!-- dark -->
+    <div id="ou-dark" style="position:absolute;inset:0;display:flex">
+      <div class="io-dk-bg"></div>
+      <div class="io-dk-deco"></div>
+      <div class="io-dk-grid"></div>
+      <div class="io-wrap">
+        <div class="io-title"><span id="odH1">СПАСИБО</span><em id="odH2">ЗА ПРОСМОТР</em></div>
+        <div id="odDv" class="io-div"></div>
+        <div id="odTxt" class="io-sub"></div>
+        <div id="odTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+          <div class="outro-tgname" id="odTg">@твой_канал</div>
+        </div>
+        <div id="odQrBlk" class="outro-qr"><img id="qrDk" src="" alt=""></div>
+        <div class="io-nick" id="odNk">@gaming</div>
+      </div>
+    </div>
+    <!-- light -->
+    <div id="ou-light" style="position:absolute;inset:0;display:none">
+      <div class="io-lt-bg"></div>
+      <div class="io-lt-deco" id="outroLtDeco"></div>
+      <div class="io-wrap">
+        <div class="io-lt-title"><span id="olH1">СПАСИБО</span><em id="olH2">ЗА ПРОСМОТР</em></div>
+        <div id="olDv" class="io-lt-div"></div>
+        <div id="olTxt" class="io-lt-sub" style="color:#888"></div>
+        <div id="olTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:2">
+          <div class="io-lt-eyebrow">Подписывайся</div>
+          <div class="outro-tgname" id="olTg">@твой_канал</div>
+        </div>
+        <div id="olQrBlk" style="width:90px;height:90px;background:#fff;border-radius:8px;padding:5px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.12);flex-shrink:0;position:relative;z-index:2"><img id="qrLt" src="" alt="" style="width:100%;height:100%;border-radius:3px"></div>
+        <div class="io-lt-nick" id="olNk">@gaming</div>
+      </div>
+    </div>
+    <!-- custom -->
+    <div id="ou-custom" style="position:absolute;inset:0;display:none;z-index:2">
+      <div class="io-wrap">
+        <div id="ocuPanel" class="pnl-solid">
+          <div class="io-title"><span id="ocH1">СПАСИБО</span><em id="ocH2">ЗА ПРОСМОТР</em></div>
+          <div id="ocDv" class="io-div"></div>
+          <div id="ocTxt" class="io-sub" style="color:rgba(255,255,255,.5)"></div>
+          <div id="ocTgBlk" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div class="io-eyebrow" style="color:rgba(255,255,255,.3)">Подписывайся</div>
+            <div class="outro-tgname" id="ocTg">@твой_канал</div>
+          </div>
+          <div id="ocQrBlk" class="outro-qr"><img id="qrCu" src="" alt=""></div>
+          <div class="io-nick" id="ocNk">@gaming</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /card-outer -->
+
+<script>
+function setCardScale(){
+  if(window.innerWidth<=640){
+    const s=Math.min((window.innerWidth-24)/600,.95);
+    document.getElementById('cardOuter').style.setProperty('--card-scale',s);
+    document.getElementById('cardOuter').style.height=(800*s)+'px';
+  } else {
+    document.getElementById('cardOuter').style.setProperty('--card-scale','1');
+    document.getElementById('cardOuter').style.height='';
+  }
+}
+window.addEventListener('resize',setCardScale);
+document.addEventListener('DOMContentLoaded',setCardScale);
+setCardScale();
+</script>
+
+<script>
+let mode='game', gmSty='dark', introSty='dark', outroSty='dark';
+let iPnl='solid', oPnl='solid';
+let scoreSys='10', scoreDisp='both', revFont='rajdhani';
+const bgS={game:{src:null,idx:null},intro:{src:null,idx:null},outro:{src:null,idx:null}};
+const SS={intro:{on:false,c:'cyber'},game:{on:true,c:'cyber'},outro:{on:false,c:'cyber'}};
+const SGG={
+  cyber:'linear-gradient(90deg,#00e5ff,#7c3aed)',
+  neon:'linear-gradient(90deg,#b400ff,#e63946)',
+  matrix:'linear-gradient(90deg,#00ff88,#00e5ff)',
+  cyan:'#00e5ff'
+};
+
+document.getElementById('gmDate').valueAsDate=new Date();
+
+const ITT=[['ОБЗОРЫ','ИГР'],['ТОП','ИГР'],['ИГРА','НЕДЕЛИ'],['НОВИНКИ','ИГР']];
+
+function setScoreSys(s){
+  scoreSys=s;
+  document.querySelectorAll('#scoreSysSB .sb').forEach((b,i)=>b.classList.toggle('active',['10','5'][i]===s));
+  const inp=document.getElementById('gmScore');
+  inp.max=s==='5'?5:10;
+  if(parseFloat(inp.value)>parseFloat(inp.max))inp.value=inp.max;
+  upd();
+}
+function setScoreDisp(s){
+  scoreDisp=s;
+  document.querySelectorAll('#scoreDispSB .sb').forEach((b,i)=>b.classList.toggle('active',['both','ring','stars','number'][i]===s));
+  upd();
+}
+function setRevFont(s){
+  revFont=s;
+  document.querySelectorAll('#revFontSB .sb').forEach((b,i)=>b.classList.toggle('active',['rajdhani','mono','orbitron','montserrat','playfair'][i]===s));
+  upd();
+}
+
+/* STRIPE */
+function togS(m){SS[m].on=!SS[m].on;const nm=m[0].toUpperCase()+m.slice(1);const b=document.getElementById('st'+nm);b.classList.toggle('on',SS[m].on);b.textContent=SS[m].on?'Вкл ✓':'Выкл';applyStripe()}
+function setSC(m,k,el){SS[m].c=k;el.parentElement.querySelectorAll('.cs').forEach(c=>c.classList.remove('active'));el.classList.add('active');applyStripe()}
+function applyStripe(){
+  const stripe=document.getElementById('topStripe');
+  const cur=SS[mode];
+  if(cur&&cur.on){stripe.style.display='block';stripe.style.background=SGG[cur.c]||cur.c}
+  else stripe.style.display='none';
+}
+
+/* BG */
+function applyBg(src,blurId,dimId,satId){
+  const bg=document.getElementById('cardBg'),dim=document.getElementById('cardDim');
+  const bl=parseInt(document.getElementById(blurId)?.value||0);
+  const di=parseInt(document.getElementById(dimId)?.value||0)/100;
+  const sa=satId?parseInt(document.getElementById(satId)?.value||100):100;
+  document.getElementById(blurId+'V')&&(document.getElementById(blurId+'V').textContent=bl+'px');
+  document.getElementById(dimId+'V')&&(document.getElementById(dimId+'V').textContent=Math.round(di*100)+'%');
+  if(satId)document.getElementById(satId+'V')&&(document.getElementById(satId+'V').textContent=sa+'%');
+  bg.style.backgroundImage=`url('${src}')`;bg.style.filter=`blur(${bl}px) saturate(${sa}%)`;bg.style.transform=`scale(${1+bl*.015})`;bg.style.display='block';
+  dim.style.background=`rgba(0,0,0,${di})`;dim.style.display='block';
+}
+function hideBgLayers(){document.getElementById('cardBg').style.display='none';document.getElementById('cardDim').style.display='none'}
+
+function clearBg(m){
+  bgS[m]={src:null,idx:null};
+  document.querySelectorAll('.lt').forEach(t=>t.classList.remove('sel'));
+  hideBgLayers();upd();
+}
+
+/* STYLES */
+function applyTheme(t){
+  const c=document.getElementById('card');
+  c.className=c.className.replace(/\bth-\w+/,'');
+  c.classList.add('th-'+t);
+  const neon=t==='neon';
+  document.getElementById('gmRingFill').style.stroke=neon?'#b400ff':'#00e5ff';
+  document.getElementById('gmNumOnly').style.color=neon?'#b400ff':'var(--acc)';
+}
+function setGmStyle(s){
+  gmSty=s;
+  document.querySelectorAll('#gmSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','neon','custom'][i]===s));
+  const custBlock=document.getElementById('gmCustBlock');
+  custBlock.style.display=s==='custom'?'flex':'none';
+  if(s==='custom')custBlock.style.flexDirection='column';
+  upd();
+}
+function setIntroStyle(s){
+  introSty=s;
+  document.querySelectorAll('#introSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','custom'][i]===s));
+  document.getElementById('iCustBlock').style.display=s==='custom'?'flex':'none';
+  if(s==='custom')document.getElementById('iCustBlock').style.flexDirection='column';
+  upd();
+}
+function setOutroStyle(s){
+  outroSty=s;
+  document.querySelectorAll('#outroSB .sb').forEach((b,i)=>b.classList.toggle('active',['dark','light','custom'][i]===s));
+  document.getElementById('oCustBlock').style.display=s==='custom'?'flex':'none';
+  if(s==='custom')document.getElementById('oCustBlock').style.flexDirection='column';
+  upd();
+}
+function setIntroPnl(ps){iPnl=ps;document.getElementById('iPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('iPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('cuPanel'),ps);upd()}
+function setOutroPnl(ps){oPnl=ps;document.getElementById('oPnlS')?.classList.toggle('active',ps==='solid');document.getElementById('oPnlN')?.classList.toggle('active',ps==='none');setPnlClass(document.getElementById('ocuPanel'),ps);upd()}
+function setPnlClass(el,ps){if(!el)return;el.className='';if(ps==='solid')el.className='pnl-solid'}
+
+/* MODE */
+function setMode(m){
+  mode=m;
+  const views={intro:'viewIntro',game:'viewGame',outro:'viewOutro'};
+  Object.values(views).forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.style.display='none'}});
+  const v=document.getElementById(views[m]);if(v){v.classList.add('show');v.style.display='flex'}
+  ['intro','game','outro'].forEach(n=>{document.getElementById('sec-'+n).classList.toggle('show',n===m)});
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['intro','game','outro'][i]===m));
+  if(m==='game')hideBgLayers();
+  applyStripe();upd();
+}
+
+function introTC(){const v=document.getElementById('introType').value,c=v==='c';document.getElementById('ic1').style.display=c?'block':'none';document.getElementById('ic2').style.display=c?'block':'none';upd()}
+
+/* STARS */
+function renderStars(score,max){
+  const full=max===5?5:10;
+  const norm=score/max;
+  let h='';
+  for(let i=0;i<(max===5?5:10);i++){
+    const v=norm*full;
+    if(i+1<=v)h+='<span style="color:#FFD700;font-size:13px">★</span>';
+    else if(i<v)h+='<span style="color:#FFD700;font-size:13px;opacity:.5">★</span>';
+    else h+='<span style="color:rgba(255,255,255,.15);font-size:13px">★</span>';
+  }
+  return h;
+}
+
+/* UPD CORE */
+function _updCore(){
+  const card=document.getElementById('card');
+
+  /* ── GAME ── */
+  if(mode==='game'){
+    applyTheme(gmSty);
+    const maxScore=scoreSys==='5'?5:10;
+    const score=Math.min(parseFloat(document.getElementById('gmScore').value)||0,maxScore);
+    const title=document.getElementById('gmTitle').value||'НАЗВАНИЕ ИГРЫ';
+    const studio=document.getElementById('gmStudio').value||'Студия-разработчик';
+    const year=document.getElementById('gmYear').value||'—';
+    const publisher=document.getElementById('gmPublisher').value||'—';
+    const duration=document.getElementById('gmDuration').value||'—';
+    const genres=document.getElementById('gmGenres').value||'';
+    const rev=document.getElementById('gmRev').value||'Твой текст об игре...';
+    const verdict=document.getElementById('gmVerdict').value||'';
+    const nick=document.getElementById('gmNick').value||'@gaming';
+    const dv=document.getElementById('gmDate').value;
+    const coverR=document.getElementById('coverRadius').value;
+    document.getElementById('coverRadiusV').textContent=coverR+'px';
+
+    const showRing=document.getElementById('cRing').checked;
+    const showTag=document.getElementById('cTag').checked;
+    const showPlat=document.getElementById('cPlat').checked;
+    const showVerdict=document.getElementById('cVerdict').checked;
+    const showDev=document.getElementById('cDev').checked;
+    const showYrl=document.getElementById('cYrl').checked;
+    const showDuration=document.getElementById('cDuration').checked;
+    const showDt=document.getElementById('cDt').checked;
+
+    document.getElementById('gmTitleEl').textContent=title.toUpperCase();
+    document.getElementById('gmStudioEl').textContent=studio;
+    document.getElementById('gmStudioEl').style.display=showDev?'block':'none';
+    document.getElementById('gmInfoDev').textContent=studio||'—';
+    document.getElementById('icDev').style.display=showDev?'flex':'none';
+    document.getElementById('gmInfoYrl').textContent=[year,publisher].filter(x=>x&&x!=='—').join(' · ')||'—';
+    document.getElementById('icYrl').style.display=showYrl?'flex':'none';
+    document.getElementById('gmInfoDur').textContent=duration;
+    document.getElementById('icDuration').style.display=showDuration?'flex':'none';
+
+    // cover
+    document.getElementById('gmCoverImg').style.borderRadius=coverR+'px';
+
+    // tags
+    const tagsEl=document.getElementById('gmTagsEl');
+    if(showTag&&genres){tagsEl.innerHTML=genres.split(',').map(g=>`<span class="gm-tag">${g.trim()}</span>`).join('');tagsEl.style.display='flex'}
+    else tagsEl.style.display='none';
+
+    // platforms
+    const platEl=document.getElementById('gmPlatEl');
+    if(showPlat){
+      const plats=[];
+      if(document.getElementById('plPC').checked)plats.push('PC');
+      if(document.getElementById('plPS5').checked)plats.push('PS5');
+      if(document.getElementById('plPS4').checked)plats.push('PS4');
+      if(document.getElementById('plXbox').checked)plats.push('Xbox');
+      if(document.getElementById('plSwitch').checked)plats.push('Switch');
+      if(document.getElementById('plMobile').checked)plats.push('Mobile');
+      platEl.innerHTML=plats.map(p=>`<span class="gm-plat">${p}</span>`).join('');
+      platEl.style.display=plats.length?'flex':'none';
+    } else platEl.style.display='none';
+
+    // score
+    const pct=score/maxScore;
+    const circumference=201.1;
+    document.getElementById('gmRingFill').style.strokeDashoffset=circumference-(pct*circumference);
+    document.getElementById('gmRingNum').textContent=score;
+    document.getElementById('gmStarsEl').innerHTML=renderStars(score,maxScore);
+    document.getElementById('gmScoreLabel').textContent=`${score} / ${maxScore}`;
+    document.getElementById('gmNumOnly').textContent=score;
+
+    const ringWrap=document.getElementById('gmRingWrap');
+    const starsCol=document.getElementById('gmStarsCol');
+    const numOnly=document.getElementById('gmNumOnly');
+    if(!showRing){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='none'}
+    else{
+      if(scoreDisp==='both'){ringWrap.style.display='block';starsCol.style.display='flex';numOnly.style.display='none'}
+      else if(scoreDisp==='ring'){ringWrap.style.display='block';starsCol.style.display='none';numOnly.style.display='none'}
+      else if(scoreDisp==='stars'){ringWrap.style.display='none';starsCol.style.display='flex';numOnly.style.display='none'}
+      else if(scoreDisp==='number'){ringWrap.style.display='none';starsCol.style.display='none';numOnly.style.display='block'}
+    }
+
+    // review
+    document.getElementById('gmRevEl').textContent=rev;
+    document.getElementById('gmReviewBox').className='gm-review rv-font-'+revFont;
+
+    // verdict
+    const verdictEl=document.getElementById('gmVerdictEl');
+    if(showVerdict&&verdict){verdictEl.textContent='— '+verdict;verdictEl.style.display='block'}
+    else verdictEl.style.display='none';
+
+    // footer
+    document.getElementById('gmNickEl').textContent=nick;
+    if(showDt&&dv){
+      const d=new Date(dv);document.getElementById('gmDateEl').textContent=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
+    } else document.getElementById('gmDateEl').textContent='';
+
+    // auto-fit review
+    const revEl=document.getElementById('gmRevEl');let fs=15;revEl.style.fontSize=fs+'px';
+    while(revEl.scrollHeight>revEl.clientHeight&&fs>9){fs-=.5;revEl.style.fontSize=fs+'px'}
+
+    // bg
+    if(gmSty==='custom'&&bgS.game.src){
+      applyBg(bgS.game.src,'gmBlur','gmDim','gmSat');
+      const op=parseInt(document.getElementById('gmPnlOp')?.value||60)/100;
+      document.getElementById('gmPnlOpV').textContent=Math.round(op*100)+'%';
+      [document.getElementById('gmInfoBox'),document.getElementById('gmReviewBox')].forEach(el=>{if(el)el.style.cssText=`background:rgba(0,0,0,${op})!important;border:1px solid rgba(255,255,255,.1)!important`});
+    } else {
+      if(gmSty!=='custom'){hideBgLayers();[document.getElementById('gmInfoBox'),document.getElementById('gmReviewBox')].forEach(el=>{if(el)el.style.cssText=''})}
+    }
+  }
+
+  /* ── INTRO ── */
+  let il1,il2;
+  const iT=document.getElementById('introType').value;
+  if(iT==='c'){il1=(document.getElementById('ic1').value||'ОБЗОРЫ').toUpperCase();il2=(document.getElementById('ic2').value||'ИГР').toUpperCase()}
+  else{const p=ITT[parseInt(iT)]||ITT[0];il1=p[0];il2=p[1]}
+  const iSv=document.getElementById('iSubTxt').value||'Честная игровая критика';
+  const iBv=document.getElementById('iBgTxt').value||'ИГРАЕМ 🎮';
+  const iNv=document.getElementById('iNkTxt').value||'@gaming';
+  const iEl=document.getElementById('iEl').checked,iSb=document.getElementById('iSb').checked,iBg=document.getElementById('iBg').checked,iIc=document.getElementById('iIc').checked,iNk=document.getElementById('iNk').checked,iDv=document.getElementById('iDvEl').checked;
+  [['dk'],['lt'],['cu']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('L1',il1);S('L2',il2);V('Ey',iEl);V('Sb',iSb);V('Bg',iBg);V('Ico',iIc);V('Nk',iNk);V('Dv',iDv);
+    S('Sb',iSv);S('Bg',iBv);S('Nk',iNv);
+    ['L1','L2'].forEach(key=>{
+      const el=document.getElementById(pre+key);
+      if(!el)return;
+      el.style.fontSize='';
+      let fs=54;el.style.fontSize=fs+'px';
+      while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+    });
+  });
+  if(mode==='intro'){
+    ['io-dark','io-light','io-custom'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+    const map={dark:'io-dark',light:'io-light',custom:'io-custom'};
+    const el=document.getElementById(map[introSty]);if(el)el.style.display='flex';
+    const ltDeco=document.getElementById('introLtDeco');if(ltDeco){const g=SGG[SS.intro.c]||'#00e5ff';ltDeco.style.background=g}
+    if(introSty==='custom'){
+      if(bgS.intro.src)applyBg(bgS.intro.src,'iBlur','iDim',null);
+      else hideBgLayers();
+      setPnlClass(document.getElementById('cuPanel'),iPnl);
+    }else hideBgLayers();
+  }
+
+  /* ── OUTRO ── */
+  const h1=document.getElementById('oH1').value||'СПАСИБО';
+  const h2=document.getElementById('oH2').value||'ЗА ПРОСМОТР';
+  const oTv=document.getElementById('oTxt').value;
+  const tgRaw=document.getElementById('oTg').value;const tgS=tgRaw?(tgRaw.startsWith('@')?tgRaw:'@'+tgRaw):'@твой_канал';
+  const nkO=document.getElementById('oNk').value||'@gaming';
+  const oST=document.getElementById('oShowTxt').checked,oSTg=document.getElementById('oShowTg').checked,oSQr=document.getElementById('oShowQr').checked,oSNk=document.getElementById('oShowNk').checked,oSDv=document.getElementById('oShowDv').checked;
+  [['od'],['ol'],['oc']].forEach(([pre])=>{
+    const S=(id,v)=>{const el=document.getElementById(pre+id);if(el)el.textContent=v};
+    const V=(id,show,fl)=>{const el=document.getElementById(pre+id);if(el)el.style.display=show?(fl?'flex':'block'):'none'};
+    S('H1',h1);S('H2',h2);
+    const tx=document.getElementById(pre+'Txt');if(tx){tx.innerHTML=oTv.replace(/\n/g,'<br>');tx.style.display=oST?'block':'none'}
+    V('Dv',oSDv);V('TgBlk',oSTg,true);V('QrBlk',oSQr,true);V('Nk',oSNk);
+    S('Tg',tgS);S('Nk',nkO);
+    ['H1','H2'].forEach(key=>{
+      const el=document.getElementById(pre+key);
+      if(!el)return;
+      el.style.fontSize='';
+      let fs=54;el.style.fontSize=fs+'px';
+      while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+    });
+  });
+  if(mode==='outro'){
+    ['ou-dark','ou-light','ou-custom'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+    const map={dark:'ou-dark',light:'ou-light',custom:'ou-custom'};
+    const el=document.getElementById(map[outroSty]);if(el)el.style.display='flex';
+    const ltDeco=document.getElementById('outroLtDeco');if(ltDeco){const g=SGG[SS.outro.c]||'#00e5ff';ltDeco.style.background=g}
+    if(outroSty==='custom'){
+      if(bgS.outro.src)applyBg(bgS.outro.src,'oBlur','oDim',null);
+      else hideBgLayers();
+      setPnlClass(document.getElementById('ocuPanel'),oPnl);
+    }else hideBgLayers();
+  }
+
+  applyStripe();
+}
+function upd(){_updCore();autosave()}
+
+/* LIBRARY */
+let lib=[];
+function addLib(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    lib.push(ev.target.result);
+    renderLib();
+    setBgFor(mode,lib.length-1);
+  };
+  r.readAsDataURL(file);
+  e.target.value='';
+}
+function renderLib(){
+  const grid=document.getElementById('libGrid');
+  grid.innerHTML='';
+  lib.forEach((src,i)=>{
+    const t=document.createElement('div');t.className='lt';
+    if(bgS[mode]&&bgS[mode].idx===i)t.classList.add('sel');
+    const img=document.createElement('img');img.src=src;t.appendChild(img);
+    const del=document.createElement('div');del.className='ldel';del.textContent='×';
+    del.onclick=ev=>{ev.stopPropagation();lib.splice(i,1);if(bgS[mode]&&bgS[mode].idx===i){bgS[mode]={src:null,idx:null};hideBgLayers()}renderLib();upd()};
+    t.appendChild(del);
+    t.onclick=()=>{setBgFor(mode,i)};
+    grid.appendChild(t);
+  });
+  const add=document.createElement('div');add.className='ladd';add.textContent='＋';
+  add.onclick=()=>document.getElementById('libIn').click();
+  grid.appendChild(add);
+}
+function setBgFor(m,i){
+  bgS[m]={src:lib[i],idx:i};
+  if(m==='game')setGmStyle('custom');
+  else if(m==='intro')setIntroStyle('custom');
+  else if(m==='outro')setOutroStyle('custom');
+  document.querySelectorAll('.lt').forEach((t,j)=>t.classList.toggle('sel',j===i));
+  upd();
+}
+function setBg(m,i){setBgFor(m,i)}
+
+/* COVER from library */
+function setCoverFromLib(i){
+  document.getElementById('gmCoverImg').src=lib[i];
+  document.getElementById('gmCoverImg').style.display='block';
+  upd();
+}
+
+/* QR */
+let lqr='';
+function updQr(){
+  const u=document.getElementById('oQrUrl').value.trim();
+  if(u&&u!==lqr){lqr=u;const src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}&bgcolor=ffffff&color=000000`;['qrDk','qrLt','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=src})}
+  upd();
+}
+
+/* SAVE */
+function save(){
+  const c=document.getElementById('card');
+  html2canvas(c,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
+    const dataUrl=cv.toDataURL('image/png');
+    const a=document.createElement('a');a.href=dataUrl;a.download=`igra_${mode}_${Date.now()}.png`;a.click();
+    try{
+      const th=document.createElement('canvas');
+      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
+      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+      const thumb=th.toDataURL('image/jpeg',0.75);
+      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
+      const labels={intro:'Игры · Начало',game:'Игры · Игра',outro:'Игры · Конец'};
+      items.unshift({thumb,type:labels[mode]||'Игры',date:new Date().toLocaleDateString('ru-RU')});
+      if(items.length>50)items.pop();
+      localStorage.setItem('reviews_gallery',JSON.stringify(items));
+    }catch(e){}
+  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+}
+
+/* AUTOSAVE */
+const AS_KEY='games_draft';
+function collectDraft(){
+  const ids=['gmTitle','gmStudio','gmYear','gmPublisher','gmDuration','gmGenres','gmRev','gmVerdict','gmNick','gmDate','gmScore','iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+  const checks=['cRing','cTag','cPlat','cVerdict','cDev','cYrl','cDuration','cDt','plPC','plPS5','plPS4','plXbox','plSwitch','plMobile','iEl','iSb','iBg','iIc','iNk','iDvEl','oShowTxt','oShowTg','oShowQr','oShowNk','oShowDv'];
+  const d={};
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value});
+  checks.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.checked});
+  d._gmSty=gmSty;d._introSty=introSty;d._outroSty=outroSty;
+  d._scoreSys=scoreSys;d._scoreDisp=scoreDisp;d._revFont=revFont;
+  d._mode=mode;d._lib=lib;d._bgS=bgS;d._SS=SS;
+  return d;
+}
+function autosave(){try{localStorage.setItem(AS_KEY,JSON.stringify(collectDraft()))}catch(e){}}
+function restore(){
+  try{
+    const raw=localStorage.getItem(AS_KEY);if(!raw)return;
+    const d=JSON.parse(raw);
+    const ids=['gmTitle','gmStudio','gmYear','gmPublisher','gmDuration','gmGenres','gmRev','gmVerdict','gmNick','gmDate','gmScore','iSubTxt','iBgTxt','iNkTxt','oH1','oH2','oTxt','oTg','oQrUrl','oNk'];
+    const checks=['cRing','cTag','cPlat','cVerdict','cDev','cYrl','cDuration','cDt','plPC','plPS5','plPS4','plXbox','plSwitch','plMobile','iEl','iSb','iBg','iIc','iNk','iDvEl','oShowTxt','oShowTg','oShowQr','oShowNk','oShowDv'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.value=d[id]});
+    checks.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.checked=d[id]});
+    if(d._lib)lib=d._lib;
+    if(d._bgS)Object.assign(bgS,d._bgS);
+    if(d._SS)Object.assign(SS,d._SS);
+    if(d._gmSty)setGmStyle(d._gmSty);
+    if(d._introSty)setIntroStyle(d._introSty);
+    if(d._outroSty)setOutroStyle(d._outroSty);
+    if(d._scoreSys)setScoreSys(d._scoreSys);
+    if(d._scoreDisp)setScoreDisp(d._scoreDisp);
+    if(d._revFont)setRevFont(d._revFont);
+    renderLib();
+    if(d._mode)setMode(d._mode);
+  }catch(e){}
+}
+
+// fix library click — cover vs bg
+const _origRenderLib=renderLib;
+function renderLib(){
+  const grid=document.getElementById('libGrid');
+  grid.innerHTML='';
+  lib.forEach((src,i)=>{
+    const t=document.createElement('div');t.className='lt';
+    if(bgS[mode]&&bgS[mode].idx===i)t.classList.add('sel');
+    const img=document.createElement('img');img.src=src;t.appendChild(img);
+    const del=document.createElement('div');del.className='ldel';del.textContent='×';
+    del.onclick=ev=>{ev.stopPropagation();lib.splice(i,1);if(bgS[mode]&&bgS[mode].idx===i){bgS[mode]={src:null,idx:null};hideBgLayers()}renderLib();upd()};
+    t.appendChild(del);
+    t.onclick=()=>{
+      if(mode==='game'){
+        // set as cover
+        document.getElementById('gmCoverImg').src=src;
+        document.getElementById('gmCoverImg').style.display='block';
+        document.querySelectorAll('.lt').forEach((tt,j)=>tt.classList.toggle('sel',j===i));
+      } else {
+        setBgFor(mode,i);
+      }
+      upd();
+    };
+    grid.appendChild(t);
+  });
+  const add=document.createElement('div');add.className='ladd';add.textContent='＋';
+  add.onclick=()=>document.getElementById('libIn').click();
+  grid.appendChild(add);
+}
+
+// stripe toggle init
+document.getElementById('stGame').classList.add('on');
+
+restore();
+upd();
+</script>
+</body>
+</html>
