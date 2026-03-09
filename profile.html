@@ -179,8 +179,15 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 
 input[type=file]{display:none}
 </style>
+<script src="nav.js"></script>
+<style>
+/* Hide old nav - replaced by rc-nav */
+body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
+</style>
 </head>
 <body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("profile")});</script>
+
 
 <!-- NAV -->
 <nav class="nav">

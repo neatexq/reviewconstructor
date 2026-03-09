@@ -60,6 +60,9 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);he
 .msg.own{flex-direction:row-reverse}
 .msg-av{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);object-fit:cover;flex-shrink:0;align-self:flex-end}
 .msg-bubble{max-width:72%;padding:9px 13px;border-radius:14px;font-size:12px;line-height:1.5;word-break:break-word;position:relative}
+.msg-img{max-width:240px;max-height:300px;border-radius:10px;display:block;cursor:pointer;transition:opacity .2s}
+.msg-img:hover{opacity:.9}
+.msg-img-bubble{padding:4px!important}
 .msg .msg-bubble{background:var(--bg3);border-radius:4px 14px 14px 14px;color:var(--txt)}
 .msg.own .msg-bubble{background:linear-gradient(135deg,#2a1f0e,#3a2a10);border-radius:14px 4px 14px 14px;color:#e8d5aa}
 .msg-time{font-size:8px;color:var(--txt2);margin-top:3px;text-align:right}
@@ -77,8 +80,15 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);he
 .guest-msg{padding:20px;text-align:center;font-size:11px;color:var(--txt2)}
 .guest-msg a{color:var(--acc)}
 </style>
+<script src="nav.js"></script>
+<style>
+/* Hide old nav - replaced by rc-nav */
+body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
+</style>
 </head>
 <body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("messages")});</script>
+
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">◈</a>
@@ -115,6 +125,9 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);he
       </div>
       <div class="messages" id="messages"></div>
       <div class="chat-input-wrap">
+        <label class="chat-photo-btn" title="Отправить фото" style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0;transition:all .2s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bor)'">
+          📷<input type="file" accept="image/*" style="display:none" onchange="sendPhoto(event)">
+        </label>
         <textarea class="chat-input" id="chatInput" placeholder="Написать сообщение..." rows="1"
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         <button class="chat-send" onclick="sendMessage()">➤</button>
@@ -164,47 +177,68 @@ async function loadContacts(){
   const snap = await get(ref(db,`friends/${currentUser.uid}`));
   const list = document.getElementById('contactsList');
   if(!snap.exists()){
-    list.innerHTML='<div style="padding:20px;font-size:10px;color:var(--txt2);text-align:center">Нет друзей.<br><a href="profile.html" style="color:var(--acc)">Добавить друзей →</a></div>';
+    list.innerHTML='<div style="padding:20px;font-size:10px;color:var(--txt2);text-align:center;line-height:1.8">Нет друзей.<br><a href="profile.html" style="color:var(--acc)">Добавить друзей →</a></div>';
     return;
   }
   list.innerHTML='';
   const friends = Object.entries(snap.val());
-  for(const [uid, data] of friends){
-    const uSnap = await get(ref(db,`users/${uid}`));
-    if(!uSnap.exists()) continue;
+  // Load all friends in parallel
+  const tasks = friends.map(async ([uid, data])=>{
+    const [uSnap, onlineSnap, lastMsgSnap] = await Promise.all([
+      get(ref(db,`users/${uid}`)),
+      get(ref(db,`online/${uid}`)),
+      get(query(ref(db,`chats/${getChatId(currentUser.uid,uid)}/messages`), orderByChild('at'), limitToLast(1)))
+    ]);
+    if(!uSnap.exists()) return null;
     const u = uSnap.val();
-    const chatId = getChatId(currentUser.uid, uid);
-    const onlineSnap = await get(ref(db,`online/${uid}`));
     const isOnline = onlineSnap.exists() && (Date.now()-onlineSnap.val()<300000);
-    const lastMsgSnap = await get(query(ref(db,`chats/${chatId}/messages`), orderByChild('at'), limitToLast(1)));
     let lastMsg = '';
+    let lastAt = 0;
     if(lastMsgSnap.exists()){
       const msgs = Object.values(lastMsgSnap.val());
-      lastMsg = msgs[0]?.text?.substring(0,40)||'';
+      const m = msgs[0];
+      lastMsg = m?.imgUrl ? '📷 Фото' : (m?.text?.substring(0,40)||'');
+      lastAt = m?.at||0;
     }
+    return {uid, u, isOnline, lastMsg, lastAt};
+  });
+  const results = (await Promise.all(tasks)).filter(Boolean);
+  // Sort: those with messages first (by lastAt desc), then alphabetical
+  results.sort((a,b)=> b.lastAt - a.lastAt || a.u.nick.localeCompare(b.u.nick));
+
+  for(const {uid, u, isOnline, lastMsg} of results){
+    const chatId = getChatId(currentUser.uid, uid);
     const item = document.createElement('div');
     item.className='contact';
     item.id=`contact_${uid}`;
     item.innerHTML=`
-      <div style="position:relative">
-        <img class="contact-av" src="${u.avatarUrl||PLACEHOLDER}" alt="" onerror="this.src='${PLACEHOLDER}'">
+      <div style="position:relative;flex-shrink:0">
+        <img class="contact-av" src="${u.avatarUrl||PLACEHOLDER}" alt="" onerror="this.src='${PLACEHOLDER}'" style="background:#1a1a24">
         ${isOnline?'<div class="online-dot"></div>':''}
       </div>
       <div class="contact-info">
         <div class="contact-nick">@${u.nick}</div>
-        <div class="contact-last">${lastMsg||'Начни общение'}</div>
+        <div class="contact-last">${lastMsg||'Начни общение...'}</div>
       </div>`;
     item.onclick=()=>openChat(uid, u.nick, u.avatarUrl||'', isOnline);
     list.appendChild(item);
-    // Watch for new messages (unread badge)
+    // Live unread badge
     onValue(ref(db,`chats/${chatId}/unread_${currentUser.uid}`), snap=>{
-      const existing = document.getElementById(`contact_${uid}`);
-      if(!existing)return;
-      let badge = existing.querySelector('.contact-unread');
+      const el = document.getElementById(`contact_${uid}`); if(!el)return;
+      let badge = el.querySelector('.contact-unread');
       if(snap.exists() && snap.val()>0){
-        if(!badge){ badge=document.createElement('div'); badge.className='contact-unread'; existing.appendChild(badge); }
+        if(!badge){ badge=document.createElement('div'); badge.className='contact-unread'; el.appendChild(badge); }
         badge.textContent=snap.val();
       } else if(badge){ badge.remove(); }
+    });
+    // Live last message update
+    onValue(query(ref(db,`chats/${chatId}/messages`), orderByChild('at'), limitToLast(1)), snap=>{
+      const el = document.getElementById(`contact_${uid}`); if(!el)return;
+      const lastEl = el.querySelector('.contact-last'); if(!lastEl)return;
+      if(snap.exists()){
+        const m = Object.values(snap.val())[0];
+        lastEl.textContent = m?.imgUrl ? '📷 Фото' : (m?.text?.substring(0,40)||'');
+      }
     });
   }
 }
@@ -264,7 +298,6 @@ window.openChat = function(uid, nick, av, isOnline){
 }
 
 function appendMessage(msg, container){
-  // Date separator
   const d = new Date(msg.at);
   const dateStr = d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
   if(dateStr !== lastMsgDate){
@@ -276,9 +309,17 @@ function appendMessage(msg, container){
   const div=document.createElement('div'); div.className=`msg${isOwn?' own':''}`;
   const av=msg.avatarUrl||PLACEHOLDER;
   const time=new Date(msg.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  div.innerHTML=`
-    <img class="msg-av" src="${av}" onerror="this.src='${PLACEHOLDER}'" alt="">
-    <div class="msg-bubble">${escapeHtml(msg.text)}<div class="msg-time">${time}</div></div>`;
+  let bubbleContent;
+  if(msg.imgUrl){
+    bubbleContent=`<img class="msg-img" src="${msg.imgUrl}" alt="фото" onclick="window.open(this.src,'_blank')"><div class="msg-time">${time}</div>`;
+    div.innerHTML=`
+      <img class="msg-av" src="${av}" onerror="this.src='${PLACEHOLDER}'" alt="">
+      <div class="msg-bubble msg-img-bubble">${bubbleContent}</div>`;
+  } else {
+    div.innerHTML=`
+      <img class="msg-av" src="${av}" onerror="this.src='${PLACEHOLDER}'" alt="">
+      <div class="msg-bubble">${escapeHtml(msg.text||'')}<div class="msg-time">${time}</div></div>`;
+  }
   container.appendChild(div);
 }
 
@@ -308,6 +349,33 @@ window.handleKey = function(e){
 }
 window.autoResize = function(el){
   el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+window.sendPhoto = async function(e){
+  if(!currentUser||!activeChatUid) return;
+  const file = e.target.files[0]; if(!file) return;
+  e.target.value='';
+  // Compress to max 600px
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const img = new Image(); img.src = ev.target.result;
+    img.onload = async ()=>{
+      const maxW = 600;
+      const sc = Math.min(1, maxW/img.width);
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      const imgUrl = cv.toDataURL('image/jpeg',.82);
+      const chatId = getChatId(currentUser.uid, activeChatUid);
+      const msg = {fromUid:currentUser.uid, nick:currentUser.nick, avatarUrl:currentUser.avatarUrl||'', imgUrl, at:Date.now()};
+      await push(ref(db,`chats/${chatId}/messages`),msg);
+      const unreadRef = ref(db,`chats/${chatId}/unread_${activeChatUid}`);
+      const us = await get(unreadRef);
+      await set(unreadRef,(us.exists()?us.val():0)+1);
+      await set(ref(db,`chats/${chatId}/lastMsg`),{text:'📷 Фото',at:Date.now()});
+    };
+  };
+  reader.readAsDataURL(file);
 }
 
 function getChatId(uid1,uid2){ return [uid1,uid2].sort().join('_'); }

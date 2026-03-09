@@ -85,8 +85,15 @@ a{text-decoration:none;color:inherit}
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:var(--red);color:var(--red)}
 </style>
+<script src="nav.js"></script>
+<style>
+/* Hide old nav - replaced by rc-nav */
+body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
+</style>
 </head>
 <body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("profile")});</script>
+
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">◈</a>

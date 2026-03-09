@@ -100,8 +100,15 @@ a{text-decoration:none;color:inherit}
   .wrap{padding:16px 10px 80px}
 }
 </style>
+<script src="nav.js"></script>
+<style>
+/* Hide old nav - replaced by rc-nav */
+body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
+</style>
 </head>
 <body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("feed")});</script>
+
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">◈</a>

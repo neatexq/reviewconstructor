@@ -254,8 +254,11 @@ textarea{resize:vertical}
   }
 }
 </style>
+<script src="nav.js"></script>
 </head>
 <body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("create")});</script>
+
 <div class="controls">
   <div class="ctrl-top">
     <a href="index.html" class="back-btn">← Назад</a>
@@ -1203,77 +1206,16 @@ upd();
 })();
 
 // ── ШАБЛОНЫ ──
-if(typeof injectTemplateBtn !== 'undefined'){
-  injectTemplateBtn('cinema_draft', collectDraft, function(draft){
-    applyDraft(draft);
+(document.readyState === 'loading'
+  ? document.addEventListener('DOMContentLoaded', _doInjectTemplates)
+  : _doInjectTemplates());
+function _doInjectTemplates(){
+  if(typeof injectTemplateBtn !== 'undefined'){
+    injectTemplateBtn('cinema_draft', collectDraft, function(draft){
+      applyDraft(draft);
     upd();
-  });
-}
-
-// ── ПУБЛИКАЦИЯ ──
-let _privMode = 'public';
-let _privFriends = [];
-const _PRIV_LABELS = {public:'🌍 Публично', friends:'👥 Друзьям', selected:'👤 Избранным'};
-
-function publishCard(){
-  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
-  if(!session){
-    if(confirm('Нужно войти в аккаунт. Перейти на страницу профиля?')) window.location.href='profile.html';
-    return;
+    });
   }
-  const card=document.getElementById('card');if(!card)return;
-  const pubBtn=document.querySelector('[onclick="publishCard()"]');
-  if(pubBtn){pubBtn.textContent='⏳...';pubBtn.disabled=true;}
-  html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
-    // Сохраняем в 600px ширину JPEG 90% — отличное качество, ~80-100KB
-    const TARGET_W=600;
-    const sc=Math.min(1, TARGET_W/cv.width);
-    const out=document.createElement('canvas');
-    out.width=Math.round(cv.width*sc);
-    out.height=Math.round(cv.height*sc);
-    out.getContext('2d').drawImage(cv,0,0,out.width,out.height);
-    const imgData=out.toDataURL('image/jpeg',0.90);
-    const titleEl=document.getElementById('fTitle');
-    const title=titleEl?.value||'Рецензия';
-    const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
-    queue.push({imgData,type:'🎬 Кино',title,privacy:_privMode,privacyFriends:[..._privFriends],queuedAt:Date.now()});
-    try{localStorage.setItem('rc_publish_queue',JSON.stringify(queue));}
-    catch(e){
-      if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
-      alert('Ошибка: рецензия слишком большая. Попробуй упростить карточку.');
-      return;
-    }
-    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
-    // Сразу переходим в профиль для публикации
-    window.location.href='profile.html';
-  }).catch(e=>{
-    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
-    alert('Ошибка рендера: '+e.message);
-  });
-}
-
-function openPrivSettings(){
-  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
-  if(!session){ if(confirm('Нужно войти. Перейти на профиль?')) window.location.href='profile.html'; return; }
-  document.getElementById('swPrivOverlay').style.display='flex';
-}
-
-function swSetPriv(p){
-  _privMode=p;
-  const PRIV_LABELS={public:'🌍 Публично',friends:'👥 Друзьям',selected:'👤 Избранным'};
-  document.getElementById('privPill').textContent=PRIV_LABELS[p];
-  ['public','friends','selected'].forEach(k=>{
-    const el=document.getElementById('swpo_'+k);
-    if(!el)return;
-    el.style.background=k===p?'rgba(200,169,110,.08)':'';
-    el.style.border=k===p?'1px solid rgba(200,169,110,.25)':'1px solid transparent';
-  });
-  const fl=document.getElementById('swFriendsList');
-  if(p==='selected'){
-    fl.style.display='flex';
-    const fc=JSON.parse(localStorage.getItem('rc_friends_cache')||'[]');
-    fl.innerHTML=fc.length?fc.map(f=>`<label style="display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;padding:3px 0;cursor:pointer;font-family:'Space Mono',monospace"><input type="checkbox" style="accent-color:#c8a96e" onchange="swToggleFriend('${f.uid}',this.checked)"> @${f.nick}</label>`).join(''):'<div style="font-size:10px;color:#6b5f4a">Нет друзей</div>';
-  } else { fl.style.display='none'; }
 }
 function swToggleFriend(uid,checked){
   if(checked) _privFriends.push(uid);
