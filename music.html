@@ -602,6 +602,11 @@ textarea{resize:vertical;min-height:75px}
   <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
   <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
   <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    <button class="btn" onclick="publishCard()" style="flex:1;padding:10px;background:#e63946;border-color:#e63946;color:#fff;font-size:12px;font-weight:700;letter-spacing:1px">📤 ОПУБЛИКОВАТЬ</button>
+    <button class="btn" onclick="openPrivSettings()" title="Настройки видимости" style="width:38px;padding:0;font-size:16px;background:transparent;border-color:#333">⚙️</button>
+  </div>
+  <div id="privPill" style="font-size:9px;color:#e63946;letter-spacing:1px;margin-top:4px;text-align:right">🌍 Публично</div>
 </div>
 
 <!-- CARD 600x600 -->
@@ -1403,18 +1408,7 @@ function save(){
   html2canvas(c,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
     const dataUrl=cv.toDataURL('image/png');
     const a=document.createElement('a');a.href=dataUrl;a.download=`muzyka_${mode}_${Date.now()}.png`;a.click();
-    try{
-      const th=document.createElement('canvas');
-      const scale=200/cv.width;th.width=200;th.height=Math.round(cv.height*scale);
-      th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
-      const thumb=th.toDataURL('image/jpeg',0.75);
-      const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
-      const labels={intro:'Музыка · Начало',track:'Музыка · Трек',album:'Музыка · Альбом',outro:'Музыка · Конец'};
-      items.unshift({thumb,type:labels[mode]||'Музыка',date:new Date().toLocaleDateString('ru-RU')});
-      if(items.length>50)items.pop();
-      localStorage.setItem('reviews_gallery',JSON.stringify(items));
-    }catch(e){}
-  }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
+    }).catch(()=>alert('Ошибка экспорта. Используй Chrome.'));
 }
 
 
@@ -1468,7 +1462,65 @@ setIntroStyle('dark');
 setOutroStyle('dark');
 addTlRow('');addTlRow('');addTlRow('');addTlRow('');addTlRow('');
 upd();
+
+// ── ПУБЛИКАЦИЯ ──
+let _privMode = 'public';
+let _privFriends = [];
+const _PRIV_LABELS = {public:'🌍 Публично', friends:'👥 Друзьям', selected:'👤 Избранным'};
+
+function publishCard(){
+  const session = JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!session){
+    if(confirm('Нужно войти в аккаунт. Перейти на страницу профиля?')) window.location.href='profile.html';
+    return;
+  }
+  const card = document.getElementById('card'); if(!card) return;
+  const saveBtn = document.querySelector('.savebtn');
+  if(saveBtn){ saveBtn.textContent='⏳ Сохранение...'; saveBtn.disabled=true; }
+  html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
+    const fullDataUrl = cv.toDataURL('image/png');
+    const th=document.createElement('canvas');
+    const sc=Math.min(1, 400/cv.width);
+    th.width=Math.round(cv.width*sc); th.height=Math.round(cv.height*sc);
+    th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+    const thumbDataUrl = th.toDataURL('image/jpeg',.78);
+    const titleEl = document.getElementById('mTitle');
+    const title = titleEl?.value || 'Рецензия';
+    const queue = JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+    queue.push({thumbDataUrl, fullDataUrl, type:'🎵 Музыка', title, privacy:_privMode, privacyFriends:[..._privFriends], queuedAt:Date.now()});
+    try{ localStorage.setItem('rc_publish_queue', JSON.stringify(queue)); }catch(e){ alert('Рецензия слишком большая для сохранения'); return; }
+    if(saveBtn){ saveBtn.textContent='💾 СКАЧАТЬ PNG'; saveBtn.disabled=false; }
+    if(confirm('Рецензия сохранена! Открыть профиль для публикации?')) window.location.href='profile.html';
+  }).catch(()=>{ if(saveBtn){ saveBtn.textContent='💾 СКАЧАТЬ PNG'; saveBtn.disabled=false; } });
+}
+
+function openPrivSettings(){
+  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!session){ if(confirm('Нужно войти. Перейти на профиль?')) window.location.href='profile.html'; return; }
+  document.getElementById('swPrivOverlay').style.display='flex';
+}
+
+function swSetPriv(p){
+  _privMode=p;
+  const PRIV_LABELS={public:'🌍 Публично',friends:'👥 Друзьям',selected:'👤 Избранным'};
+  document.getElementById('privPill').textContent=PRIV_LABELS[p];
+  ['public','friends','selected'].forEach(k=>{
+    const el=document.getElementById('swpo_'+k);
+    if(!el)return;
+    el.style.background=k===p?'rgba(200,169,110,.08)':'';
+    el.style.border=k===p?'1px solid rgba(200,169,110,.25)':'1px solid transparent';
+  });
+  const fl=document.getElementById('swFriendsList');
+  if(p==='selected'){
+    fl.style.display='flex';
+    const fc=JSON.parse(localStorage.getItem('rc_friends_cache')||'[]');
+    fl.innerHTML=fc.length?fc.map(f=>`<label style="display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;padding:3px 0;cursor:pointer;font-family:'Space Mono',monospace"><input type="checkbox" style="accent-color:#c8a96e" onchange="swToggleFriend('${f.uid}',this.checked)"> @${f.nick}</label>`).join(''):'<div style="font-size:10px;color:#6b5f4a">Нет друзей</div>';
+  } else { fl.style.display='none'; }
+}
+function swToggleFriend(uid,checked){
+  if(checked) _privFriends.push(uid);
+  else _privFriends=_privFriends.filter(u=>u!==uid);
+}
 </script>
-<script>if(typeof injectPublishBtn==="function")injectPublishBtn();</script>
 </body>
 </html>

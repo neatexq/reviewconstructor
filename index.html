@@ -29,20 +29,6 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:#fff}
 .card-desc{font-size:10px;color:var(--txt2);margin-top:7px;line-height:1.65;letter-spacing:.3px}
 
-/* GALLERY */
-.gallery-section{width:100%;max-width:900px}
-.gal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.gal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:#fff}
-.gal-clear{font-size:10px;letter-spacing:1px;color:var(--txt2);cursor:pointer;padding:4px 10px;border:1px solid var(--bor);border-radius:5px;background:transparent;font-family:'Space Mono',monospace;transition:all .15s}
-.gal-clear:hover{border-color:var(--acc);color:var(--acc)}
-.gal-empty{font-size:10px;color:var(--txt2);letter-spacing:1px;padding:20px;text-align:center;border:1px dashed var(--bor);border-radius:10px}
-.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-.gal-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--bor);cursor:pointer;transition:border-color .15s}
-.gal-item:hover{border-color:var(--acc)}
-.gal-item img{width:100%;display:block;object-fit:cover}
-.gal-item-del{position:absolute;top:6px;right:6px;width:22px;height:22px;background:rgba(230,57,70,.9);border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}
-.gal-item:hover .gal-item-del{opacity:1}
-.gal-item-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:8px 8px 6px;font-size:8px;letter-spacing:1px;color:rgba(255,255,255,.6);text-transform:uppercase}
 
 .deco{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden}
 .deco-circle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,.06),transparent 60%)}
@@ -55,10 +41,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
   .card-ico{font-size:36px;margin-bottom:0;flex-shrink:0}
   .card-title{font-size:22px}
   .card-desc{font-size:10px;margin-top:4px}
-  .gal-title{font-size:18px}
-  .gal-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
-  .gal-head{flex-wrap:wrap;gap:8px}
-}
+      }
 </style>
 </head>
 <body>
@@ -76,7 +59,6 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
 </div>
 
 <div class="logo">
-  <div class="logo-t">КРИТИ<span>К</span></div>
   <div class="logo-s">Конструктор рецензий</div>
 </div>
 
@@ -108,41 +90,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
   </a>
 </div>
 
-<div class="gallery-section">
-  <div class="gal-head">
-    <div class="gal-title">МОИ РЕЦЕНЗИИ</div>
-    <button class="gal-clear" onclick="clearGallery()">Очистить всё</button>
-  </div>
-  <div id="galGrid" class="gal-grid"></div>
-  <div id="galEmpty" class="gal-empty" style="display:none">Нет сохранённых рецензий. Скачай PNG в конструкторе — он появится здесь.</div>
-</div>
 
-<script>
-function loadGallery(){
-  const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
-  const grid=document.getElementById('galGrid');
-  const empty=document.getElementById('galEmpty');
-  grid.innerHTML='';
-  if(!items.length){empty.style.display='block';grid.style.display='none';return}
-  empty.style.display='none';grid.style.display='grid';
-  items.forEach((item,i)=>{
-    const d=document.createElement('div');d.className='gal-item';
-    d.innerHTML=`<img src="${item.thumb}" loading="lazy"><div class="gal-item-del" onclick="event.stopPropagation();delReview(${i})">✕</div><div class="gal-item-meta">${item.type} · ${item.date}</div>`;
-    d.onclick=()=>window.open(item.thumb,'_blank');
-    grid.appendChild(d);
-  });
-}
-function delReview(i){
-  const items=JSON.parse(localStorage.getItem('reviews_gallery')||'[]');
-  items.splice(i,1);
-  localStorage.setItem('reviews_gallery',JSON.stringify(items));
-  loadGallery();
-}
-function clearGallery(){
-  if(confirm('Удалить все сохранённые рецензии?')){localStorage.removeItem('reviews_gallery');loadGallery()}
-}
-loadGallery();
-</script>
 <script>
 // Show logged-in state in nav
 const s=JSON.parse(localStorage.getItem('rc_session')||'null');
