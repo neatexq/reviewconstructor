@@ -8,7 +8,16 @@
 <style>
 :root{--acc:#e63946;--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bor:#252525;--txt:#e8e8e8;--txt2:#555}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:50px}
+body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;color:var(--txt);display:flex;flex-direction:column;align-items:center;padding:0 20px 60px;gap:0}
+/* NAV */
+.top-nav{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;padding:16px 0;margin-bottom:24px;border-bottom:1px solid var(--bor)}
+.tn-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#c8a96e;text-decoration:none}
+.tn-right{display:flex;gap:8px;align-items:center}
+.tn-btn{padding:6px 14px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;border:1px solid var(--bor);background:var(--bg2);color:var(--txt2);text-decoration:none;transition:all .2s}
+.tn-btn:hover{border-color:#c8a96e;color:#c8a96e}
+.tn-btn.primary{background:#c8a96e;border-color:#c8a96e;color:#1a1005}
+.tn-nick{font-size:10px;color:#c8a96e;letter-spacing:1px}
+.content-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:50px;margin-top:20px}
 .logo{text-align:center}
 .logo-t{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:10px;color:#fff;line-height:1}
 .logo-t span{color:var(--acc)}
@@ -53,6 +62,14 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
 </style>
 </head>
 <body>
+<nav class="top-nav">
+  <a href="index.html" class="tn-logo">◈ REVIEWS</a>
+  <div class="tn-right" id="tnRight">
+    <a href="profile.html" class="tn-btn">👤 Профиль</a>
+    <a href="profile.html" class="tn-btn primary" id="tnAuthBtn">Войти</a>
+  </div>
+</nav>
+<div class="content-wrap">
 <div class="deco">
   <div class="deco-circle" style="width:600px;height:600px;top:-200px;right:-100px"></div>
   <div class="deco-circle" style="width:400px;height:400px;bottom:-100px;left:-100px"></div>
@@ -126,5 +143,14 @@ function clearGallery(){
 }
 loadGallery();
 </script>
+<script>
+// Show logged-in state in nav
+const s=JSON.parse(localStorage.getItem('rc_session')||'null');
+if(s&&s.nick){
+  document.getElementById('tnAuthBtn').textContent='@'+s.nick;
+  document.getElementById('tnAuthBtn').href='profile.html';
+}
+</script>
+</div><!-- content-wrap -->
 </body>
 </html>
