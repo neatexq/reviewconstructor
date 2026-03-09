@@ -786,7 +786,7 @@ function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!
 /* GOOGLE BOOKS SEARCH */
 document.getElementById('bkQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchBook()});
 let bkTimer=null;
-document.getElementById('bkQ').addEventListener('input',()=>{clearTimeout(bkTimer);bkTimer=setTimeout(()=>{if(document.getElementById('bkQ').value.trim().length>1)searchBook()},900)});
+document.getElementById('bkQ').addEventListener('input',()=>{clearTimeout(bkTimer);bkTimer=setTimeout(()=>{if(document.getElementById('bkQ').value.trim().length>1)searchBook()},700)});
 
 async function searchBook(){
   const q=document.getElementById('bkQ').value.trim();if(!q)return;
@@ -795,25 +795,38 @@ async function searchBook(){
   res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
   try{
     const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
-    // Open Library — бесплатно, без ключей, поддерживает русский
-    const r=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=8&fields=key,title,author_name,first_publish_year,number_of_pages_median,publisher,subject,cover_i`,{signal:controller.signal});
+    // Open Library поиск — первым запросом с языковым приоритетом RU
+    const r=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10&fields=key,title,author_name,first_publish_year,number_of_pages_median,publisher,subject,cover_i,isbn,language`,{signal:controller.signal});
     clearTimeout(timeout);
     if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
     const data=await r.json();
     if(!data.docs||!data.docs.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
+    // Сортируем: русскоязычные издания выше
+    const sorted=[...data.docs].sort((a,b)=>{
+      const aRu=(a.language||[]).includes('rus')?0:1;
+      const bRu=(b.language||[]).includes('rus')?0:1;
+      return aRu-bRu;
+    });
     res.innerHTML='';
-    data.docs.forEach(book=>{
+    sorted.slice(0,8).forEach(book=>{
       const div=document.createElement('div');div.className='ri';
-      const coverId=book.cover_i;
-      const thumb=coverId?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`:'';
+      // обложка: сначала cover_i, потом ISBN
+      const thumb=getCoverUrl(book,'S');
       const authors=(book.author_name||[]).slice(0,2).join(', ');
       const year=book.first_publish_year||'';
-      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:3px;background:#1a1a1a;flex-shrink:0"><div><b style="display:block;color:#ddd;font-size:11px">${book.title||'—'}</b><span style="font-size:10px;color:#666">${authors}${year?' · '+year:''}</span></div>`;
+      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:3px;background:#1a1a1a;flex-shrink:0" onerror="this.style.background='#222'""><div><b style="display:block;color:#ddd;font-size:11px">${book.title||'—'}</b><span style="font-size:10px;color:#666">${authors}${year?' · '+year:''}</span></div>`;
       div.onclick=()=>pickBook(book);
       div.addEventListener('touchstart',e=>{e.preventDefault();pickBook(book)},{passive:false});
       res.appendChild(div);
     });
   }catch(err){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">${err.name==='AbortError'?'Таймаут':'Ошибка сети'}</div>`}
+}
+
+function getCoverUrl(book,size){
+  if(book.cover_i)return`https://covers.openlibrary.org/b/id/${book.cover_i}-${size}.jpg`;
+  const isbn=(book.isbn||[]).find(i=>i.length===13||(i.length===10));
+  if(isbn)return`https://covers.openlibrary.org/b/isbn/${isbn}-${size}.jpg`;
+  return'';
 }
 
 function pickBook(book){
@@ -823,14 +836,18 @@ function pickBook(book){
   document.getElementById('bkYear').value=book.first_publish_year||'';
   document.getElementById('bkPages').value=book.number_of_pages_median||'';
   document.getElementById('bkPublisher').value=(book.publisher||[]).slice(0,1).join('')||'';
-  document.getElementById('bkGenres').value=(book.subject||[]).slice(0,3).join(', ');
-  const coverId=book.cover_i;
-  if(coverId){
+  // жанры — фильтруем мусор (слишком длинные теги Open Library)
+  const subj=(book.subject||[]).filter(s=>s.length<30&&!/^\d/.test(s)).slice(0,4);
+  document.getElementById('bkGenres').value=subj.join(', ');
+  // обложка: большая версия
+  const imgUrl=getCoverUrl(book,'L');
+  if(imgUrl){
     const img=document.getElementById('bkCoverImg');
     img.crossOrigin='anonymous';
-    // берём большую обложку для карточки
-    img.src=`https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+    img.src=imgUrl;
     img.style.display='block';
+    // если L не грузится — пробуем M
+    img.onerror=()=>{const m=getCoverUrl(book,'M');if(m&&m!==imgUrl){img.src=m}else img.onerror=null};
   }
   upd();
 }
