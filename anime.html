@@ -1057,5 +1057,24 @@ function _tplToast(msg){
     <button onclick="document.getElementById('swPrivOverlay').style.display='none'" style="width:100%;padding:9px;background:#c8a96e;border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px">Готово ✓</button>
   </div>
 </div>
+
+<!-- TEMPLATE MODALS -->
+<div class="tpl-ov" id="tplOv" onclick="if(event.target===this)tplClose()">
+  <div class="tpl-box">
+    <div class="tpl-box-ttl">📂 Мои шаблоны</div>
+    <div class="tpl-close" onclick="tplClose()">✕</div>
+    <div class="tpl-list" id="tplList"></div>
+  </div>
+</div>
+<div class="tpl-name-ov" id="tplNameOv">
+  <div class="tpl-name-box">
+    <div class="tpl-name-ttl">Название шаблона</div>
+    <input class="tpl-name-inp" id="tplNameInp" placeholder="Например: Тёмный стиль" maxlength="40">
+    <div class="tpl-name-btns">
+      <button class="tpl-name-cancel" onclick="tplCancelSave()">Отмена</button>
+      <button class="tpl-name-ok" onclick="tplConfirmSave()">Сохранить ✓</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
