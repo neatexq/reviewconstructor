@@ -757,7 +757,7 @@ function setBgFor(m,i){
 let lqr='';
 function updQr(){const u=document.getElementById('oQrUrl').value.trim();if(u&&u!==lqr){lqr=u;const src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(u)}&bgcolor=ffffff&color=000000`;['qrDk','qrPs','qrCu'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=src})}upd()}
 
-/* ANILIST API SEARCH — поддерживает русские названия */
+/* SHIKIMORI API — русские названия, обложки, без ключа */
 document.getElementById('anQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchAnime()});
 let anTimer=null;
 document.getElementById('anQ').addEventListener('input',()=>{clearTimeout(anTimer);anTimer=setTimeout(()=>{if(document.getElementById('anQ').value.trim().length>1)searchAnime()},600)});
@@ -767,32 +767,26 @@ async function searchAnime(){
   const res=document.getElementById('anRes');
   res.style.display='block';
   res.innerHTML='<div style="padding:12px;font-size:10px;color:#555;letter-spacing:1px">Поиск...</div>';
-  // AniList GraphQL — хранит title.russian, бесплатно без ключа
-  const query=`query($q:String){Page(perPage:8){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{romaji english native userPreferred}coverImage{medium large}startDate{year}episodes season seasonYear studios(isMain:true){nodes{name}}genres averageScore status}}}`;
   try{
     const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
-    const r=await fetch('https://graphql.anilist.co',{
-      method:'POST',signal:controller.signal,
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify({query,variables:{q}})
-    });
+    const url=`https://shikimori.one/api/animes?search=${encodeURIComponent(q)}&limit=8&order=popularity`;
+    const r=await fetch(url,{signal:controller.signal,headers:{'User-Agent':'AnimeConstructor/1.0'}});
     clearTimeout(timeout);
     if(r.status===429){res.innerHTML='<div style="padding:12px;font-size:10px;color:#e63946">Слишком много запросов. Подожди секунду.</div>';return}
     if(!r.ok){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">Ошибка ${r.status}</div>`;return}
-    const data=await r.json();
-    const items=data?.data?.Page?.media;
+    const items=await r.json();
     if(!items||!items.length){res.innerHTML='<div style="padding:12px;font-size:10px;color:#555">Ничего не найдено</div>';return}
     res.innerHTML='';
     items.forEach(anime=>{
       const div=document.createElement('div');div.className='ri';
-      const thumb=anime.coverImage?.medium||'';
-      // показываем лучшее доступное название для отображения в списке
-      const displayTitle=anime.title.userPreferred||anime.title.romaji||'—';
-      const subTitle=anime.title.english&&anime.title.english!==displayTitle?anime.title.english:'';
-      const year=anime.startDate?.year||anime.seasonYear||'';
-      const eps=anime.episodes?anime.episodes+' эп.':'';
-      const score=anime.averageScore?'★'+(anime.averageScore/10).toFixed(1):'';
-      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div style="min-width:0;overflow:hidden"><b style="display:block;color:#ddd;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${displayTitle}</b>${subTitle?`<span style="font-size:9px;color:#555;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${subTitle}</span>`:''}<span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
+      const thumb=anime.image?.preview?'https://shikimori.one'+anime.image.preview:'';
+      // russian — официальное русское название на Shikimori
+      const title=anime.russian||anime.name||'—';
+      const origName=anime.name&&anime.russian&&anime.name!==anime.russian?anime.name:'';
+      const year=anime.aired_on?anime.aired_on.slice(0,4):'';
+      const eps=anime.episodes?anime.episodes+' эп.':(anime.episodes_aired?anime.episodes_aired+' эп.':'');
+      const score=anime.score&&anime.score!=='0.0'?'★'+parseFloat(anime.score).toFixed(1):'';
+      div.innerHTML=`<img src="${thumb}" style="width:36px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a1a;flex-shrink:0"><div style="min-width:0;overflow:hidden"><b style="display:block;color:#ddd;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${title}</b>${origName?`<span style="font-size:9px;color:#555;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${origName}</span>`:''}<span style="font-size:10px;color:#666">${year}${year&&eps?' · ':''}${eps}${score?' · <span style="color:#ff4d7d">'+score+'</span>':''}</span></div>`;
       div.onclick=()=>pickAnime(anime);
       div.addEventListener('touchstart',e=>{e.preventDefault();pickAnime(anime)},{passive:false});
       res.appendChild(div);
@@ -800,27 +794,44 @@ async function searchAnime(){
   }catch(err){res.innerHTML=`<div style="padding:12px;font-size:10px;color:#e63946">${err.name==='AbortError'?'Таймаут':'Ошибка сети'}</div>`}
 }
 
-// Переводы сезонов
-const SEASONS={WINTER:'Зима',SPRING:'Весна',SUMMER:'Лето',FALL:'Осень'};
+// Жанры Shikimori → русский
+const GENRE_RU={'Action':'Экшн','Adventure':'Приключения','Comedy':'Комедия','Drama':'Драма','Fantasy':'Фэнтези','Horror':'Ужасы','Mystery':'Мистика','Romance':'Романтика','Sci-Fi':'Фантастика','Slice of Life':'Повседневность','Sports':'Спорт','Supernatural':'Сверхъестественное','Thriller':'Триллер','Mecha':'Меха','Music':'Музыка','Psychological':'Психологическое','School':'Школа','Shounen':'Сёнэн','Shoujo':'Сёдзё','Seinen':'Сэйнэн','Josei':'Дзёсэй','Isekai':'Исэкай','Magic':'Магия','Military':'Военное','Historical':'Историческое','Super Power':'Суперспособности','Demons':'Демоны','Samurai':'Самурайское','Police':'Полиция','Space':'Космос','Vampire':'Вампиры','Harem':'Гарем','Game':'Игры','Martial Arts':'Боевые искусства','Kids':'Для детей'};
+const KIND_RU={'tv':'Сериал','movie':'Фильм','ova':'OVA','ona':'ONA','special':'Спецвыпуск','music':'Клип'};
+const SEASON_RU={'winter':'Зима','spring':'Весна','summer':'Лето','fall':'Осень'};
 
-function pickAnime(anime){
+async function pickAnime(anime){
   document.getElementById('anRes').style.display='none';
-  // Название: приоритет romaji (латиница) — вставляем в поле, русское в японское если есть
-  // Но раз пользователь хочет русские названия — используем userPreferred или english или romaji
-  const titleMain=anime.title.english||anime.title.romaji||anime.title.userPreferred||'';
-  document.getElementById('anTitle').value=titleMain;
-  // японское поле — оригинальное японское название (hiragana/kanji)
-  document.getElementById('anTitleJp').value=anime.title.native||'';
-  document.getElementById('anStudio').value=(anime.studios?.nodes||[]).slice(0,1).map(s=>s.name).join('')||'';
-  const year=anime.startDate?.year||anime.seasonYear||'';
+  // Используем русское название
+  document.getElementById('anTitle').value=anime.russian||anime.name||'';
+  // японское поле оставляем пустым (скрыто по умолчанию)
+  document.getElementById('anTitleJp').value='';
+  const year=anime.aired_on?anime.aired_on.slice(0,4):'';
   document.getElementById('anYear').value=year;
-  const seasonRu=anime.season?SEASONS[anime.season]||anime.season:'';
-  document.getElementById('anSeason').value=seasonRu&&year?`${seasonRu} ${year}`:'';
-  document.getElementById('anEps').value=anime.episodes||'';
-  document.getElementById('anGenres').value=(anime.genres||[]).slice(0,4).join(', ');
-  if(anime.averageScore){document.getElementById('anScore').value=Math.round(anime.averageScore/10*10)/10}
-  const imgSrc=anime.coverImage?.large||anime.coverImage?.medium||'';
-  if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
+  // сезон
+  let seasonStr='';
+  if(anime.season){const parts=anime.season.match(/^(\w+)_(\d+)$/);if(parts)seasonStr=(SEASON_RU[parts[1]]||parts[1])+' '+parts[2]}
+  document.getElementById('anSeason').value=seasonStr;
+  // загружаем детали для жанров и студии
+  try{
+    const det=await fetch(`https://shikimori.one/api/animes/${anime.id}`,{headers:{'User-Agent':'AnimeConstructor/1.0'}});
+    if(det.ok){
+      const d=await det.json();
+      document.getElementById('anEps').value=d.episodes||d.episodes_aired||'';
+      const genres=(d.genres||[]).map(g=>GENRE_RU[g.name]||g.russian||g.name).slice(0,4).join(', ');
+      document.getElementById('anGenres').value=genres;
+      const studio=(d.studios||[]).slice(0,1).map(s=>s.name).join('');
+      document.getElementById('anStudio').value=studio;
+      if(d.score&&d.score!=='0.0')document.getElementById('anScore').value=parseFloat(d.score).toFixed(1);
+      // обложка — большая версия
+      const imgSrc=d.image?.original?'https://shikimori.one'+d.image.original:(d.image?.preview?'https://shikimori.one'+d.image.preview:'');
+      if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
+    }
+  }catch(e){
+    // fallback: маленькая обложка из поиска
+    document.getElementById('anEps').value=anime.episodes||anime.episodes_aired||'';
+    const imgSrc=anime.image?.original?'https://shikimori.one'+anime.image.original:(anime.image?.preview?'https://shikimori.one'+anime.image.preview:'');
+    if(imgSrc){const img=document.getElementById('anCoverImg');img.crossOrigin='anonymous';img.src=imgSrc;img.style.display='block';}
+  }
   upd();
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('anRes').style.display='none'});
