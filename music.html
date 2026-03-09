@@ -1343,7 +1343,7 @@ function _updCore(){
       if(!el)return;
       el.style.fontSize='';
       let fs=66;el.style.fontSize=fs+'px';
-      while(el.scrollWidth>el.parentElement.clientWidth&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+      while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
     });
   });
   if(mode==='intro'){
@@ -1374,7 +1374,7 @@ function _updCore(){
       if(!el)return;
       el.style.fontSize='';
       let fs=66;el.style.fontSize=fs+'px';
-      while(el.scrollWidth>el.parentElement.clientWidth&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
+      while(el.scrollWidth>500&&fs>20){fs-=2;el.style.fontSize=fs+'px'}
     });
   });
   if(mode==='outro'){
