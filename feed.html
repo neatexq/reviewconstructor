@@ -51,11 +51,9 @@ a{text-decoration:none;color:inherit}
 .post-img-wrap{position:relative;cursor:pointer;overflow:hidden}
 .post-img{width:100%;display:block;max-height:600px;object-fit:contain;background:var(--bg3);transition:transform .3s}
 .post-img-wrap:hover .post-img{transform:scale(1.01)}
-.post-view-tl-btn{position:absolute;bottom:10px;right:10px;padding:6px 14px;background:rgba(10,10,15,.85);border:1px solid rgba(200,169,110,.5);border-radius:7px;color:#c8a96e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;backdrop-filter:blur(8px);transition:all .2s;z-index:2}
-.post-view-tl-btn:hover{background:rgba(200,169,110,.15)}
+
 .post-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,.6));opacity:0;transition:opacity .3s}
-.post-img-wrap:hover .post-view-tl-btn{position:absolute;bottom:10px;right:10px;padding:6px 14px;background:rgba(10,10,15,.85);border:1px solid rgba(200,169,110,.5);border-radius:7px;color:#c8a96e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;backdrop-filter:blur(8px);transition:all .2s;z-index:2}
-.post-view-tl-btn:hover{background:rgba(200,169,110,.15)}
+.post-img-wrap:hover 
 .post-img-overlay{opacity:1}
 
 /* ACTIONS */
@@ -65,6 +63,10 @@ a{text-decoration:none;color:inherit}
 .action-btn.liked{color:#ef6c9a}
 .action-btn .ico{font-size:15px;line-height:1}
 .post-title{padding:0 16px 4px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:#ddd}
+.post-tl-meta{padding:2px 16px 8px;font-size:10px;color:#6b5f4a;letter-spacing:.5px}
+.post-rl-row{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 4px}
+.post-rl-btn{padding:4px 11px;border:1px solid rgba(200,169,110,.35);border-radius:20px;background:rgba(200,169,110,.06);color:#c8a96e;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s}
+.post-rl-btn:hover{background:rgba(200,169,110,.15);border-color:#c8a96e}
 
 /* COMMENTS */
 .comments-wrap{border-top:1px solid rgba(255,255,255,.04);padding:0}
@@ -142,7 +144,7 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
 <!-- LIGHTBOX -->
 <div class="lb-overlay" id="lbOverlay" onclick="if(event.target===this||event.target.id==='lbClose')closeLb()">
   <div id="lbClose" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:#18181f;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:14px;color:#aaa;cursor:pointer;z-index:1">✕</div>
-  <div id="lbWrap" style="position:relative;overflow:hidden;max-width:95vw;max-height:95vh;cursor:zoom-in;user-select:none">
+  <div id="lbWrap" style="position:relative;overflow:hidden;max-width:95vw;max-height:95vh;cursor:default;user-select:none" title="Ctrl+колесо для зума">
     <img class="lb-img" id="lbImg" src="" alt="" style="transition:transform .15s;transform-origin:center center;pointer-events:none">
   </div>
 </div>
@@ -260,11 +262,13 @@ function buildPost(post, idx){
       ${!isOwn && !isFriend ? `<button class="post-add-btn" id="addbtn_${post.authorUid}" onclick="addFriend('${post.authorUid}','${post.authorNick}',this)">+ Добавить</button>` : ''}
     </div>
     ${post.title?`<div class="post-title">${post.title}</div>`:''}
+    ${post.isTierlist||post.tiersData?`<div class="post-tl-meta" id="tlmeta_${post.id}"></div>`:''}
+
     <div class="post-img-wrap" onclick="openLb('${post.id}')">
       <img class="post-img" id="img_${post.id}" src="${post.imgData||''}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="post-img-overlay"></div>
-      ${post.isTierlist||post.tiersData?`<button class="post-view-tl-btn" onclick="event.stopPropagation();openFeedTierlist(this)" data-rv='${JSON.stringify({id:post.id,title:post.title,type:post.type||'',date:post.date||'',authorNick:post.authorNick||'',tiersData:post.tiersData,poolData:post.poolData,reviewLinks:post.reviewLinks}).replace(/'/g,"&#39;").replace(/"/g,"&quot;")}'>👁 Смотреть</button>`:''}
     </div>
+    ${(post.isTierlist||post.tiersData)&&post.reviewLinks&&Object.keys(post.reviewLinks).length?`<div class="post-rl-row" id="rl_${post.id}"></div>`:''}
     <div class="post-actions">
       <button class="action-btn" id="like_${post.id}" onclick="toggleLike('${post.id}','${post.authorUid}')">
         <span class="ico">🤍</span><span id="likeCount_${post.id}">0</span>
@@ -402,6 +406,8 @@ window.openLb = function(id){
   img.style.transform='scale(1) translate(0,0)';
   function apply(){ img.style.transform='scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
   wrap.onwheel = function(e){
+    if(!e.ctrlKey) return;
+    e.preventDefault();
     e.preventDefault();
     zoom = Math.min(5, Math.max(1, zoom - e.deltaY*0.003));
     if(zoom===1){tx=0;ty=0;}

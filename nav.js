@@ -6,6 +6,8 @@ const CSS = `
   top: 0 !important; left: 0 !important; right: 0 !important;
   bottom: auto !important;
   width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
   align-self: stretch !important;
   height: 52px !important;
   background: rgba(10,10,15,.97);

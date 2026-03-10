@@ -308,7 +308,7 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-close" onclick="closeModal()">✕</div>
-    <div id="modalImgWrap" style="position:relative;overflow:hidden;border-radius:12px 12px 0 0;cursor:zoom-in;background:#0a0a0f">
+    <div id="modalImgWrap" style="position:relative;overflow:hidden;border-radius:12px 12px 0 0;cursor:default;background:#0a0a0f" title="Ctrl+колесо для зума">
       <img id="modalImg" class="modal-img" src="" alt="" style="display:block;width:100%;transition:transform .2s;transform-origin:center center">
     </div>
     <div class="modal-body">
@@ -317,7 +317,6 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
       <div id="modalSubtitle" style="font-size:13px;color:var(--txt2);margin-bottom:10px;display:none"></div>
       <div id="modalReviewText" style="font-size:13px;color:#ccc;line-height:1.8;margin:10px 0 12px;white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:14px;display:none"></div>
       <div class="modal-date" id="modalDate"></div>
-      <button id="modalTierlistBtn" class="modal-download" style="display:none;background:#1a1a2e;border-color:rgba(200,169,110,.4);color:#c8a96e" onclick="openTierlistView(null,this)">👁 Смотреть тирлист</button>
       <div id="modalReviewLinks" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
       <button class="modal-download" onclick="downloadReview()">💾 Скачать PNG</button>
     </div>
@@ -604,10 +603,12 @@ function renderReviews(grid, reviews, isOwn){
     const card = document.createElement('div'); card.className='review-card';
     const privLabel = {public:'🌍',friends:'👥',selected:'👤'}[rv.privacy||'public']||'🌍';
     card.innerHTML=`
-      <img class="review-thumb" src="${rv.imgData||rv.thumbUrl||''}" alt="" onerror="this.style.background='#222'" style="aspect-ratio:unset;object-fit:contain">
+      <img class="review-thumb" src="${rv.imgData||rv.thumbUrl||''}" alt="" onerror="this.style.display='none'" style="${rv.imgData||rv.thumbUrl?'aspect-ratio:unset;object-fit:contain':'display:none'}">
       <div class="review-meta">
         <div class="review-type">${rv.type||'Рецензия'}</div>
         <div class="review-title">${rv.title||'—'}</div>
+        ${rv.isTierlist||rv.tiersData?`<div style="font-size:9px;color:#8a8090;letter-spacing:.5px;margin-top:2px">${rv.type||''}</div>`:''}
+
         <div class="review-date" style="display:flex;align-items:center;justify-content:space-between">
           <span>${rv.date||''}</span>
           <span id="likeCount_${rv.id}" style="font-size:9px;color:var(--txt2)"></span>
@@ -643,15 +644,11 @@ window.openReview = function(rv){
   if(txt){ rtEl.textContent = txt; rtEl.style.display = 'block'; }
   else { rtEl.style.display = 'none'; }
   // Tierlist: show "Смотреть" button + review links in modal
-  const tlBtnEl = document.getElementById('modalTierlistBtn');
+
   const rlEl = document.getElementById('modalReviewLinks');
   if(rv.isTierlist || rv.tiersData){
     // Show "Смотреть тирлист" button
-    if(tlBtnEl){
-      const rvData = JSON.stringify({id:rv.id,title:rv.title,type:rv.type||'',date:rv.date||'',tiersData:rv.tiersData,poolData:rv.poolData,reviewLinks:rv.reviewLinks}).replace(/'/g,"&#39;");
-      tlBtnEl.dataset.rv = rvData;
-      tlBtnEl.style.display='flex';
-    }
+
     // Show review links as clickable buttons
     if(rlEl){
       const links = rv.reviewLinks || {};
@@ -663,7 +660,7 @@ window.openReview = function(rv){
       } else { rlEl.style.display='none'; }
     }
   } else {
-    if(tlBtnEl) tlBtnEl.style.display='none';
+
     if(rlEl) rlEl.style.display='none';
   }
   document.getElementById('modalOverlay').classList.add('show');
@@ -675,6 +672,7 @@ window.openReview = function(rv){
   img.style.transformOrigin = 'center center';
   function applyTransform(){ img.style.transform = 'scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
   wrap.onwheel = function(e){
+    if(!e.ctrlKey) return; // only zoom with Ctrl held
     e.preventDefault();
     zoom = Math.min(4, Math.max(1, zoom - e.deltaY * 0.003));
     if(zoom===1){ tx=0; ty=0; }

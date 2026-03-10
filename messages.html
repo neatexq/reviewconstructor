@@ -405,10 +405,11 @@ function openImgLightbox(src){
   img.style.transform = 'scale(1) translate(0,0)';
   function apply(){ img.style.transform='scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
   wrap.onwheel = function(e){
+    if(!e.ctrlKey) return;
     e.preventDefault();
     zoom = Math.min(5, Math.max(1, zoom - e.deltaY*0.003));
     if(zoom===1){tx=0;ty=0;}
-    wrap.style.cursor = zoom>1?'grab':'zoom-in';
+    wrap.style.cursor = zoom>1?'grab':'default';
     apply();
   };
   wrap.onmousedown = function(e){
