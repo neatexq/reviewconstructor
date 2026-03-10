@@ -9,6 +9,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="social-widget.js"></script>
 <script src="nav.js"></script>
+<script>
+// Apply site theme to constructor UI panel
+(function(){
+  if(localStorage.getItem('rc_theme')!=='light') return;
+  var s=document.documentElement.style;
+  s.setProperty('--bg','#f0ede6');
+  s.setProperty('--bg2','#ffffff');
+  s.setProperty('--bg3','#e8e4dc');
+  s.setProperty('--bor','#d0c8b8');
+  s.setProperty('--txt','#1a1610');
+  s.setProperty('--txt2','#8a8070');
+  // also set ui-theme vars
+  s.setProperty('--ui-bg','#f0ede6');
+  s.setProperty('--ui-bg2','#ffffff');
+  s.setProperty('--ui-bg3','#e8e4dc');
+  s.setProperty('--ui-bor','#d0c8b8');
+  s.setProperty('--ui-txt','#1a1610');
+  s.setProperty('--ui-txt2','#8a8070');
+  document.documentElement.classList.add('rc-light');
+})();
+</script>
 <link rel="stylesheet" href="ui-theme.css">
 <style>
 :root{--acc:#c8a96e;--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bor:#252530;--txt:#e8e0d0;--txt2:#5a5060}
@@ -18,7 +39,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;co
 /* ── CTRL PANEL ── */
 .ctrl{width:340px;flex-shrink:0;background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 60px);overflow-y:auto;position:sticky;top:60px;padding-bottom:20px}
 .ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
-.ctrl-head{font-family:'Bebas Neue',sans-serif!important;font-size:20px;letter-spacing:4px;color:#fff;border-bottom:2px solid var(--acc);padding-bottom:8px;margin-bottom:2px}
+.ctrl-head{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:3px;color:#fff;border-bottom:2px solid var(--acc);padding-bottom:8px;display:flex;align-items:center;gap:8px}
 .ctrl-head a{font-size:13px;text-decoration:none;color:var(--txt2);border:1px solid var(--bor);border-radius:5px;padding:2px 8px;transition:all .15s}
 .ctrl-head a:hover{border-color:var(--acc);color:var(--acc)}
 h4{font-size:9px;letter-spacing:2px;color:#8a8090;text-transform:uppercase;padding-bottom:4px;border-bottom:1px solid #2a2a38;margin-top:4px}

@@ -8,6 +8,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="social-widget.js"></script>
+<script>
+// Apply site theme to constructor UI panel
+(function(){
+  if(localStorage.getItem('rc_theme')!=='light') return;
+  var s=document.documentElement.style;
+  s.setProperty('--bg','#f0ede6');
+  s.setProperty('--bg2','#ffffff');
+  s.setProperty('--bg3','#e8e4dc');
+  s.setProperty('--bor','#d0c8b8');
+  s.setProperty('--txt','#1a1610');
+  s.setProperty('--txt2','#8a8070');
+  // also set ui-theme vars
+  s.setProperty('--ui-bg','#f0ede6');
+  s.setProperty('--ui-bg2','#ffffff');
+  s.setProperty('--ui-bg3','#e8e4dc');
+  s.setProperty('--ui-bor','#d0c8b8');
+  s.setProperty('--ui-txt','#1a1610');
+  s.setProperty('--ui-txt2','#8a8070');
+  document.documentElement.classList.add('rc-light');
+})();
+</script>
 <link rel="stylesheet" href="ui-theme.css">
 <style>
 :root{--acc:#00e5ff;--acc2:#7c3aed;--bg:#0e0e12;--bg2:#16161c;--bg3:#1e1e26;--bor:#2a2a36;--txt:#e0e0f0;--txt2:#6b6b8a}
@@ -16,7 +37,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);display:flex;gap:20
 
 .ctrl{width:420px;background:var(--bg2);border:1px solid var(--bor);padding:16px;border-radius:12px;display:flex;flex-direction:column;gap:8px;max-height:97vh;overflow-y:auto;align-self:flex-start;flex-shrink:0}
 .ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
-.ctrl-head{font-family:'Bebas Neue',sans-serif!important;font-size:20px;letter-spacing:4px;color:#fff;border-bottom:2px solid var(--acc);padding-bottom:8px;margin-bottom:2px}
+.ctrl-head{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:3px;color:#fff;border-bottom:3px solid var(--acc);padding-bottom:8px;margin-bottom:2px}
 h4{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;padding-bottom:3px;border-bottom:1px solid var(--bor);margin-top:4px;font-family:'Space Mono',monospace}
 input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:12px;font-family:'Space Mono',monospace;color:var(--txt);outline:none;transition:border-color .2s}
 input:focus,textarea:focus,select:focus{border-color:var(--acc)}
@@ -67,7 +88,7 @@ textarea{resize:vertical;min-height:75px}
 
 .btn{width:100%;padding:7px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3);color:var(--txt2);font-family:'Space Mono',monospace;letter-spacing:.3px;transition:all .2s;border:1px solid var(--bor)}
 .btn:hover{background:var(--bor);color:var(--txt)}
-.savebtn{background:var(--acc)!important;border-color:var(--acc)!important;color:#000!important;padding:12px;margin-top:4px;font-size:13px;letter-spacing:2px;font-family:'Space Mono',monospace!important}
+.savebtn{background:var(--acc)!important;border-color:var(--acc)!important;color:#000!important;padding:12px;margin-top:4px;font-size:13px;letter-spacing:2px;font-family:'Orbitron',sans-serif!important}
 .savebtn:hover{background:#00b8cc!important}
 .delbtn{background:var(--bg)!important;border-color:var(--acc)!important;color:var(--acc)!important}
 
