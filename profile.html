@@ -1107,6 +1107,49 @@ window.openLinkedReview = async function(reviewId, btn){
     </div>
   </div>`;
   modal.style.display = 'flex';
+  // Add Ctrl+scroll zoom to the image
+  requestAnimationFrame(()=>{
+    const mImg = modal.querySelector('img');
+    if(!mImg) return;
+    const mWrap = mImg.parentElement;
+    mWrap.style.overflow = 'hidden';
+    let mz=1, mtx=0, mty=0, mdr=false, msx=0, msy=0, mstx=0, msty=0;
+    function mApply(){ mImg.style.transform=`scale(${mz}) translate(${mtx}px,${mty}px)`; }
+    mImg.style.transformOrigin = 'center center';
+    mImg.style.transition = 'transform .1s';
+    mImg.title = 'Ctrl+колесо для зума';
+    mImg.onwheel = function(e){
+      if(!e.ctrlKey) return;
+      e.preventDefault(); e.stopPropagation();
+      mz = Math.min(4, Math.max(1, mz - e.deltaY*0.003));
+      if(mz===1){mtx=0;mty=0;}
+      mImg.style.cursor = mz>1 ? 'grab' : 'default';
+      mApply();
+    };
+    mImg.onmousedown = function(e){
+      if(mz<=1) return;
+      mdr=true; msx=e.clientX; msy=e.clientY; mstx=mtx; msty=mty;
+      mImg.style.cursor='grabbing'; e.preventDefault();
+    };
+    const onMove = e=>{ if(!mdr) return; mtx=mstx+(e.clientX-msx)/mz; mty=msty+(e.clientY-msy)/mz; mApply(); };
+    const onUp = ()=>{ if(mdr){mdr=false; mImg.style.cursor=mz>1?'grab':'default';} };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    // Cleanup when modal closes
+    const origClose = modal.onclick;
+    modal.onclick = function(e){
+      if(e.target===modal){
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        modal.style.display='none';
+      }
+    };
+    modal.querySelector('button').onclick = function(){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      modal.style.display='none';
+    };
+  });
 }
 
 function recompressImage(dataUrl, maxW, quality){
