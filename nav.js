@@ -113,6 +113,110 @@ const styleEl = document.createElement('style');
 styleEl.textContent = CSS;
 document.head.appendChild(styleEl);
 
+// ── THEME SYSTEM ──
+const LIGHT_CSS = `
+html.rc-light { color-scheme: light; }
+html.rc-light :root {
+  --bg: #f2f0eb !important;
+  --bg2: #ffffff !important;
+  --bg3: #e8e5de !important;
+  --bor: #d4cfc4 !important;
+  --txt: #1a1610 !important;
+  --txt2: #7a7060 !important;
+  --acc: #9b6e2a !important;
+  --acc2: #7a5520 !important;
+  --green: #16a34a !important;
+  --red: #dc2626 !important;
+}
+html.rc-light body { background: var(--bg) !important; color: var(--txt) !important; }
+html.rc-light #rcNav { background: rgba(242,240,235,.97) !important; border-bottom-color: #d4cfc4 !important; }
+html.rc-light #rcNav .rc-nav-link { color: #8a8070 !important; }
+html.rc-light #rcNav .rc-nav-link:hover,
+html.rc-light #rcNav .rc-nav-link.rc-active { color: #9b6e2a !important; background: rgba(155,110,42,.08) !important; }
+html.rc-light #rcNav .rc-nav-logo { color: #9b6e2a !important; }
+html.rc-light #rcNav .rc-nav-nick-btn { background: #9b6e2a !important; border-color: #9b6e2a !important; color: #fff !important; }
+html.rc-light #rcMsgToast { background: #fff !important; border-color: rgba(155,110,42,.3) !important; }
+html.rc-light .rc-theme-btn { background: #e8e5de !important; border-color: #c8c0b0 !important; color: #9b6e2a !important; }
+
+/* Cards, modals, overlays */
+html.rc-light .post { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .modal { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .modal-overlay { background: rgba(30,25,15,.6) !important; }
+html.rc-light .review-card { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .review-meta { background: #fff !important; }
+html.rc-light .review-title { color: #1a1610 !important; }
+html.rc-light .review-type { color: #9b6e2a !important; }
+html.rc-light .review-date { color: #8a8070 !important; }
+html.rc-light .card { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .card-title { color: #1a1610 !important; }
+html.rc-light .card-desc { color: #8a8070 !important; }
+
+/* Inputs */
+html.rc-light input, html.rc-light textarea, html.rc-light select {
+  background: #f8f6f0 !important; border-color: #c8c0b0 !important;
+  color: #1a1610 !important;
+}
+html.rc-light input::placeholder, html.rc-light textarea::placeholder { color: #a09080 !important; }
+
+/* Sidebar, profile */
+html.rc-light .sidebar { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .profile-card { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .section { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .contact { background: transparent !important; }
+html.rc-light .contact:hover { background: #f0ede6 !important; }
+html.rc-light .contact.active { background: #ede8de !important; }
+
+/* Auth box */
+html.rc-light .auth-box { background: #fff !important; border-color: #d4cfc4 !important; }
+
+/* Tier list */
+html.rc-light .tl-ctrl { background: #fff !important; border-color: #d4cfc4 !important; }
+html.rc-light .tier-editor-item { background: #f0ede6 !important; border-color: #d0c8b8 !important; }
+html.rc-light .tl-card { background: #f8f6f0 !important; }
+
+/* Feed */  
+html.rc-light .post-nick { color: #9b6e2a !important; }
+html.rc-light .post-type { color: #9b6e2a !important; }
+html.rc-light .post-title { color: #1a1610 !important; }
+html.rc-light .action-btn { color: #7a7060 !important; background: #f0ede6 !important; border-color: #d4cfc4 !important; }
+html.rc-light .filter-btn { background: #f0ede6 !important; border-color: #d4cfc4 !important; color: #7a7060 !important; }
+html.rc-light .filter-btn.active { background: #9b6e2a !important; color: #fff !important; border-color: #9b6e2a !important; }
+
+/* Toasts */
+html.rc-light .toast { background: #fff !important; border-color: #d4cfc4 !important; color: #1a1610 !important; }
+
+/* Scrollbar */
+html.rc-light ::-webkit-scrollbar-track { background: #e8e5de !important; }
+html.rc-light ::-webkit-scrollbar-thumb { background: #c8c0b0 !important; }
+`;
+const themeStyleEl = document.createElement('style');
+themeStyleEl.id = 'rc-theme-style';
+themeStyleEl.textContent = LIGHT_CSS;
+document.head.appendChild(themeStyleEl);
+
+function _applyTheme(theme) {
+  if(theme === 'light') {
+    document.documentElement.classList.add('rc-light');
+  } else {
+    document.documentElement.classList.remove('rc-light');
+  }
+  localStorage.setItem('rc_theme', theme);
+}
+
+function _toggleTheme() {
+  const cur = localStorage.getItem('rc_theme') || 'dark';
+  _applyTheme(cur === 'dark' ? 'light' : 'dark');
+  // Update button icon
+  const btn = document.getElementById('rcThemeBtn');
+  if(btn) btn.textContent = localStorage.getItem('rc_theme') === 'light' ? '🌙' : '☀️';
+}
+
+// Apply saved theme immediately
+(function(){
+  const saved = localStorage.getItem('rc_theme') || 'dark';
+  if(saved === 'light') document.documentElement.classList.add('rc-light');
+})();
+
 window.initNav = function(activePage) {
   const old = document.getElementById('rcNav');
   if(old) old.remove();
@@ -136,7 +240,11 @@ window.initNav = function(activePage) {
     html += '<a href="' + p.href + '" class="rc-nav-link' + active + '">' + p.label + '</a>';
   });
 
+  const currentTheme = localStorage.getItem('rc_theme') || 'dark';
+  const themeIcon = currentTheme === 'light' ? '🌙' : '☀️';
+
   html += '<div class="rc-nav-right">';
+  html += '<button id="rcThemeBtn" onclick="(function(){var c=localStorage.getItem(\'rc_theme\')||\'dark\';document.documentElement.classList.toggle(\'rc-light\',c===\'dark\');localStorage.setItem(\'rc_theme\',c===\'dark\'?\'light\':\'dark\');document.getElementById(\'rcThemeBtn\').textContent=localStorage.getItem(\'rc_theme\')==\'light\'?\'🌙\':\'☀️\'})()" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(200,169,110,.25);background:rgba(200,169,110,.06);color:#c8a96e;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0" class="rc-theme-btn" title="Сменить тему">' + themeIcon + '</button>';
   if(nick){
     html += '<a href="profile.html" class="rc-nav-nick-btn">@' + nick + '</a>';
   } else {
