@@ -65,7 +65,7 @@ textarea{resize:vertical;min-height:55px}
 .card-desc{font-size:11px;color:#888;margin-top:6px;font-style:italic;line-height:1.5}
 /* tier rows */
 .tl-row{display:flex;align-items:stretch;margin-bottom:3px;border-radius:6px;overflow:hidden;min-height:72px}
-.tl-label{width:72px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.tl-label{width:72px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:clamp(11px,3vw,26px);letter-spacing:1px;color:#fff;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,.5);text-align:center;word-break:break-word;white-space:normal;line-height:1.1;padding:4px 3px;overflow-wrap:break-word}
 .tl-items{flex:1;background:rgba(255,255,255,.04);display:flex;flex-wrap:wrap;gap:4px;padding:6px;align-content:flex-start;min-height:72px;transition:background .15s}
 .tl-items.drag-over{background:rgba(200,169,110,.12);outline:2px dashed rgba(200,169,110,.4)}
 /* pool */
@@ -214,7 +214,7 @@ function renderTierEditor() {
     row.innerHTML = `
       <span class="tier-drag-handle" title="Перетащить">⠿</span>
       <div class="tier-color-swatch" style="background:${tier.color}" onclick="openColorPicker(${idx}, this)" title="Цвет"></div>
-      <input class="tier-label-inp" value="${tier.label}" maxlength="6" oninput="tiers[${idx}].label=this.value;renderCard()" title="Название уровня">
+      <input class="tier-label-inp" value="${tier.label}" maxlength="12" oninput="tiers[${idx}].label=this.value;renderCard()" onfocus="this.select()" title="Название уровня">
       <button class="tier-del-btn" onclick="deleteTier(${idx})" title="Удалить">✕</button>`;
     // Drag to reorder
     row.addEventListener('dragstart', e => { e.dataTransfer.setData('tier-editor-idx', idx); row.style.opacity='.4'; });
@@ -285,19 +285,6 @@ function renderCard() {
   else { descEl.style.display='none'; }
 
   const container = document.getElementById('tierRows');
-  // Preserve items per tier id
-  const existingItems = {};
-  container.querySelectorAll('.tl-row').forEach(row => {
-    const tid = row.dataset.tier;
-    existingItems[tid] = Array.from(row.querySelector('.tl-items').children)
-      .filter(el => el.classList.contains('tl-item'))
-      .map(el => ({id:el.dataset.id, img:el.querySelector('img')?.src||'', label:el.dataset.label||''}));
-  });
-  // Sync back
-  tiers.forEach(tier => {
-    if(existingItems[tier.id]) tier.items = existingItems[tier.id];
-  });
-
   container.innerHTML = '';
   tiers.forEach(tier => {
     const row = document.createElement('div');
@@ -324,12 +311,7 @@ function renderCard() {
     container.appendChild(row);
   });
 
-  // Pool
   const pool = document.getElementById('pool');
-  const poolPrev = Array.from(pool.children)
-    .filter(el=>el.classList.contains('tl-item'))
-    .map(el=>({id:el.dataset.id,img:el.querySelector('img')?.src||'',label:el.dataset.label||''}));
-  if(poolPrev.length) poolItems = poolPrev;
   pool.innerHTML = '';
   poolItems.forEach(item => pool.appendChild(makeTlItem(item,'pool')));
   setupDropZone(pool,'pool');
@@ -347,26 +329,40 @@ function makeTlItem(item, tierId) {
   el.addEventListener('dragstart', e => {
     dragItem = {id:item.id, img:item.img, label:item.label||''};
     dragFrom = tierId;
-    setTimeout(()=>el.classList.add('dragging'),0);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.id);
+    setTimeout(()=>el.classList.add('dragging'),0);
   });
-  el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); renderCard(); });
+  el.addEventListener('dragend', ()=>{
+    el.classList.remove('dragging');
+    // Only re-render if drop didn't happen (item not moved)
+    // dragItem is cleared in drop handler, so if still set = no drop
+    if(dragItem){ dragItem=null; dragFrom=null; }
+  });
   return el;
 }
 
 function setupDropZone(el, tierId) {
-  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
-  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; el.classList.add('drag-over'); });
+  el.addEventListener('dragenter', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', e => {
+    if(!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+  });
   el.addEventListener('drop', e => {
-    e.preventDefault(); el.classList.remove('drag-over');
+    e.preventDefault(); e.stopPropagation();
+    el.classList.remove('drag-over');
     if(!dragItem) return;
-    // Remove from source
-    if(dragFrom === 'pool') poolItems = poolItems.filter(i=>i.id!==dragItem.id);
-    else { const src = tiers.find(t=>t.id===dragFrom); if(src) src.items=src.items.filter(i=>i.id!==dragItem.id); }
-    // Add to target
-    if(tierId === 'pool') poolItems.push(dragItem);
-    else { const tgt = tiers.find(t=>t.id===tierId); if(tgt) tgt.items.push(dragItem); }
+    const movingItem = {...dragItem};
+    const fromTier = dragFrom;
     dragItem = null; dragFrom = null;
+    // Skip same-zone drop
+    if(fromTier === tierId) return;
+    // Remove from source
+    if(fromTier === 'pool') poolItems = poolItems.filter(i=>i.id!==movingItem.id);
+    else { const src = tiers.find(t=>t.id===fromTier); if(src) src.items=src.items.filter(i=>i.id!==movingItem.id); }
+    // Add to target
+    if(tierId === 'pool') poolItems.push(movingItem);
+    else { const tgt = tiers.find(t=>t.id===tierId); if(tgt) tgt.items.push(movingItem); }
     renderCard();
   });
 }
