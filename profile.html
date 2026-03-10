@@ -99,6 +99,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .review-priv{position:absolute;top:8px;right:8px;font-size:10px;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 6px;color:rgba(255,255,255,.5)}
 .review-view-btn{position:absolute;bottom:6px;left:6px;padding:3px 8px;background:rgba(0,0,0,.75);border:1px solid rgba(200,169,110,.4);border-radius:5px;font-size:9px;color:#c8a96e;cursor:pointer;letter-spacing:.5px;backdrop-filter:blur(4px);transition:all .2s;z-index:2}
 .review-view-btn:hover{background:rgba(200,169,110,.15)}
+.review-type{padding-bottom:28px!important}
 .review-del{position:absolute;top:8px;left:8px;width:22px;height:22px;background:rgba(239,68,68,.85);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#fff}
 .review-card:hover .review-view-btn{position:absolute;bottom:6px;left:6px;padding:3px 8px;background:rgba(0,0,0,.75);border:1px solid rgba(200,169,110,.4);border-radius:5px;font-size:9px;color:#c8a96e;cursor:pointer;letter-spacing:.5px;backdrop-filter:blur(4px);transition:all .2s;z-index:2}
 .review-view-btn:hover{background:rgba(200,169,110,.15)}
@@ -615,7 +616,7 @@ function renderReviews(grid, reviews, isOwn){
         </div>
       </div>
       <div class="review-priv">${privLabel}</div>
-      ${rv.isTierlist||rv.tiersData?`<div class="review-view-btn" onclick="openTierlistView(event,this)" data-rv='${JSON.stringify({id:rv.id,title:rv.title,tiersData:rv.tiersData,poolData:rv.poolData,reviewLinks:rv.reviewLinks}).replace(/'/g,"&#39;")}'>👁 Смотреть</div>`:''}
+      ${rv.isTierlist||rv.tiersData?`<div class="review-view-btn" onclick="openTierlistView(event,this)" data-rv='${JSON.stringify({id:rv.id,title:rv.title,type:rv.type||'',date:rv.date||'',tiersData:rv.tiersData,poolData:rv.poolData,reviewLinks:rv.reviewLinks}).replace(/'/g,"&#39;")}'>👁 Смотреть</div>`:''}
       ${isOwn?`<div class="review-del" onclick="deleteReview(event,'${rv.id}')">✕</div><div class="review-edit" onclick="editReview(event,'${rv.id}',this)" data-type="${(rv.type||'').replace(/"/g,'')}">✏️</div>`:''}
     `;
     card.onclick = ()=>openReview(rv);
@@ -921,11 +922,16 @@ async function processPublishQueue(){
   for(const item of queue){
     try{
       const id='rv_'+item.queuedAt+'_'+Math.random().toString(36).slice(2,5);
-      let imgData = item.imgData || item.thumbDataUrl || item.fullDataUrl || '';
-      console.log('[queue] imgData length:', imgData.length);
-      // Дополнительное сжатие если > 100KB base64
-      if(imgData.length > 130000) imgData = await recompressImage(imgData, 380, 0.80);
-      console.log('[queue] final imgData length:', imgData.length);
+      // Use fullDataUrl for tierlists (better quality), thumb for regular reviews
+      let imgData = item.isTierlist
+        ? (item.fullDataUrl || item.thumbDataUrl || item.imgData || '')
+        : (item.imgData || item.thumbDataUrl || item.fullDataUrl || '');
+      if(item.isTierlist){
+        // Tierlist: keep good quality, just cap at 1200px
+        if(imgData.length > 600000) imgData = await recompressImage(imgData, 1200, 0.92);
+      } else {
+        if(imgData.length > 130000) imgData = await recompressImage(imgData, 380, 0.80);
+      }
       await set(ref(db,`reviews/${currentUser.uid}/${id}`),{
         id,
         type:item.type||'Рецензия',
@@ -953,24 +959,27 @@ async function processPublishQueue(){
 
 // ══ TIERLIST VIEWER ══
 const TIER_VIEWER_CSS = `
-  .tlv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;display:none;flex-direction:column;overflow-y:auto}
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+  .tlv-overlay{position:fixed;inset:0;background:#0a0a0f;z-index:500;display:none;flex-direction:column;overflow-y:auto;font-family:'Space Mono',monospace}
   .tlv-overlay.show{display:flex}
-  .tlv-topbar{position:sticky;top:0;background:rgba(10,10,15,.97);border-bottom:1px solid #252530;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:2;flex-shrink:0}
-  .tlv-back{padding:6px 14px;border:1px solid #333;border-radius:7px;background:transparent;color:#aaa;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s}
+  .tlv-topbar{position:sticky;top:0;background:#0d0d14;border-bottom:1px solid #252530;padding:14px 24px;display:flex;align-items:flex-start;gap:14px;z-index:2;flex-shrink:0}
+  .tlv-back{padding:8px 16px;border:1px solid #333;border-radius:7px;background:#18181f;color:#aaa;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0;white-space:nowrap;margin-top:2px}
   .tlv-back:hover{border-color:#c8a96e;color:#c8a96e}
-  .tlv-ttl{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff}
-  .tlv-content{padding:20px;max-width:900px;width:100%;margin:0 auto}
-  .tlv-row{display:flex;align-items:stretch;margin-bottom:4px;border-radius:7px;overflow:hidden;min-height:76px}
-  .tlv-label{width:76px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:clamp(12px,2.5vw,26px);color:#fff;flex-shrink:0;text-align:center;word-break:break-word;padding:4px;line-height:1.1}
-  .tlv-items{flex:1;background:rgba(255,255,255,.04);display:flex;flex-wrap:wrap;gap:5px;padding:8px;align-content:flex-start;min-height:76px}
-  .tlv-item{position:relative;width:64px;flex-shrink:0;cursor:default}
-  .tlv-item img{width:64px;height:88px;object-fit:cover;border-radius:5px;display:block;background:#1a1a24}
-  .tlv-item-lbl{font-size:7px;color:#bbb;text-align:center;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:64px}
-  .tlv-link-btn{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:rgba(200,169,110,.9);border:none;cursor:pointer;font-size:8px;display:flex;align-items:center;justify-content:center;color:#1a1005;font-weight:700;transition:transform .15s;z-index:1}
-  .tlv-link-btn:hover{transform:scale(1.2)}
-  .tlv-pool-title{font-size:9px;letter-spacing:2px;color:#5a5060;text-transform:uppercase;margin:14px 0 6px}
-  .tlv-pool{display:flex;flex-wrap:wrap;gap:5px;background:rgba(255,255,255,.02);border:1px solid #252530;border-radius:8px;padding:10px;min-height:60px}
-  .tlv-empty{color:#333;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:20px;text-align:center}
+  .tlv-topbar-info{}
+  .tlv-ttl{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:#fff;line-height:1}
+  .tlv-meta{font-size:10px;color:#5a5060;letter-spacing:1px;margin-top:4px}
+  .tlv-content{padding:20px 24px;max-width:1100px;width:100%;margin:0 auto}
+  .tlv-row{display:flex;align-items:stretch;margin-bottom:3px;border-radius:0;overflow:hidden;min-height:96px}
+  .tlv-label{width:90px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:clamp(14px,2.5vw,30px);color:#fff;flex-shrink:0;text-align:center;word-break:break-word;padding:6px 4px;line-height:1.1;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+  .tlv-items{flex:1;background:#111118;border-left:3px solid rgba(0,0,0,.3);display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;align-content:flex-start;min-height:96px}
+  .tlv-item{position:relative;width:68px;flex-shrink:0;cursor:default}
+  .tlv-item img{width:68px;height:94px;object-fit:cover;border-radius:5px;display:block;background:#1a1a24;border:1px solid #252530}
+  .tlv-item-lbl{font-size:8px;color:#999;text-align:center;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:68px;font-family:'Space Mono',monospace}
+  .tlv-link-btn{position:absolute;bottom:20px;right:2px;width:22px;height:22px;border-radius:50%;background:#c8a96e;border:2px solid #0a0a0f;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;color:#1a1005;font-weight:700;transition:transform .15s,box-shadow .15s;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .tlv-link-btn:hover{transform:scale(1.18);box-shadow:0 4px 14px rgba(200,169,110,.5)}
+  .tlv-pool-title{font-size:9px;letter-spacing:2px;color:#4a4055;text-transform:uppercase;margin:20px 0 8px;font-family:'Space Mono',monospace}
+  .tlv-pool{display:flex;flex-wrap:wrap;gap:6px;background:#0e0e15;border:1px solid #1c1c28;border-radius:8px;padding:12px;min-height:80px}
+  .tlv-empty{color:#2a2a38;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:14px;font-family:'Space Mono',monospace}
 `;
 let _tlvStyle = null;
 function _ensureTlvStyle(){
@@ -981,8 +990,16 @@ window.openTierlistView = function(e, btn){
   e && e.stopPropagation();
   _ensureTlvStyle();
   let rv;
-  try{ rv = JSON.parse(btn.dataset.rv.replace(/&#39;/g,"'")); }catch(ex){ return; }
-  if(!rv.tiersData){ return; }
+  try{ rv = JSON.parse(btn.dataset.rv.replace(/&#39;/g,"'")); }catch(ex){ console.error('TLV parse error',ex); return; }
+  if(!rv.tiersData){ 
+    toast('Данные тирлиста не сохранены — переопубликуй его','err');
+    return; 
+  }
+  // fill authorNick from profile if not in data
+  if(!rv.authorNick){
+    const sess = JSON.parse(localStorage.getItem('rc_session')||'null');
+    if(sess) rv.authorNick = sess.nick;
+  }
   let overlay = document.getElementById('tlvOverlay');
   if(!overlay){
     overlay = document.createElement('div'); overlay.id='tlvOverlay'; overlay.className='tlv-overlay';
@@ -1000,9 +1017,13 @@ function renderTlvHTML(rv){
   const tiers = rv.tiersData || [];
   const pool = rv.poolData || [];
   const links = rv.reviewLinks || {};
+  const meta = [rv.authorNick?'@'+rv.authorNick:'', rv.type||'', rv.date||''].filter(Boolean).join(' · ');
   let html = `<div class="tlv-topbar">
     <button class="tlv-back">← Назад</button>
-    <div class="tlv-ttl">${rv.title||'ТИРЛИСТ'}</div>
+    <div class="tlv-topbar-info">
+      <div class="tlv-ttl">${rv.title||'ТИРЛИСТ'}</div>
+      ${meta?`<div class="tlv-meta">${meta}</div>`:''}
+    </div>
   </div><div class="tlv-content">`;
   tiers.forEach(tier=>{
     html += `<div class="tlv-row"><div class="tlv-label" style="background:${tier.color}">${tier.label}</div><div class="tlv-items">`;
