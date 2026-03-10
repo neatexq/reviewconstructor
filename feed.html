@@ -51,8 +51,12 @@ a{text-decoration:none;color:inherit}
 .post-img-wrap{position:relative;cursor:pointer;overflow:hidden}
 .post-img{width:100%;display:block;max-height:600px;object-fit:contain;background:var(--bg3);transition:transform .3s}
 .post-img-wrap:hover .post-img{transform:scale(1.01)}
+.post-view-tl-btn{position:absolute;bottom:10px;right:10px;padding:6px 14px;background:rgba(10,10,15,.85);border:1px solid rgba(200,169,110,.5);border-radius:7px;color:#c8a96e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;backdrop-filter:blur(8px);transition:all .2s;z-index:2}
+.post-view-tl-btn:hover{background:rgba(200,169,110,.15)}
 .post-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,.6));opacity:0;transition:opacity .3s}
-.post-img-wrap:hover .post-img-overlay{opacity:1}
+.post-img-wrap:hover .post-view-tl-btn{position:absolute;bottom:10px;right:10px;padding:6px 14px;background:rgba(10,10,15,.85);border:1px solid rgba(200,169,110,.5);border-radius:7px;color:#c8a96e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;backdrop-filter:blur(8px);transition:all .2s;z-index:2}
+.post-view-tl-btn:hover{background:rgba(200,169,110,.15)}
+.post-img-overlay{opacity:1}
 
 /* ACTIONS */
 .post-actions{padding:10px 16px;display:flex;align-items:center;gap:4px;border-top:1px solid rgba(255,255,255,.04)}
@@ -130,6 +134,7 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
     <button class="filter-btn" onclick="setFilter('🎮 Игры')">🎮 Игры</button>
     <button class="filter-btn" onclick="setFilter('📚 Книги')">📚 Книги</button>
     <button class="filter-btn" onclick="setFilter('🎌 Аниме')">🎌 Аниме</button>
+    <button class="filter-btn" onclick="setFilter('🏆 Тирлист')">🏆 Тирлисты</button>
   </div>
   <div id="feedWrap"><div class="feed-loading">Загрузка...</div></div>
 </div>
@@ -258,6 +263,7 @@ function buildPost(post, idx){
     <div class="post-img-wrap" onclick="openLb('${post.id}')">
       <img class="post-img" id="img_${post.id}" src="${post.imgData||''}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="post-img-overlay"></div>
+      ${post.isTierlist||post.tiersData?`<button class="post-view-tl-btn" onclick="event.stopPropagation();openFeedTierlist(this)" data-rv='${JSON.stringify({id:post.id,title:post.title,tiersData:post.tiersData,poolData:post.poolData,reviewLinks:post.reviewLinks}).replace(/'/g,"&#39;").replace(/"/g,"&quot;")}'>👁 Смотреть</button>`:''}
     </div>
     <div class="post-actions">
       <button class="action-btn" id="like_${post.id}" onclick="toggleLike('${post.id}','${post.authorUid}')">
@@ -439,6 +445,109 @@ window.closeLb = function(){
   if(window._lbFeedUp) document.removeEventListener('mouseup',window._lbFeedUp);
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
+
+// ══ TIERLIST VIEWER (FEED) ══
+const FEED_TLV_CSS = `
+  .tlv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;display:none;flex-direction:column;overflow-y:auto}
+  .tlv-overlay.show{display:flex}
+  .tlv-topbar{position:sticky;top:0;background:rgba(10,10,15,.97);border-bottom:1px solid #252530;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:2;flex-shrink:0}
+  .tlv-back{padding:6px 14px;border:1px solid #333;border-radius:7px;background:transparent;color:#aaa;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s}
+  .tlv-back:hover{border-color:#c8a96e;color:#c8a96e}
+  .tlv-ttl{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff}
+  .tlv-content{padding:20px;max-width:900px;width:100%;margin:0 auto}
+  .tlv-row{display:flex;align-items:stretch;margin-bottom:4px;border-radius:7px;overflow:hidden;min-height:76px}
+  .tlv-label{width:76px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:clamp(12px,2.5vw,26px);color:#fff;flex-shrink:0;text-align:center;word-break:break-word;padding:4px;line-height:1.1}
+  .tlv-items{flex:1;background:rgba(255,255,255,.04);display:flex;flex-wrap:wrap;gap:5px;padding:8px;align-content:flex-start;min-height:76px}
+  .tlv-item{position:relative;width:64px;flex-shrink:0}
+  .tlv-item img{width:64px;height:88px;object-fit:cover;border-radius:5px;display:block;background:#1a1a24}
+  .tlv-item-lbl{font-size:7px;color:#bbb;text-align:center;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:64px}
+  .tlv-link-btn{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:rgba(200,169,110,.9);border:none;cursor:pointer;font-size:8px;display:flex;align-items:center;justify-content:center;color:#1a1005;font-weight:700;z-index:1;transition:transform .15s}
+  .tlv-link-btn:hover{transform:scale(1.2)}
+  .tlv-pool-title{font-size:9px;letter-spacing:2px;color:#5a5060;text-transform:uppercase;margin:14px 0 6px}
+  .tlv-pool{display:flex;flex-wrap:wrap;gap:5px;background:rgba(255,255,255,.02);border:1px solid #252530;border-radius:8px;padding:10px;min-height:60px}
+`;
+let _feedTlvStyle = null;
+function _ensureFeedTlvStyle(){
+  if(!_feedTlvStyle){ _feedTlvStyle=document.createElement('style'); _feedTlvStyle.textContent=FEED_TLV_CSS; document.head.appendChild(_feedTlvStyle); }
+}
+
+window.openFeedTierlist = function(btn){
+  _ensureFeedTlvStyle();
+  let rv;
+  try{ rv = JSON.parse(btn.dataset.rv.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); }catch(ex){ console.error(ex); return; }
+  if(!rv.tiersData){ alert('Данные тирлиста не сохранены'); return; }
+  let overlay = document.getElementById('feedTlvOverlay');
+  if(!overlay){
+    overlay = document.createElement('div'); overlay.id='feedTlvOverlay'; overlay.className='tlv-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = buildTlvHTML(rv);
+  overlay.classList.add('show');
+  overlay.scrollTop = 0;
+  overlay.querySelector('.tlv-back').onclick = () => overlay.classList.remove('show');
+  const escFn = e=>{ if(e.key==='Escape'){ overlay.classList.remove('show'); document.removeEventListener('keydown',escFn); }};
+  document.addEventListener('keydown', escFn);
+}
+
+function buildTlvHTML(rv){
+  const tiers = rv.tiersData||[];
+  const pool = rv.poolData||[];
+  const links = rv.reviewLinks||{};
+  let html = `<div class="tlv-topbar"><button class="tlv-back">← Назад</button><div class="tlv-ttl">${rv.title||'ТИРЛИСТ'}</div></div><div class="tlv-content">`;
+  tiers.forEach(tier=>{
+    html += `<div class="tlv-row"><div class="tlv-label" style="background:${tier.color}">${tier.label}</div><div class="tlv-items">`;
+    if(!tier.items||!tier.items.length) html += '<div style="color:#333;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:8px">—</div>';
+    else tier.items.forEach(item=>{
+      const lnk = links[item.id];
+      html += `<div class="tlv-item">${lnk?`<button class="tlv-link-btn" onclick="feedOpenReview('${lnk.reviewId}')" title="${lnk.reviewTitle||''}">🔗</button>`:''}
+        <img src="${item.img}" alt="" loading="lazy" onerror="this.style.opacity='.2'">
+        <div class="tlv-item-lbl">${item.label||''}</div></div>`;
+    });
+    html += '</div></div>';
+  });
+  if(pool.length){
+    html += '<div class="tlv-pool-title">НЕ ОЦЕНЕНО</div><div class="tlv-pool">';
+    pool.forEach(item=>{
+      const lnk = links[item.id];
+      html += `<div class="tlv-item">${lnk?`<button class="tlv-link-btn" onclick="feedOpenReview('${lnk.reviewId}')" title="${lnk.reviewTitle||''}">🔗</button>`:''}
+        <img src="${item.img}" alt="" loading="lazy" onerror="this.style.opacity='.2'">
+        <div class="tlv-item-lbl">${item.label||''}</div></div>`;
+    });
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+
+window.feedOpenReview = async function(reviewId){
+  // find in allPosts or load from firebase
+  const post = allPosts.find(p=>p.id===reviewId);
+  if(post){
+    const overlay = document.getElementById('feedTlvOverlay');
+    if(overlay) overlay.classList.remove('show');
+    openLb(post.id);
+    return;
+  }
+  // load from firebase
+  try{
+    const snap = await get(query(ref(db,'reviews'), orderByChild('id')));
+    // walk all users
+    const allRevs = snap.val()||{};
+    let found = null;
+    Object.values(allRevs).forEach(userRevs=>{ if(userRevs&&userRevs[reviewId]) found = userRevs[reviewId]; });
+    if(found){
+      // show in lightbox
+      document.getElementById('feedTlvOverlay')?.classList.remove('show');
+      // inject temp image
+      const tmpId = 'tmp_'+reviewId;
+      if(!document.getElementById('img_'+tmpId)){
+        const img = document.createElement('img'); img.id='img_'+tmpId; img.src=found.imgData||''; img.style.display='none';
+        document.body.appendChild(img);
+      }
+      openLb(tmpId);
+    }
+  }catch(e){ console.error(e); }
+}
+
 
 // ── HELPERS ──
 function getTimeAgo(ts){
