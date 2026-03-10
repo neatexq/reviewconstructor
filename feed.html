@@ -268,7 +268,7 @@ function buildPost(post, idx){
       <img class="post-img" id="img_${post.id}" src="${post.imgData||''}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="post-img-overlay"></div>
     </div>
-    ${(post.isTierlist||post.tiersData)&&post.reviewLinks&&Object.keys(post.reviewLinks).length?`<div class="post-rl-row" id="rl_${post.id}"></div>`:''}
+    ${post.isTierlist||post.tiersData?`<div class="post-rl-row" id="rl_${post.id}"></div>`:''}
     <div class="post-actions">
       <button class="action-btn" id="like_${post.id}" onclick="toggleLike('${post.id}','${post.authorUid}')">
         <span class="ico">🤍</span><span id="likeCount_${post.id}">0</span>
@@ -289,6 +289,35 @@ function buildPost(post, idx){
         <button class="comment-send" onclick="sendComment('${post.id}','${post.authorUid}')">➤</button>
       </div>
     </div>`;
+  // Populate tierlist meta + review link buttons
+  if(post.isTierlist || post.tiersData){
+    const metaEl = div.querySelector('#tlmeta_'+post.id);
+    if(metaEl){ 
+      const parts = [post.type||'', post.title||''].filter(Boolean);
+      metaEl.textContent = parts.join(' · ');
+    }
+    const rlEl = div.querySelector('#rl_'+post.id);
+    if(rlEl){
+      const links = post.reviewLinks || {};
+      const allItems = [
+        ...((post.tiersData||[]).flatMap(t=>t.items||[])),
+        ...(post.poolData||[])
+      ];
+      const linked = allItems.filter(it => links[it.id]);
+      if(linked.length){
+        linked.forEach(it=>{
+          const btn = document.createElement('button');
+          btn.className = 'post-rl-btn';
+          btn.textContent = '🔗 '+it.label;
+          const rvId = links[it.id].reviewId;
+          btn.onclick = (e)=>{ e.stopPropagation(); feedOpenReview(rvId); };
+          rlEl.appendChild(btn);
+        });
+      } else {
+        rlEl.style.display = 'none';
+      }
+    }
+  }
   return div;
 }
 
@@ -532,33 +561,36 @@ function buildTlvHTML(rv){
 }
 
 window.feedOpenReview = async function(reviewId){
-  // find in allPosts or load from firebase
-  const post = allPosts.find(p=>p.id===reviewId);
-  if(post){
-    const overlay = document.getElementById('feedTlvOverlay');
-    if(overlay) overlay.classList.remove('show');
-    openLb(post.id);
-    return;
+  // Show review in a mini modal ON TOP of the tierlist viewer (don't close it)
+  let found = allPosts.find(p=>p.id===reviewId);
+  if(!found){
+    try{
+      const snap = await get(ref(db,'reviews'));
+      const all = snap.val()||{};
+      Object.values(all).forEach(userRevs=>{ if(userRevs&&userRevs[reviewId]) found=userRevs[reviewId]; });
+    }catch(e){ console.error(e); return; }
   }
-  // load from firebase
-  try{
-    const snap = await get(query(ref(db,'reviews'), orderByChild('id')));
-    // walk all users
-    const allRevs = snap.val()||{};
-    let found = null;
-    Object.values(allRevs).forEach(userRevs=>{ if(userRevs&&userRevs[reviewId]) found = userRevs[reviewId]; });
-    if(found){
-      // show in lightbox
-      document.getElementById('feedTlvOverlay')?.classList.remove('show');
-      // inject temp image
-      const tmpId = 'tmp_'+reviewId;
-      if(!document.getElementById('img_'+tmpId)){
-        const img = document.createElement('img'); img.id='img_'+tmpId; img.src=found.imgData||''; img.style.display='none';
-        document.body.appendChild(img);
-      }
-      openLb(tmpId);
-    }
-  }catch(e){ console.error(e); }
+  if(!found) return;
+  // Create/reuse mini review modal
+  let modal = document.getElementById('feedRvModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'feedRvModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.onclick = function(e){ if(e.target===modal) modal.style.display='none'; };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<div style="background:#111118;border:1px solid #252530;border-radius:14px;max-width:440px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
+    <button onclick="document.getElementById('feedRvModal').style.display='none'" style="position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:#1a1a24;border:1px solid #333;color:#aaa;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:1">✕</button>
+    <img src="${found.imgData||''}" style="width:100%;display:block;border-radius:14px 14px 0 0;max-height:50vh;object-fit:contain;background:#0a0a0f" onerror="this.style.display='none'">
+    <div style="padding:16px 18px 20px">
+      <div style="font-size:9px;color:#c8a96e;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">${found.type||''}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#fff;margin-bottom:4px">${found.title||''}</div>
+      ${found.reviewText?`<div style="font-size:12px;color:#ccc;line-height:1.8;margin-top:10px;white-space:pre-wrap;background:#0e0e15;border-radius:8px;padding:12px">${found.reviewText}</div>`:''}
+      <div style="font-size:10px;color:#5a5060;margin-top:10px">${found.date||''}</div>
+    </div>
+  </div>`;
+  modal.style.display = 'flex';
 }
 
 

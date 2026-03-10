@@ -91,7 +91,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
 .review-card{background:var(--bg2);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .review-card:hover{border-color:var(--acc);transform:translateY(-2px)}
-.review-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:var(--bg3)}
+.review-thumb{width:100%;max-height:280px;min-height:100px;object-fit:cover;display:block;background:var(--bg3)}
 .review-meta{padding:10px 12px}
 .review-type{font-size:8px;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
 .review-title{font-size:12px;font-weight:700;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1073,23 +1073,38 @@ function renderTlvHTML(rv){
   return html;
 }
 
-window.openLinkedReview = function(reviewId, btn){
-  // Find the review in allReviews or open it inline
-  const overlay = document.getElementById('tlvOverlay');
-  if(overlay) overlay.classList.remove('show');
-  // Try to find review and open it
-  import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(({ref,get})=>{
-    // db is available in outer scope
-    get(ref(db,'reviews')).then(snap=>{
-      if(!snap.exists()) return;
+window.openLinkedReview = async function(reviewId, btn){
+  // Open review in a mini modal ON TOP of tierlist viewer (don't close it)
+  let found = null;
+  // Check loaded reviews first
+  try{
+    const snap = await get(ref(db,'reviews'));
+    if(snap.exists()){
       const all = snap.val();
-      let found = null;
-      Object.values(all).forEach(userRevs=>{
-        if(userRevs[reviewId]) found = userRevs[reviewId];
-      });
-      if(found){ openReview(found); }
-    });
-  }).catch(()=>{});
+      Object.values(all).forEach(userRevs=>{ if(userRevs&&userRevs[reviewId]) found=userRevs[reviewId]; });
+    }
+  }catch(e){ console.error(e); return; }
+  if(!found) return;
+  // Create/reuse mini review modal on top (z-index 600 > tlvOverlay 500)
+  let modal = document.getElementById('tlvRvModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'tlvRvModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Space Mono",monospace';
+    modal.onclick = function(e){ if(e.target===modal) modal.style.display='none'; };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<div style="background:#111118;border:1px solid #252530;border-radius:14px;max-width:440px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
+    <button onclick="document.getElementById('tlvRvModal').style.display='none'" style="position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:#1a1a24;border:1px solid #333;color:#aaa;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:1">✕</button>
+    <img src="${found.imgData||''}" style="width:100%;display:block;border-radius:14px 14px 0 0;max-height:50vh;object-fit:contain;background:#0a0a0f" onerror="this.style.display='none'">
+    <div style="padding:16px 18px 20px">
+      <div style="font-size:9px;color:#c8a96e;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">${found.type||''}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#fff;margin-bottom:4px">${found.title||''}</div>
+      ${found.reviewText?`<div style="font-size:12px;color:#ccc;line-height:1.8;margin-top:10px;white-space:pre-wrap;background:#0e0e15;border-radius:8px;padding:12px">${found.reviewText}</div>`:''}
+      <div style="font-size:10px;color:#5a5060;margin-top:10px">${found.date||''}</div>
+    </div>
+  </div>\`;
+  modal.style.display = 'flex';
 }
 
 }
