@@ -304,7 +304,6 @@ textarea{resize:vertical;min-height:75px}
     margin-bottom:calc((600px * var(--card-scale,0.55)) - 600px)
   }
 }
-
 </style>
 </head>
 <body>
@@ -603,7 +602,7 @@ textarea{resize:vertical;min-height:75px}
   <div class="lib-grid" id="libGrid"><div class="ladd" onclick="document.getElementById('libIn').click()">＋</div></div>
   <input type="file" id="libIn" accept="image/*" style="display:none" onchange="addLib(event)">
   <button class="btn savebtn" onclick="save()">💾 СКАЧАТЬ PNG</button>
-<div style="display:flex;gap:6px;margin-top:6px">
+  <div style="display:flex;gap:6px;margin-top:6px">
     <button class="btn" onclick="publishCard()" style="flex:1;padding:10px;background:#e63946;border-color:#e63946;color:#fff;font-size:12px;font-weight:700;letter-spacing:1px">📤 ОПУБЛИКОВАТЬ</button>
     <button class="btn" onclick="openPrivSettings()" title="Настройки видимости" style="width:38px;padding:0;font-size:16px;background:transparent;border-color:#333">⚙️</button>
   </div>
@@ -1464,35 +1463,75 @@ setOutroStyle('dark');
 addTlRow('');addTlRow('');addTlRow('');addTlRow('');addTlRow('');
 upd();
 
+// ── ПУБЛИКАЦИЯ ──
+let _privMode = 'public';
+let _privFriends = [];
+const _PRIV_LABELS = {public:'🌍 Публично', friends:'👥 Друзьям', selected:'👤 Избранным'};
 
-// ── РЕДАКТОР ОПУБЛИКОВАННОЙ ──
-(function(){
-  try{
-    const sig = JSON.parse(localStorage.getItem('rc_edit_signal')||'null');
-    if(sig && Date.now()-sig.openedAt < 10000){
-      localStorage.removeItem('rc_edit_signal');
-      // draft is already restored by autosave restore()
-      // show notification
-      setTimeout(()=>{
-        const t=document.createElement('div');
-        t.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#111118;border:1px solid #c8a96e;border-radius:10px;padding:12px 22px;font-size:11px;color:#c8a96e;z-index:9999;font-family:Space Mono,monospace;letter-spacing:1px;box-shadow:0 8px 30px rgba(0,0,0,.6);white-space:nowrap';
-        t.textContent='✏️ Редактирование рецензии — последний черновик загружен';
-        document.body.appendChild(t);
-        setTimeout(()=>t.remove(),4000);
-      },500);
+function publishCard(){
+  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!session){
+    if(confirm('Нужно войти в аккаунт. Перейти на страницу профиля?')) window.location.href='profile.html';
+    return;
+  }
+  const card=document.getElementById('card');if(!card)return;
+  const pubBtn=document.querySelector('[onclick="publishCard()"]');
+  if(pubBtn){pubBtn.textContent='⏳...';pubBtn.disabled=true;}
+  html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false}).then(cv=>{
+    // Сохраняем в 600px ширину JPEG 90% — отличное качество, ~80-100KB
+    const TARGET_W=600;
+    const sc=Math.min(1, TARGET_W/cv.width);
+    const out=document.createElement('canvas');
+    out.width=Math.round(cv.width*sc);
+    out.height=Math.round(cv.height*sc);
+    out.getContext('2d').drawImage(cv,0,0,out.width,out.height);
+    const imgData=out.toDataURL('image/jpeg',0.90);
+    const titleEl=document.getElementById('mTitle');
+    const title=titleEl?.value||'Рецензия';
+    const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+    queue.push({imgData,type:'🎵 Музыка',title,privacy:_privMode,privacyFriends:[..._privFriends],queuedAt:Date.now()});
+    try{localStorage.setItem('rc_publish_queue',JSON.stringify(queue));}
+    catch(e){
+      if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+      alert('Ошибка: рецензия слишком большая. Попробуй упростить карточку.');
+      return;
     }
-  }catch(e){}
-})();
+    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+    // Сразу переходим в профиль для публикации
+    window.location.href='profile.html';
+  }).catch(e=>{
+    if(pubBtn){pubBtn.textContent='📤 ОПУБЛИКОВАТЬ';pubBtn.disabled=false;}
+    alert('Ошибка рендера: '+e.message);
+  });
+}
 
+function openPrivSettings(){
+  const session=JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!session){ if(confirm('Нужно войти. Перейти на профиль?')) window.location.href='profile.html'; return; }
+  document.getElementById('swPrivOverlay').style.display='flex';
+}
+
+function swSetPriv(p){
+  _privMode=p;
+  const PRIV_LABELS={public:'🌍 Публично',friends:'👥 Друзьям',selected:'👤 Избранным'};
+  document.getElementById('privPill').textContent=PRIV_LABELS[p];
+  ['public','friends','selected'].forEach(k=>{
+    const el=document.getElementById('swpo_'+k);
+    if(!el)return;
+    el.style.background=k===p?'rgba(200,169,110,.08)':'';
+    el.style.border=k===p?'1px solid rgba(200,169,110,.25)':'1px solid transparent';
+  });
+  const fl=document.getElementById('swFriendsList');
+  if(p==='selected'){
+    fl.style.display='flex';
+    const fc=JSON.parse(localStorage.getItem('rc_friends_cache')||'[]');
+    fl.innerHTML=fc.length?fc.map(f=>`<label style="display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;padding:3px 0;cursor:pointer;font-family:'Space Mono',monospace"><input type="checkbox" style="accent-color:#c8a96e" onchange="swToggleFriend('${f.uid}',this.checked)"> @${f.nick}</label>`).join(''):'<div style="font-size:10px;color:#6b5f4a">Нет друзей</div>';
+  } else { fl.style.display='none'; }
+}
 function swToggleFriend(uid,checked){
   if(checked) _privFriends.push(uid);
   else _privFriends=_privFriends.filter(u=>u!==uid);
 }
-
-_tplToastEl.textContent=msg; _tplToastEl.style.transform='translateX(-50%) translateY(0)';
-  clearTimeout(_tplToastEl._t); _tplToastEl._t=setTimeout(function(){ _tplToastEl.style.transform='translateX(-50%) translateY(50px)'; },2600);
-}
-
 </script>
 
 <!-- PRIVACY MODAL -->
@@ -1510,20 +1549,6 @@ _tplToastEl.textContent=msg; _tplToastEl.style.transform='translateX(-50%) trans
     </div>
     <div id="swFriendsList" style="display:none;flex-direction:column;gap:4px;padding:8px 12px;max-height:150px;overflow-y:auto"></div>
     <button onclick="document.getElementById('swPrivOverlay').style.display='none'" style="width:100%;padding:9px;background:#c8a96e;border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px">Готово ✓</button>
-  </div>
-</div>
-    <div class="tpl-close" onclick="tplClose()">✕</div>
-    <div class="tpl-list" id="tplList"></div>
-  </div>
-</div>
-<div class="tpl-name-ov" id="tplNameOv">
-  <div class="tpl-name-box">
-    <div class="tpl-name-ttl">Название шаблона</div>
-    <input class="tpl-name-inp" id="tplNameInp" placeholder="Например: Тёмный стиль" maxlength="40">
-    <div class="tpl-name-btns">
-      <button class="tpl-name-cancel" onclick="tplCancelSave()">Отмена</button>
-      <button class="tpl-name-ok" onclick="tplConfirmSave()">Сохранить ✓</button>
-    </div>
   </div>
 </div>
 </body>
