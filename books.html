@@ -1,6 +1,63 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<script>
+(function(){
+  var t = localStorage.getItem('rc_theme');
+  // Set CSS variables for both dark and light
+  var s = document.documentElement.style;
+  if(t === 'light') {
+    s.setProperty('--bg','#f0ede6');
+    s.setProperty('--bg2','#ffffff');
+    s.setProperty('--bg3','#e8e4dc');
+    s.setProperty('--bor','#d0c8b8');
+    s.setProperty('--txt','#1a1610');
+    s.setProperty('--txt2','#8a8070');
+    s.setProperty('--accent','#9b6e2a');
+    s.setProperty('--ui-bg','#f0ede6');
+    s.setProperty('--ui-bg2','#ffffff');
+    s.setProperty('--ui-bg3','#e8e4dc');
+    s.setProperty('--ui-bor','#d0c8b8');
+    s.setProperty('--ui-txt','#1a1610');
+    s.setProperty('--ui-txt2','#8a8070');
+    document.documentElement.classList.add('rc-light');
+    // Inject override styles directly so they work even before CSS loads
+    var st = document.createElement('style');
+    st.textContent = [
+      'body{background:#f0ede6!important;color:#1a1610!important}',
+      '.ctrl,.controls{background:#ffffff!important;border-color:#d0c8b8!important;box-shadow:0 4px 20px rgba(0,0,0,.08)!important}',
+      '.ctrl-head,.ctrl-title{color:#1a1610!important}',
+      'h4{color:#a09080!important;border-bottom-color:#e0d8cc!important}',
+      '.back-btn{color:#8a8070!important;border-color:#d0c8b8!important;background:#f5f2eb!important}',
+      '.tab,.mode-tab{background:#f5f2eb!important;border-color:#d0c8b8!important;color:#7a7060!important}',
+      '.tab.active,.mode-tab.active{background:var(--acc,#9b6e2a)!important;border-color:var(--acc,#9b6e2a)!important;color:#fff!important}',
+      '.sb,.style-btn{background:#f5f2eb!important;border-color:#d0c8b8!important;color:#7a7060!important}',
+      '.sb.active,.style-btn.active{border-color:#9b6e2a!important;color:#9b6e2a!important;background:rgba(155,110,42,.08)!important}',
+      '.tblock,.toggle-block{background:#f5f2eb!important;border-color:#ddd8ce!important}',
+      '.tg label{color:#7a7060!important}',
+      '.srow{background:#f5f2eb!important;border-color:#ddd8ce!important}',
+      '.srow label{color:#a09080!important}',
+      '.stog{background:#fff!important;border-color:#d0c8b8!important;color:#7a7060!important}',
+      '.stog.on{background:var(--acc,#9b6e2a)!important;border-color:var(--acc,#9b6e2a)!important;color:#fff!important}',
+      '.lib-grid{background:#f5f2eb!important;border-color:#ddd8ce!important}',
+      '.ladd{border-color:#d0c8b8!important;color:#b0a898!important}',
+      '.ubtn,.use-btn{background:#f5f2eb!important;border-color:#d0c8b8!important;color:#7a7060!important}',
+      '.ubtn.active,.use-btn.active{background:var(--acc,#9b6e2a)!important;border-color:var(--acc,#9b6e2a)!important;color:#fff!important}',
+      '.rrow label{color:#a09080!important}',
+      '.rval{color:#1a1610!important}',
+      'input[type=text],input[type=number],input[type=date],textarea,select{background:#f8f5ee!important;border-color:#c8c0b0!important;color:#1a1610!important}',
+      'select option{background:#fff!important;color:#1a1610!important}',
+      '.btn:not(.savebtn):not(.delbtn){background:#f0ede6!important;border-color:#d0c8b8!important;color:#7a7060!important}',
+      '.ri{background:#fff!important;border-bottom-color:#e8e4dc!important;color:#5a4a30!important}',
+      '.ri:hover{background:#f5f2eb!important}',
+      '.ri b{color:#1a1610!important}',
+      '.ri span{color:#a09080!important}',
+      '#trRes,#alRes,#resultsList,#seriesResultsList{background:#fff!important;border-color:#d0c8b8!important}'
+    ].join('\n');
+    document.head.appendChild(st);
+  }
+})();
+</script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBhMGEwZiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMTYsNCAyOCwxNiAxNiwyOCA0LDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOGE5NmUiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIxNiw5IDIzLDE2IDE2LDIzIDksMTYiIGZpbGw9IiNjOGE5NmUiIG9wYWNpdHk9IjAuNyIvPgogIDxwb2x5Z29uIHBvaW50cz0iMTYsMTMgMTksMTYgMTYsMTkgMTMsMTYiIGZpbGw9IiNjOGE5NmUiLz4KPC9zdmc+">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -8,27 +65,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="social-widget.js"></script>
-<script>
-// Apply site theme to constructor UI panel
-(function(){
-  if(localStorage.getItem('rc_theme')!=='light') return;
-  var s=document.documentElement.style;
-  s.setProperty('--bg','#f0ede6');
-  s.setProperty('--bg2','#ffffff');
-  s.setProperty('--bg3','#e8e4dc');
-  s.setProperty('--bor','#d0c8b8');
-  s.setProperty('--txt','#1a1610');
-  s.setProperty('--txt2','#8a8070');
-  // also set ui-theme vars
-  s.setProperty('--ui-bg','#f0ede6');
-  s.setProperty('--ui-bg2','#ffffff');
-  s.setProperty('--ui-bg3','#e8e4dc');
-  s.setProperty('--ui-bor','#d0c8b8');
-  s.setProperty('--ui-txt','#1a1610');
-  s.setProperty('--ui-txt2','#8a8070');
-  document.documentElement.classList.add('rc-light');
-})();
-</script>
+
 <link rel="stylesheet" href="ui-theme.css">
 <style>
 :root{--acc:#c8a96e;--acc2:#7c5c2e;--bg:#0f0d0b;--bg2:#171410;--bg3:#1e1a15;--bor:#2e2820;--txt:#e8e0d0;--txt2:#6b5f4a}
