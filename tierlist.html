@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBhMGEwZiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMTYsNCAyOCwxNiAxNiwyOCA0LDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOGE5NmUiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIxNiw5IDIzLDE2IDE2LDIzIDksMTYiIGZpbGw9IiNjOGE5NmUiIG9wYWNpdHk9IjAuNyIvPgogIDxwb2x5Z29uIHBvaW50cz0iMTYsMTMgMTksMTYgMTYsMTkgMTMsMTYiIGZpbGw9IiNjOGE5NmUiLz4KPC9zdmc+">
+  <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Тир-лист конструктор</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -633,7 +634,18 @@ async function renderLinkMgr(allItems, uid){
       if(rv) window._reviewLinks[item.id]={reviewId:rv.id,reviewTitle:rv.title||'Рецензия'};
       else delete window._reviewLinks[item.id];
       renderLinksPanel();
+      // update eye btn visibility
+      const eyeBtn = row.querySelector('.tl-eye-btn');
+      if(eyeBtn) eyeBtn.style.display = rv ? 'flex' : 'none';
     };
+    // Add eye button (initially hidden if no link)
+    const eyeBtn = document.createElement('button');
+    eyeBtn.className = 'tl-eye-btn';
+    eyeBtn.title = 'Посмотреть рецензию';
+    eyeBtn.textContent = '👁';
+    eyeBtn.style.cssText = 'width:26px;height:26px;border-radius:50%;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:#c8a96e;cursor:pointer;font-size:12px;display:'+(linked?'flex':'none')+';align-items:center;justify-content:center;flex-shrink:0;transition:all .2s';
+    eyeBtn.onclick = () => { const lnk = window._reviewLinks[item.id]; if(lnk) previewLinkedReview(lnk.reviewId); };
+    row.appendChild(eyeBtn);
     box.appendChild(row);
   });
 }
@@ -641,7 +653,51 @@ function renderLinksPanel(){
   const el = document.getElementById('linksList');
   const keys = Object.keys(window._reviewLinks||{});
   if(!keys.length){ el.textContent='Нет ссылок'; return; }
-  el.innerHTML = keys.map(k=>`<div>🔗 ${(window._reviewLinks[k].reviewTitle||'').slice(0,22)}</div>`).join('');
+  el.innerHTML = keys.map(k=>{
+    const link = window._reviewLinks[k];
+    return `<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
+      <span style="color:#c8a96e">🔗</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(link.reviewTitle||'').slice(0,22)}</span>
+      <button onclick="previewLinkedReview('${link.reviewId}')" style="width:22px;height:22px;border-radius:50%;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:#c8a96e;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s" title="Посмотреть рецензию">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ══ PREVIEW LINKED REVIEW ══
+async function previewLinkedReview(reviewId){
+  const sess = JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!sess) return;
+  try{
+    const {getDatabase,ref,get} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+    const {initializeApp,getApps} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+    const cfg={apiKey:"AIzaSyANeIRqb_oUJSUq2PsU1xGzOJKV29QOY74",databaseURL:"https://reviewconstructor-8d391-default-rtdb.europe-west1.firebasedatabase.app",projectId:"reviewconstructor-8d391",appId:"1:722321589337:web:81098aec4a3d9e9db21d48"};
+    const app2 = getApps().length ? getApps()[0] : initializeApp(cfg);
+    const db2 = getDatabase(app2);
+    const snap = await get(ref(db2,'reviews'));
+    if(!snap.exists()) return;
+    let found = null;
+    Object.values(snap.val()).forEach(userRevs=>{ if(userRevs&&userRevs[reviewId]) found=userRevs[reviewId]; });
+    if(!found) return;
+    let modal = document.getElementById('tlPreviewModal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'tlPreviewModal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Space Mono",monospace';
+      modal.onclick = e=>{ if(e.target===modal) modal.style.display='none'; };
+      modal.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `<div style="background:#111118;border:1px solid #252530;border-radius:14px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
+      <button onclick="document.getElementById('tlPreviewModal').style.display='none'" style="position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:#1a1a24;border:1px solid #333;color:#aaa;cursor:pointer;font-size:12px;z-index:1">✕</button>
+      <img src="${found.imgData||''}" style="width:100%;display:block;border-radius:14px 14px 0 0;max-height:45vh;object-fit:contain;background:#0a0a0f" onerror="this.style.display='none'">
+      <div style="padding:14px 16px 18px">
+        <div style="font-size:9px;color:#c8a96e;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px">${found.type||''}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff">${found.title||''}</div>
+        ${found.reviewText?`<div style="font-size:11px;color:#bbb;line-height:1.8;margin-top:8px;white-space:pre-wrap;background:#0e0e15;border-radius:6px;padding:10px">${found.reviewText}</div>`:''}
+        <div style="font-size:10px;color:#5a5060;margin-top:8px">${found.date||''}</div>
+      </div></div>`;
+    modal.style.display = 'flex';
+  }catch(e){ console.error(e); }
 }
 
 // ══ TOAST ══
