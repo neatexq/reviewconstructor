@@ -88,7 +88,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .main-tab.active{color:var(--acc);border-bottom-color:var(--acc)}
 
 /* REVIEWS GRID */
-.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
 .review-card{background:var(--bg2);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
 .review-card:hover{border-color:var(--acc);transform:translateY(-2px)}
 .review-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:var(--bg3)}
@@ -119,6 +119,8 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);mi
 .modal-type{font-size:9px;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:4px}
 .modal-date{font-size:10px;color:var(--txt2);margin-bottom:16px}
+.modal-rv-link-btn{padding:5px 12px;border:1px solid rgba(200,169,110,.35);border-radius:20px;background:rgba(200,169,110,.06);color:#c8a96e;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s}
+.modal-rv-link-btn:hover{background:rgba(200,169,110,.15);border-color:#c8a96e}
 .modal-download{width:100%;padding:10px;background:var(--acc);border:none;border-radius:8px;color:#1a1005;font-size:12px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px}
 
 /* AUTH MODAL */
@@ -315,6 +317,8 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
       <div id="modalSubtitle" style="font-size:13px;color:var(--txt2);margin-bottom:10px;display:none"></div>
       <div id="modalReviewText" style="font-size:13px;color:#ccc;line-height:1.8;margin:10px 0 12px;white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:14px;display:none"></div>
       <div class="modal-date" id="modalDate"></div>
+      <button id="modalTierlistBtn" class="modal-download" style="display:none;background:#1a1a2e;border-color:rgba(200,169,110,.4);color:#c8a96e" onclick="openTierlistView(null,this)">👁 Смотреть тирлист</button>
+      <div id="modalReviewLinks" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
       <button class="modal-download" onclick="downloadReview()">💾 Скачать PNG</button>
     </div>
   </div>
@@ -558,31 +562,25 @@ async function loadStats(){
   grid.innerHTML='<div style="grid-column:1/-1;padding:20px;font-size:10px;color:var(--txt2)">Загрузка...</div>';
   const snap=await get(ref(db,`reviews/${currentUser.uid}`));
   if(!snap.exists()){grid.innerHTML='<div class="reviews-empty"><span>📊</span>Нет данных для статистики</div>';return;}
-  const reviews=Object.values(snap.val());
+  const allItems=Object.values(snap.val());
+  const tierlists=allItems.filter(rv=>rv.isTierlist||rv.tiersData);
+  const reviews=allItems.filter(rv=>!rv.isTierlist&&!rv.tiersData);
   const byType={};
   reviews.forEach(rv=>{ byType[rv.type]=(byType[rv.type]||0)+1; });
   const sorted=Object.entries(byType).sort((a,b)=>b[1]-a[1]);
   const total=reviews.length;
-  const oldest=reviews.reduce((a,b)=>(a.createdAt||Infinity)<(b.createdAt||Infinity)?a:b,reviews[0]);
+  const oldest=reviews.length?reviews.reduce((a,b)=>(a.createdAt||Infinity)<(b.createdAt||Infinity)?a:b,reviews[0]):null;
   const months=Math.max(1,Math.ceil((Date.now()-(oldest?.createdAt||Date.now()))/(1000*60*60*24*30)));
-  const perMonth=(total/months).toFixed(1);
-  grid.innerHTML=`
-    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
-      <div style="font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Всего</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${total}</div>
-      <div style="font-size:9px;color:var(--txt2);margin-top:2px">рецензий</div>
-    </div>
-    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
-      <div style="font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">В месяц</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${perMonth}</div>
-      <div style="font-size:9px;color:var(--txt2);margin-top:2px">в среднем</div>
-    </div>
-    ${sorted.map(([type,count])=>`
-    <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:12px;padding:18px">
-      <div style="font-size:9px;color:var(--txt2);letter-spacing:1px;margin-bottom:8px">${type}</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${count}</div>
-      <div style="font-size:9px;color:var(--txt2);margin-top:2px">${Math.round(count/total*100)}% от всех</div>
-    </div>`).join('')}`;
+  const perMonth=total>0?(total/months).toFixed(1):'0';
+  const sbox=(label,val,sub,hi)=>`<div style="background:var(--bg2);border:1px solid ${hi?'rgba(200,169,110,.3)':'var(--bor)'};border-radius:12px;padding:18px">
+    <div style="font-size:9px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">${label}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--acc);line-height:1">${val}</div>
+    <div style="font-size:9px;color:var(--txt2);margin-top:2px">${sub}</div></div>`;
+  grid.innerHTML=
+    sbox('Рецензии',total,'всего написано',true)+
+    sbox('Тирлисты',tierlists.length,'создано',true)+
+    sbox('В месяц',perMonth,'в среднем',false)+
+    sorted.map(([type,count])=>sbox(type,count,Math.round(count/total*100)+'% от рецензий',false)).join('');
 }
 
 window.loadMyReviews = async function(){
@@ -616,7 +614,6 @@ function renderReviews(grid, reviews, isOwn){
         </div>
       </div>
       <div class="review-priv">${privLabel}</div>
-      ${rv.isTierlist||rv.tiersData?`<div class="review-view-btn" onclick="openTierlistView(event,this)" data-rv='${JSON.stringify({id:rv.id,title:rv.title,type:rv.type||'',date:rv.date||'',tiersData:rv.tiersData,poolData:rv.poolData,reviewLinks:rv.reviewLinks}).replace(/'/g,"&#39;")}'>👁 Смотреть</div>`:''}
       ${isOwn?`<div class="review-del" onclick="deleteReview(event,'${rv.id}')">✕</div><div class="review-edit" onclick="editReview(event,'${rv.id}',this)" data-type="${(rv.type||'').replace(/"/g,'')}">✏️</div>`:''}
     `;
     card.onclick = ()=>openReview(rv);
@@ -645,6 +642,30 @@ window.openReview = function(rv){
   const txt = rv.reviewText || rv.text || rv.opinion || '';
   if(txt){ rtEl.textContent = txt; rtEl.style.display = 'block'; }
   else { rtEl.style.display = 'none'; }
+  // Tierlist: show "Смотреть" button + review links in modal
+  const tlBtnEl = document.getElementById('modalTierlistBtn');
+  const rlEl = document.getElementById('modalReviewLinks');
+  if(rv.isTierlist || rv.tiersData){
+    // Show "Смотреть тирлист" button
+    if(tlBtnEl){
+      const rvData = JSON.stringify({id:rv.id,title:rv.title,type:rv.type||'',date:rv.date||'',tiersData:rv.tiersData,poolData:rv.poolData,reviewLinks:rv.reviewLinks}).replace(/'/g,"&#39;");
+      tlBtnEl.dataset.rv = rvData;
+      tlBtnEl.style.display='flex';
+    }
+    // Show review links as clickable buttons
+    if(rlEl){
+      const links = rv.reviewLinks || {};
+      const allItems = [...(rv.tiersData||[]).flatMap(t=>t.items||[]), ...(rv.poolData||[])];
+      const linkedItems = allItems.filter(it=>links[it.id]);
+      if(linkedItems.length){
+        rlEl.innerHTML = linkedItems.map(it=>`<button class="modal-rv-link-btn" onclick="openLinkedReview('${links[it.id].reviewId}',null)">🔗 ${it.label||'Рецензия'}</button>`).join('');
+        rlEl.style.display='flex';
+      } else { rlEl.style.display='none'; }
+    }
+  } else {
+    if(tlBtnEl) tlBtnEl.style.display='none';
+    if(rlEl) rlEl.style.display='none';
+  }
   document.getElementById('modalOverlay').classList.add('show');
   // Zoom + drag
   const img = document.getElementById('modalImg');

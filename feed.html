@@ -263,7 +263,7 @@ function buildPost(post, idx){
     <div class="post-img-wrap" onclick="openLb('${post.id}')">
       <img class="post-img" id="img_${post.id}" src="${post.imgData||''}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="post-img-overlay"></div>
-      ${post.isTierlist||post.tiersData?`<button class="post-view-tl-btn" onclick="event.stopPropagation();openFeedTierlist(this)" data-rv='${JSON.stringify({id:post.id,title:post.title,tiersData:post.tiersData,poolData:post.poolData,reviewLinks:post.reviewLinks}).replace(/'/g,"&#39;").replace(/"/g,"&quot;")}'>👁 Смотреть</button>`:''}
+      ${post.isTierlist||post.tiersData?`<button class="post-view-tl-btn" onclick="event.stopPropagation();openFeedTierlist(this)" data-rv='${JSON.stringify({id:post.id,title:post.title,type:post.type||'',date:post.date||'',authorNick:post.authorNick||'',tiersData:post.tiersData,poolData:post.poolData,reviewLinks:post.reviewLinks}).replace(/'/g,"&#39;").replace(/"/g,"&quot;")}'>👁 Смотреть</button>`:''}
     </div>
     <div class="post-actions">
       <button class="action-btn" id="like_${post.id}" onclick="toggleLike('${post.id}','${post.authorUid}')">
@@ -448,7 +448,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
 
 // ══ TIERLIST VIEWER (FEED) ══
 const FEED_TLV_CSS = `
-  .tlv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;display:none;flex-direction:column;overflow-y:auto}
+  .tlv-overlay{position:fixed;inset:0;background:#0a0a0f;z-index:500;display:none;flex-direction:column;overflow-y:auto;font-family:"Space Mono",monospace}
   .tlv-overlay.show{display:flex}
   .tlv-topbar{position:sticky;top:0;background:rgba(10,10,15,.97);border-bottom:1px solid #252530;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:2;flex-shrink:0}
   .tlv-back{padding:6px 14px;border:1px solid #333;border-radius:7px;background:transparent;color:#aaa;font-size:10px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s}
@@ -475,7 +475,7 @@ window.openFeedTierlist = function(btn){
   _ensureFeedTlvStyle();
   let rv;
   try{ rv = JSON.parse(btn.dataset.rv.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); }catch(ex){ console.error(ex); return; }
-  if(!rv.tiersData){ alert('Данные тирлиста не сохранены'); return; }
+  if(!rv.tiersData){ alert('Данные тирлиста не сохранены — переопубликуй тирлист'); return; }
   let overlay = document.getElementById('feedTlvOverlay');
   if(!overlay){
     overlay = document.createElement('div'); overlay.id='feedTlvOverlay'; overlay.className='tlv-overlay';
@@ -493,7 +493,14 @@ function buildTlvHTML(rv){
   const tiers = rv.tiersData||[];
   const pool = rv.poolData||[];
   const links = rv.reviewLinks||{};
-  let html = `<div class="tlv-topbar"><button class="tlv-back">← Назад</button><div class="tlv-ttl">${rv.title||'ТИРЛИСТ'}</div></div><div class="tlv-content">`;
+  const meta = [rv.authorNick?'@'+rv.authorNick:'', rv.type||'', rv.date||''].filter(Boolean).join(' · ');
+  let html = `<div class="tlv-topbar" style="display:flex;align-items:flex-start;gap:14px;padding:14px 24px">
+    <button class="tlv-back" style="flex-shrink:0;margin-top:2px">← Назад</button>
+    <div>
+      <div class="tlv-ttl">${rv.title||'ТИРЛИСТ'}</div>
+      ${meta?`<div style="font-size:10px;color:#5a5060;letter-spacing:1px;margin-top:3px">${meta}</div>`:''}
+    </div>
+  </div><div class="tlv-content">`;
   tiers.forEach(tier=>{
     html += `<div class="tlv-row"><div class="tlv-label" style="background:${tier.color}">${tier.label}</div><div class="tlv-items">`;
     if(!tier.items||!tier.items.length) html += '<div style="color:#333;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:8px">—</div>';
