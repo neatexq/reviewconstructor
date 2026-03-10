@@ -238,6 +238,68 @@ html.rc-light #rcMsgToast .rc-mt-nick { color: #9b6e2a !important; }
 html.rc-light #rcMsgToast .rc-mt-text { color: #4a4030 !important; }
 html.rc-light ::-webkit-scrollbar-track { background: #e8e4dc !important; }
 html.rc-light ::-webkit-scrollbar-thumb { background: #c8c0b0 !important; }
+
+/* ── Конструкторы: UI-панель ── */
+html.rc-light body { background: #f0ede6 !important; }
+html.rc-light .ctrl, html.rc-light .controls {
+  background: #ffffff !important;
+  border-color: #d0c8b8 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08) !important;
+}
+html.rc-light .ctrl-head, html.rc-light .ctrl-title {
+  color: #1a1610 !important;
+  border-bottom-color: var(--acc, #9b6e2a) !important;
+}
+html.rc-light h4 { color: #a09080 !important; border-bottom-color: #e0d8cc !important; }
+html.rc-light .back-btn { color: #8a8070 !important; border-color: #d0c8b8 !important; background: #f5f2eb !important; }
+html.rc-light .back-btn:hover { border-color: #9b6e2a !important; color: #9b6e2a !important; }
+html.rc-light .tab, html.rc-light .mode-tab {
+  background: #f5f2eb !important; border-color: #d0c8b8 !important; color: #7a7060 !important;
+}
+html.rc-light .tab.active, html.rc-light .mode-tab.active {
+  background: var(--acc, #9b6e2a) !important; border-color: var(--acc, #9b6e2a) !important; color: #fff !important;
+}
+html.rc-light .sb, html.rc-light .style-btn {
+  background: #f5f2eb !important; border-color: #d0c8b8 !important; color: #7a7060 !important;
+}
+html.rc-light .sb.active, html.rc-light .style-btn.active {
+  border-color: #9b6e2a !important; color: #9b6e2a !important; background: rgba(155,110,42,.08) !important;
+}
+html.rc-light .tblock, html.rc-light .toggle-block {
+  background: #f5f2eb !important; border-color: #ddd8ce !important;
+}
+html.rc-light .tg label { color: #7a7060 !important; }
+html.rc-light .tg label:hover { background: rgba(0,0,0,.04) !important; }
+html.rc-light .srow { background: #f5f2eb !important; border-color: #ddd8ce !important; }
+html.rc-light .srow label { color: #a09080 !important; }
+html.rc-light .stog { background: #ffffff !important; border-color: #d0c8b8 !important; color: #7a7060 !important; }
+html.rc-light .stog.on { background: var(--acc, #9b6e2a) !important; border-color: var(--acc, #9b6e2a) !important; color: #fff !important; }
+html.rc-light .lib-grid { background: #f5f2eb !important; border-color: #ddd8ce !important; }
+html.rc-light .ladd { border-color: #d0c8b8 !important; color: #b0a898 !important; }
+html.rc-light .ubtn, html.rc-light .use-btn {
+  background: #f5f2eb !important; border-color: #d0c8b8 !important; color: #7a7060 !important;
+}
+html.rc-light .ubtn.active, html.rc-light .use-btn.active {
+  background: var(--acc, #9b6e2a) !important; border-color: var(--acc, #9b6e2a) !important; color: #fff !important;
+}
+html.rc-light .rrow label { color: #a09080 !important; }
+html.rc-light .rval { color: #1a1610 !important; }
+html.rc-light .btn:not(.savebtn):not(.delbtn) {
+  background: #f0ede6 !important; border-color: #d0c8b8 !important; color: #7a7060 !important;
+}
+html.rc-light .btn:not(.savebtn):not(.delbtn):hover {
+  background: #e8e4dc !important; color: #1a1610 !important;
+}
+html.rc-light .savebtn {
+  background: var(--acc, #9b6e2a) !important; border-color: var(--acc, #9b6e2a) !important; color: #fff !important;
+}
+html.rc-light .ri { background: #ffffff !important; border-bottom-color: #e8e4dc !important; color: #5a4a30 !important; }
+html.rc-light .ri:hover { background: #f5f2eb !important; }
+html.rc-light .ri b { color: #1a1610 !important; }
+html.rc-light .ri span { color: #a09080 !important; }
+html.rc-light #trRes, html.rc-light #alRes, html.rc-light #resultsList, html.rc-light #seriesResultsList {
+  background: #ffffff !important; border-color: #d0c8b8 !important;
+}
 `;
 const themeStyleEl = document.createElement('style');
 themeStyleEl.id = 'rc-theme-style';

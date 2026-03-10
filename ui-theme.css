@@ -49,8 +49,9 @@ body {
 /* ── Заголовок панели ── */
 .ctrl-head, .ctrl-title {
   font-family: 'Bebas Neue', sans-serif !important;
-  font-size: 20px !important;
-  letter-spacing: 4px;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px;
   color: #fff;
   border-bottom: 2px solid var(--acc, var(--ui-acc));
   padding-bottom: 8px;
