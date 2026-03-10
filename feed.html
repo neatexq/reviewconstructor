@@ -232,7 +232,7 @@ function renderFeed(){
     ? allPosts
     : currentFilter==='🏆 Тирлист'
       ? allPosts.filter(p => isTl(p))
-      : allPosts.filter(p => p.type===currentFilter && !isTl(p));
+      : allPosts.filter(p => p.type===currentFilter);
   if(!posts.length){
     wrap.innerHTML='<div class="feed-empty"><span>🔍</span>Нет рецензий в этой категории</div>';
     return;
