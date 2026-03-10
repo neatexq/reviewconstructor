@@ -135,8 +135,11 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lb-overlay" id="lbOverlay" onclick="closeLb()">
-  <img class="lb-img" id="lbImg" src="" alt="">
+<div class="lb-overlay" id="lbOverlay" onclick="if(event.target===this||event.target.id==='lbClose')closeLb()">
+  <div id="lbClose" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:#18181f;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:14px;color:#aaa;cursor:pointer;z-index:1">✕</div>
+  <div id="lbWrap" style="position:relative;overflow:hidden;max-width:95vw;max-height:95vh;cursor:zoom-in;user-select:none">
+    <img class="lb-img" id="lbImg" src="" alt="" style="transition:transform .15s;transform-origin:center center;pointer-events:none">
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -383,12 +386,58 @@ window.sharePost = function(nick, title){
 
 // ── LIGHTBOX ──
 window.openLb = function(id){
-  const img = document.getElementById(`img_${id}`);
-  if(!img||!img.src)return;
-  document.getElementById('lbImg').src=img.src;
+  const imgEl = document.getElementById('img_'+id);
+  if(!imgEl||!imgEl.src) return;
+  const img = document.getElementById('lbImg');
+  const wrap = document.getElementById('lbWrap');
+  img.src = imgEl.src;
   document.getElementById('lbOverlay').classList.add('show');
+  let zoom=1, tx=0, ty=0, dragging=false, sx=0, sy=0, stx=0, sty=0;
+  img.style.transform='scale(1) translate(0,0)';
+  function apply(){ img.style.transform='scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
+  wrap.onwheel = function(e){
+    e.preventDefault();
+    zoom = Math.min(5, Math.max(1, zoom - e.deltaY*0.003));
+    if(zoom===1){tx=0;ty=0;}
+    wrap.style.cursor = zoom>1 ? 'grab' : 'zoom-in';
+    apply();
+  };
+  wrap.onmousedown = function(e){
+    if(zoom<=1) return;
+    dragging=true; sx=e.clientX; sy=e.clientY; stx=tx; sty=ty;
+    wrap.style.cursor='grabbing'; e.preventDefault();
+  };
+  window._lbFeedMove = function(e){ if(!dragging)return; tx=stx+(e.clientX-sx)/zoom; ty=sty+(e.clientY-sy)/zoom; apply(); };
+  window._lbFeedUp = function(){ if(dragging){dragging=false; wrap.style.cursor=zoom>1?'grab':'zoom-in';} };
+  document.addEventListener('mousemove', window._lbFeedMove);
+  document.addEventListener('mouseup', window._lbFeedUp);
+  // Touch
+  let lastDist=0;
+  wrap.ontouchstart=function(e){
+    if(e.touches.length===2){ lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+    else if(e.touches.length===1&&zoom>1){ dragging=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; stx=tx; sty=ty; }
+  };
+  wrap.ontouchmove=function(e){
+    e.preventDefault();
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      zoom=Math.min(5,Math.max(1,zoom*(d/lastDist))); lastDist=d;
+      if(zoom===1){tx=0;ty=0;} apply();
+    } else if(e.touches.length===1&&dragging){
+      tx=stx+(e.touches[0].clientX-sx)/zoom; ty=sty+(e.touches[0].clientY-sy)/zoom; apply();
+    }
+  };
+  wrap.ontouchend=function(e){ if(e.touches.length<2)lastDist=0; dragging=false; };
 }
-window.closeLb = function(){ document.getElementById('lbOverlay').classList.remove('show'); }
+window.closeLb = function(){
+  document.getElementById('lbOverlay').classList.remove('show');
+  const img=document.getElementById('lbImg');
+  const wrap=document.getElementById('lbWrap');
+  if(img) img.style.transform='scale(1) translate(0,0)';
+  if(wrap){ wrap.onwheel=null; wrap.onmousedown=null; wrap.style.cursor='zoom-in'; }
+  if(window._lbFeedMove) document.removeEventListener('mousemove',window._lbFeedMove);
+  if(window._lbFeedUp) document.removeEventListener('mouseup',window._lbFeedUp);
+}
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
 
 // ── HELPERS ──

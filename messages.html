@@ -24,7 +24,7 @@ body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--txt);he
 /* SIDEBAR */
 .sidebar{width:280px;border-right:1px solid var(--bor);display:flex;flex-direction:column;flex-shrink:0}
 @media(max-width:700px){
-  .sidebar{width:100%;display:none}.sidebar.mobile-show{display:flex}
+  .sidebar{width:100%;display:flex}.sidebar.mobile-hide{display:none!important}
   .chat-area{display:none}.chat-area.mobile-show{display:flex}
   .back-mobile{display:flex!important}
 }
@@ -277,7 +277,7 @@ window.openChat = function(uid, nick, av, isOnline){
   chatMain.style.display='flex';
   // Mobile
   if(window.innerWidth<=700){
-    document.getElementById('sidebar').classList.remove('mobile-show');
+    document.getElementById('sidebar').classList.add('mobile-hide');
     document.getElementById('chatArea').classList.add('mobile-show');
   }
   // Mark read
@@ -316,7 +316,7 @@ function appendMessage(msg, container){
   const time=new Date(msg.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   let bubbleContent;
   if(msg.imgUrl){
-    bubbleContent=`<img class="msg-img" src="${msg.imgUrl}" alt="фото" onclick="window.open(this.src,'_blank')"><div class="msg-time">${time}</div>`;
+    bubbleContent=`<img class="msg-img" src="${msg.imgUrl}" alt="фото" onclick="openImgLightbox(this.src)"><div class="msg-time">${time}</div>`;
     div.innerHTML=`
       <img class="msg-av" src="${av}" onerror="this.src='${PLACEHOLDER}'" alt="">
       <div class="msg-bubble msg-img-bubble">${bubbleContent}</div>`;
@@ -345,7 +345,7 @@ window.sendMessage = async function(){
 }
 
 window.backToList = function(){
-  document.getElementById('sidebar').classList.add('mobile-show');
+  document.getElementById('sidebar').classList.remove('mobile-hide');
   document.getElementById('chatArea').classList.remove('mobile-show');
 }
 
@@ -385,6 +385,68 @@ window.sendPhoto = async function(e){
 
 function getChatId(uid1,uid2){ return [uid1,uid2].sort().join('_'); }
 function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+</script>
+
+<!-- IMAGE LIGHTBOX -->
+<div id="imgLightbox" onclick="if(event.target===this||event.target.id==='imgLbClose')closeImgLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out">
+  <div id="imgLbClose" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:#18181f;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:14px;color:#aaa;cursor:pointer;z-index:1">✕</div>
+  <div id="imgLbWrap" style="position:relative;overflow:hidden;max-width:90vw;max-height:90vh;cursor:grab;user-select:none">
+    <img id="imgLbImg" src="" style="max-width:90vw;max-height:90vh;border-radius:10px;display:block;transition:transform .15s;transform-origin:center center;pointer-events:none">
+  </div>
+</div>
+<script>
+function openImgLightbox(src){
+  const lb = document.getElementById('imgLightbox');
+  const img = document.getElementById('imgLbImg');
+  const wrap = document.getElementById('imgLbWrap');
+  img.src = src;
+  lb.style.display = 'flex';
+  let zoom=1, tx=0, ty=0, dragging=false, sx=0, sy=0, stx=0, sty=0;
+  img.style.transform = 'scale(1) translate(0,0)';
+  function apply(){ img.style.transform='scale('+zoom+') translate('+tx+'px,'+ty+'px)'; }
+  wrap.onwheel = function(e){
+    e.preventDefault();
+    zoom = Math.min(5, Math.max(1, zoom - e.deltaY*0.003));
+    if(zoom===1){tx=0;ty=0;}
+    wrap.style.cursor = zoom>1?'grab':'zoom-in';
+    apply();
+  };
+  wrap.onmousedown = function(e){
+    if(zoom<=1) return;
+    dragging=true; sx=e.clientX; sy=e.clientY; stx=tx; sty=ty;
+    wrap.style.cursor='grabbing'; e.preventDefault();
+  };
+  window._lbMove = function(e){ if(!dragging)return; tx=stx+(e.clientX-sx)/zoom; ty=sty+(e.clientY-sy)/zoom; apply(); };
+  window._lbUp = function(){ if(dragging){dragging=false; wrap.style.cursor=zoom>1?'grab':'zoom-in';} };
+  document.addEventListener('mousemove', window._lbMove);
+  document.addEventListener('mouseup', window._lbUp);
+  // Touch support
+  let lastDist=0;
+  wrap.ontouchstart = function(e){
+    if(e.touches.length===2){ lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
+    else if(e.touches.length===1 && zoom>1){ dragging=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; stx=tx; sty=ty; }
+  };
+  wrap.ontouchmove = function(e){
+    e.preventDefault();
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      zoom=Math.min(5,Math.max(1,zoom*(d/lastDist))); lastDist=d;
+      if(zoom===1){tx=0;ty=0;} apply();
+    } else if(e.touches.length===1 && dragging){
+      tx=stx+(e.touches[0].clientX-sx)/zoom; ty=sty+(e.touches[0].clientY-sy)/zoom; apply();
+    }
+  };
+  wrap.ontouchend=function(e){ if(e.touches.length<2) lastDist=0; dragging=false; };
+}
+function closeImgLightbox(){
+  const lb=document.getElementById('imgLightbox');
+  lb.style.display='none';
+  const wrap=document.getElementById('imgLbWrap');
+  wrap.onwheel=null; wrap.onmousedown=null;
+  if(window._lbMove) document.removeEventListener('mousemove',window._lbMove);
+  if(window._lbUp) document.removeEventListener('mouseup',window._lbUp);
+}
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeImgLightbox(); });
 </script>
 </body>
 </html>

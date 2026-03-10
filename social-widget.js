@@ -151,7 +151,10 @@
       // grab review text from any constructor textarea
       const revTextEl = document.querySelector('#trRev,#alRev,#gmRev,#bkRev,#anRev,#fOp,#sOp');
       const reviewText = revTextEl ? revTextEl.value.trim() : '';
-      queue.push({thumbDataUrl, fullDataUrl, type, title, reviewText, privacy, privacyFriends:[...selectedFriends], queuedAt:Date.now()});
+      // grab subtitle (artist/author/director/studio)
+      const subEl = document.querySelector('#trArtist,#alArtist,#fDirector,#bkAuthor,#anStudio');
+      const subtitle = subEl ? subEl.value.trim() : '';
+      queue.push({thumbDataUrl, fullDataUrl, type, title, subtitle, reviewText, privacy, privacyFriends:[...selectedFriends], queuedAt:Date.now()});
       localStorage.setItem('rc_publish_queue', JSON.stringify(queue));
       window._swToast('Рецензия сохранена! Открой профиль для публикации 🎉','ok');
     }catch(e){

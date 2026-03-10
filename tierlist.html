@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Тир-лист конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="social-widget.js"></script>
+<script src="nav.js"></script>
+<style>
+:root{--acc:#c8a96e;--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bor:#252530;--txt:#e8e0d0;--txt2:#5a5060}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);min-height:100vh;color:var(--txt)}
+.page-wrap{display:flex;gap:20px;padding:20px;max-width:1400px;margin:0 auto;align-items:flex-start}
+/* ── CTRL PANEL ── */
+.ctrl{width:340px;flex-shrink:0;background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 90px);overflow-y:auto;position:sticky;top:70px}
+.ctrl::-webkit-scrollbar{width:3px}.ctrl::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.ctrl-head{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:3px;color:#fff;border-bottom:2px solid var(--acc);padding-bottom:8px;display:flex;align-items:center;gap:8px}
+.ctrl-head a{font-size:13px;text-decoration:none;color:var(--txt2);border:1px solid var(--bor);border-radius:5px;padding:2px 8px;transition:all .15s}
+.ctrl-head a:hover{border-color:var(--acc);color:var(--acc)}
+h4{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;padding-bottom:3px;border-bottom:1px solid var(--bor);margin-top:2px}
+input[type=text],textarea,select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;font-size:11px;font-family:'Space Mono',monospace;color:var(--txt);outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:55px}
+.btn{width:100%;padding:10px;border:1px solid var(--bor);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;background:var(--bg3);color:var(--txt);font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn-acc{background:var(--acc)!important;border-color:var(--acc)!important;color:#1a1005!important}
+.btn-acc:hover{background:#b8996e!important;border-color:#b8996e!important}
+/* tier row editor */
+.tier-editor-list{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.tier-editor-item{display:flex;align-items:center;gap:6px;padding:5px 7px;background:var(--bg3);border:1px solid var(--bor);border-radius:7px;cursor:move}
+.tier-editor-item:hover{border-color:#444}
+.tier-drag-handle{font-size:12px;color:#444;flex-shrink:0;cursor:move;user-select:none}
+.tier-color-swatch{width:22px;height:22px;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:border-color .15s}
+.tier-color-swatch:hover{border-color:#fff}
+.tier-label-inp{flex:1;padding:4px 7px;font-size:12px;font-weight:700;background:var(--bg);border:1px solid var(--bor);border-radius:5px;color:var(--txt);font-family:'Space Mono',monospace;width:60px}
+.tier-label-inp:focus{border-color:var(--acc);outline:none}
+.tier-del-btn{width:22px;height:22px;border:1px solid #333;border-radius:50%;background:transparent;cursor:pointer;color:#555;font-size:10px;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.tier-del-btn:hover{border-color:#ef4444;color:#ef4444}
+.add-tier-btn{padding:6px;border:1px dashed #333;border-radius:7px;font-size:10px;cursor:pointer;background:transparent;color:#555;font-family:'Space Mono',monospace;letter-spacing:1px;width:100%;transition:all .2s}
+.add-tier-btn:hover{border-color:var(--acc);color:var(--acc)}
+/* search */
+.search-wrap{position:relative}
+.search-row{display:flex;gap:5px}
+.search-row input{flex:1}
+.search-btn{width:36px;flex-shrink:0;padding:0;border:1px solid var(--bor);border-radius:6px;background:var(--bg3);color:var(--acc);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.search-btn:hover{border-color:var(--acc)}
+.search-res{position:absolute;left:0;right:0;top:100%;z-index:9999;background:var(--bg2);border:1px solid var(--bor);border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto;display:none;box-shadow:0 8px 30px rgba(0,0,0,.7)}
+.search-res.show{display:block}
+.sri{display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:11px;color:#bbb;transition:background .15s}
+.sri:last-child{border-bottom:none}
+.sri:hover{background:var(--bg3)}
+.sri img{width:38px;height:52px;object-fit:cover;border-radius:4px;background:#1a1a24;flex-shrink:0}
+.sri-info b{display:block;font-size:11px;color:#ddd;margin-bottom:2px}
+.sri-info span{font-size:9px;color:var(--txt2)}
+/* save/publish row */
+.pub-row{display:flex;gap:5px;margin-top:2px}
+/* ── CARD ── */
+.card-wrap{flex:1;min-width:0}
+#card{background:#0d0d14;border-radius:12px;padding:20px;min-width:500px}
+.card-header{margin-bottom:18px}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:#fff;line-height:1}
+.card-meta{font-size:10px;color:var(--txt2);letter-spacing:2px;margin-top:4px;text-transform:uppercase}
+.card-desc{font-size:11px;color:#888;margin-top:6px;font-style:italic;line-height:1.5}
+/* tier rows */
+.tl-row{display:flex;align-items:stretch;margin-bottom:3px;border-radius:6px;overflow:hidden;min-height:72px}
+.tl-label{width:72px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.tl-items{flex:1;background:rgba(255,255,255,.04);display:flex;flex-wrap:wrap;gap:4px;padding:6px;align-content:flex-start;min-height:72px;transition:background .15s}
+.tl-items.drag-over{background:rgba(200,169,110,.12);outline:2px dashed rgba(200,169,110,.4)}
+/* pool */
+.tl-pool-wrap{margin-top:8px}
+.tl-pool-title{font-size:9px;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;margin-bottom:6px}
+.tl-pool{background:rgba(255,255,255,.03);border:1px solid var(--bor);border-radius:8px;min-height:80px;padding:8px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+.tl-pool.drag-over{background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.3)}
+/* item card */
+.tl-item{width:60px;height:82px;border-radius:5px;overflow:hidden;cursor:grab;flex-shrink:0;position:relative;background:#1a1a24;border:1px solid #222;transition:transform .15s,box-shadow .15s;user-select:none}
+.tl-item:hover{transform:scale(1.06);box-shadow:0 4px 16px rgba(0,0,0,.6);z-index:2}
+.tl-item.dragging{opacity:.45;transform:scale(.95)}
+.tl-item img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.tl-item-del{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.7);border:none;cursor:pointer;font-size:8px;color:#fff;display:none;align-items:center;justify-content:center;z-index:3}
+.tl-item:hover .tl-item-del{display:flex}
+.tl-item-label{position:absolute;bottom:0;left:0;right:0;padding:2px 3px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:7px;color:#fff;text-align:center;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* empty placeholder */
+.tl-items-empty{display:flex;align-items:center;justify-content:center;width:100%;min-height:60px;font-size:9px;color:#333;letter-spacing:1px;text-transform:uppercase;pointer-events:none}
+/* toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:10px 18px;font-size:11px;color:var(--txt);z-index:400;transition:transform .3s;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--acc);color:var(--acc)}
+.toast.err{border-color:#ef4444;color:#ef4444}
+/* color picker */
+.color-picker-pop{position:absolute;background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:10px;z-index:9998;display:none;flex-wrap:wrap;gap:5px;width:160px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.color-picker-pop.show{display:flex}
+.cp-swatch{width:24px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.cp-swatch:hover{border-color:#fff}
+@media(max-width:800px){
+  .page-wrap{flex-direction:column;padding:12px}
+  .ctrl{width:100%;max-height:none;position:static}
+  #card{min-width:0;width:100%}
+}
+</style>
+</head>
+<body>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof initNav!=="undefined")initNav("create")})</script>
+<style>body>.nav:not(#rcNav),body>nav:not(#rcNav){display:none!important}</style>
+
+<div class="page-wrap">
+<!-- ── CTRL ── -->
+<div class="ctrl">
+  <div class="ctrl-head">
+    <a href="index.html" title="На главную">←</a>
+    🏆 ТИР-ЛИСТ
+  </div>
+
+  <h4>1. Название</h4>
+  <input type="text" id="tlTitle" placeholder="Мой тирлист..." oninput="renderCard()" maxlength="40">
+
+  <h4>2. Тема поиска</h4>
+  <select id="tlTheme" onchange="renderCard()">
+    <option value="movie">🎬 Фильмы</option>
+    <option value="tv">📺 Сериалы</option>
+    <option value="game">🎮 Игры</option>
+    <option value="anime">🎌 Аниме</option>
+    <option value="music">🎵 Музыка</option>
+    <option value="book">📚 Книги</option>
+  </select>
+
+  <h4>3. Описание (необязательно)</h4>
+  <textarea id="tlDesc" placeholder="Краткое описание..." oninput="renderCard()" rows="2"></textarea>
+
+  <h4>4. Уровни тирлиста</h4>
+  <div class="tier-editor-list" id="tierEditorList"></div>
+  <button class="add-tier-btn" onclick="addTier()">＋ Добавить уровень</button>
+
+  <h4>5. Поиск и добавление</h4>
+  <div class="search-wrap">
+    <div class="search-row">
+      <input type="text" id="tlSearch" placeholder="Введи название..." onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="search-btn" onclick="doSearch()">🔍</button>
+    </div>
+    <div class="search-res" id="searchRes"></div>
+  </div>
+
+  <h4>6. Сохранить / Опубликовать</h4>
+  <button class="btn btn-acc" onclick="downloadTierlist()">💾 Скачать PNG</button>
+  <div class="pub-row">
+    <button class="btn" style="flex:1;background:#e63946;border-color:#e63946;color:#fff" onclick="publishTierlist()">📤 Опубликовать</button>
+    <button class="btn" onclick="openPrivSettings()" title="Настройки видимости" style="width:38px;padding:0;font-size:16px">⚙️</button>
+  </div>
+  <div id="privPill" style="font-size:9px;color:#e63946;letter-spacing:1px;text-align:right">🌍 Публично</div>
+</div>
+
+<!-- ── CARD ── -->
+<div class="card-wrap">
+  <div id="card">
+    <div class="card-header">
+      <div class="card-title" id="cardTitle">МОЙ ТИРЛИСТ</div>
+      <div class="card-meta" id="cardMeta">🎬 ФИЛЬМЫ</div>
+      <div class="card-desc" id="cardDesc" style="display:none"></div>
+    </div>
+    <div id="tierRows"></div>
+    <div class="tl-pool-wrap">
+      <div class="tl-pool-title">НЕ ОЦЕНЕНО</div>
+      <div class="tl-pool" id="pool" data-tier="pool"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- COLOR PICKER POPUP -->
+<div class="color-picker-pop" id="colorPicker"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ DEFAULTS ══
+const DEFAULT_TIERS = [
+  {id:'s', label:'S', color:'#FF7F7F'},
+  {id:'a', label:'A', color:'#FFBF7F'},
+  {id:'b', label:'B', color:'#FFDF80'},
+  {id:'c', label:'C', color:'#80FF80'},
+  {id:'d', label:'D', color:'#80BFFF'},
+  {id:'f', label:'F', color:'#BF80FF'},
+];
+const TIER_COLORS = [
+  '#FF7F7F','#FF5555','#e63946',
+  '#FFBF7F','#FF9933','#f4a261',
+  '#FFDF80','#FFD700','#e9c46a',
+  '#80FF80','#4CAF50','#2dc653',
+  '#80BFFF','#4fc3f7','#457b9d',
+  '#BF80FF','#9c27b0','#7c3aed',
+  '#ff69b4','#ffffff','#aaaaaa','#555555',
+];
+const THEME_LABELS = {movie:'🎬 ФИЛЬМЫ',tv:'📺 СЕРИАЛЫ',game:'🎮 ИГРЫ',anime:'🎌 АНИМЕ',music:'🎵 МУЗЫКА',book:'📚 КНИГИ'};
+
+// ══ STATE ══
+let tiers = DEFAULT_TIERS.map(t=>({...t, items:[]}));
+let poolItems = [];
+let dragItem = null;
+let dragFrom = null; // tier id or 'pool'
+let _privMode = 'public';
+let _privFriends = [];
+
+// ══ RENDER CTRL TIER LIST ══
+function renderTierEditor() {
+  const list = document.getElementById('tierEditorList');
+  list.innerHTML = '';
+  tiers.forEach((tier, idx) => {
+    const row = document.createElement('div');
+    row.className = 'tier-editor-item';
+    row.draggable = true;
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <span class="tier-drag-handle" title="Перетащить">⠿</span>
+      <div class="tier-color-swatch" style="background:${tier.color}" onclick="openColorPicker(${idx}, this)" title="Цвет"></div>
+      <input class="tier-label-inp" value="${tier.label}" maxlength="6" oninput="tiers[${idx}].label=this.value;renderCard()" title="Название уровня">
+      <button class="tier-del-btn" onclick="deleteTier(${idx})" title="Удалить">✕</button>`;
+    // Drag to reorder
+    row.addEventListener('dragstart', e => { e.dataTransfer.setData('tier-editor-idx', idx); row.style.opacity='.4'; });
+    row.addEventListener('dragend', () => row.style.opacity='1');
+    row.addEventListener('dragover', e => { e.preventDefault(); row.style.background='rgba(200,169,110,.1)'; });
+    row.addEventListener('dragleave', () => row.style.background='');
+    row.addEventListener('drop', e => {
+      e.preventDefault(); row.style.background='';
+      const from = parseInt(e.dataTransfer.getData('tier-editor-idx'));
+      if(from === idx) return;
+      const moved = tiers.splice(from, 1)[0];
+      tiers.splice(idx, 0, moved);
+      renderTierEditor(); renderCard();
+    });
+    list.appendChild(row);
+  });
+}
+
+function addTier() {
+  const colors = ['#FF7F7F','#FFBF7F','#FFDF80','#80FF80','#80BFFF','#BF80FF'];
+  tiers.push({id:'t'+Date.now(), label:'?', color:colors[tiers.length%colors.length], items:[]});
+  renderTierEditor(); renderCard();
+}
+function deleteTier(idx) {
+  if(tiers.length <= 1){ toast('Должен быть хотя бы один уровень','err'); return; }
+  poolItems = [...poolItems, ...tiers[idx].items];
+  tiers.splice(idx, 1);
+  renderTierEditor(); renderCard();
+}
+
+// ══ COLOR PICKER ══
+function openColorPicker(tierIdx, swatchEl) {
+  const picker = document.getElementById('colorPicker');
+  picker.innerHTML = '';
+  TIER_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'cp-swatch';
+    sw.style.background = c;
+    if(c === tiers[tierIdx].color) sw.style.borderColor = '#fff';
+    sw.onclick = () => { tiers[tierIdx].color = c; closePicker(); renderTierEditor(); renderCard(); };
+    picker.appendChild(sw);
+  });
+  // Custom color input
+  const inp = document.createElement('input');
+  inp.type='color'; inp.value=tiers[tierIdx].color; inp.style.cssText='width:100%;height:24px;border:none;cursor:pointer;border-radius:4px;background:none';
+  inp.oninput = ()=>{ tiers[tierIdx].color=inp.value; swatchEl.style.background=inp.value; renderCard(); };
+  picker.appendChild(inp);
+
+  const rect = swatchEl.getBoundingClientRect();
+  picker.style.left = rect.left + 'px';
+  picker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  picker.classList.add('show');
+  setTimeout(() => document.addEventListener('click', closePicker, {once:true}), 0);
+}
+function closePicker() {
+  document.getElementById('colorPicker').classList.remove('show');
+}
+
+// ══ RENDER CARD ══
+function renderCard() {
+  const title = document.getElementById('tlTitle').value || 'МОЙ ТИРЛИСТ';
+  const theme = document.getElementById('tlTheme').value;
+  const desc = document.getElementById('tlDesc').value.trim();
+  document.getElementById('cardTitle').textContent = title.toUpperCase();
+  document.getElementById('cardMeta').textContent = THEME_LABELS[theme] || '';
+  const descEl = document.getElementById('cardDesc');
+  if(desc){ descEl.textContent = desc; descEl.style.display='block'; }
+  else { descEl.style.display='none'; }
+
+  const container = document.getElementById('tierRows');
+  // Preserve items per tier id
+  const existingItems = {};
+  container.querySelectorAll('.tl-row').forEach(row => {
+    const tid = row.dataset.tier;
+    existingItems[tid] = Array.from(row.querySelector('.tl-items').children)
+      .filter(el => el.classList.contains('tl-item'))
+      .map(el => ({id:el.dataset.id, img:el.querySelector('img')?.src||'', label:el.dataset.label||''}));
+  });
+  // Sync back
+  tiers.forEach(tier => {
+    if(existingItems[tier.id]) tier.items = existingItems[tier.id];
+  });
+
+  container.innerHTML = '';
+  tiers.forEach(tier => {
+    const row = document.createElement('div');
+    row.className = 'tl-row';
+    row.dataset.tier = tier.id;
+    const label = document.createElement('div');
+    label.className = 'tl-label';
+    label.style.background = tier.color;
+    label.textContent = tier.label;
+    const items = document.createElement('div');
+    items.className = 'tl-items';
+    items.dataset.tier = tier.id;
+    if(!tier.items.length) {
+      const ph = document.createElement('div');
+      ph.className = 'tl-items-empty';
+      ph.textContent = 'Перетащи сюда';
+      items.appendChild(ph);
+    } else {
+      tier.items.forEach(item => items.appendChild(makeTlItem(item, tier.id)));
+    }
+    setupDropZone(items, tier.id);
+    row.appendChild(label);
+    row.appendChild(items);
+    container.appendChild(row);
+  });
+
+  // Pool
+  const pool = document.getElementById('pool');
+  const poolPrev = Array.from(pool.children)
+    .filter(el=>el.classList.contains('tl-item'))
+    .map(el=>({id:el.dataset.id,img:el.querySelector('img')?.src||'',label:el.dataset.label||''}));
+  if(poolPrev.length) poolItems = poolPrev;
+  pool.innerHTML = '';
+  poolItems.forEach(item => pool.appendChild(makeTlItem(item,'pool')));
+  setupDropZone(pool,'pool');
+}
+
+function makeTlItem(item, tierId) {
+  const el = document.createElement('div');
+  el.className = 'tl-item';
+  el.draggable = true;
+  el.dataset.id = item.id;
+  el.dataset.label = item.label||'';
+  el.innerHTML = `<img src="${item.img}" alt="" draggable="false" onerror="this.style.opacity='.3'">
+    <div class="tl-item-label">${item.label||''}</div>
+    <button class="tl-item-del" onclick="removeItem('${item.id}','${tierId}',event)" title="Убрать">✕</button>`;
+  el.addEventListener('dragstart', e => {
+    dragItem = {id:item.id, img:item.img, label:item.label||''};
+    dragFrom = tierId;
+    setTimeout(()=>el.classList.add('dragging'),0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); renderCard(); });
+  return el;
+}
+
+function setupDropZone(el, tierId) {
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault(); el.classList.remove('drag-over');
+    if(!dragItem) return;
+    // Remove from source
+    if(dragFrom === 'pool') poolItems = poolItems.filter(i=>i.id!==dragItem.id);
+    else { const src = tiers.find(t=>t.id===dragFrom); if(src) src.items=src.items.filter(i=>i.id!==dragItem.id); }
+    // Add to target
+    if(tierId === 'pool') poolItems.push(dragItem);
+    else { const tgt = tiers.find(t=>t.id===tierId); if(tgt) tgt.items.push(dragItem); }
+    dragItem = null; dragFrom = null;
+    renderCard();
+  });
+}
+
+function removeItem(id, tierId, e) {
+  e && e.stopPropagation();
+  if(tierId==='pool') poolItems=poolItems.filter(i=>i.id!==id);
+  else { const t=tiers.find(t=>t.id===tierId); if(t) t.items=t.items.filter(i=>i.id!==id); }
+  renderCard();
+}
+
+// ══ SEARCH ══
+const TMDB_KEY='53039e5ed72046b6be330aa9d8dbd112';
+const RAWG_KEY='f677e19d5e6a476a90c341f672c63a80';
+let searchTimer = null;
+
+document.getElementById('tlSearch').addEventListener('input', function(){
+  clearTimeout(searchTimer);
+  if(this.value.trim().length > 1) searchTimer = setTimeout(doSearch, 500);
+  else { document.getElementById('searchRes').classList.remove('show'); }
+});
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.search-wrap')) document.getElementById('searchRes').classList.remove('show');
+});
+
+async function doSearch() {
+  const q = document.getElementById('tlSearch').value.trim();
+  if(!q) return;
+  const theme = document.getElementById('tlTheme').value;
+  const res = document.getElementById('searchRes');
+  res.innerHTML = '<div class="sri"><div class="sri-info"><span>Поиск...</span></div></div>';
+  res.classList.add('show');
+  try {
+    let results = [];
+    if(theme==='movie'||theme==='tv') results = await searchTMDB(q, theme==='movie'?'movie':'tv');
+    else if(theme==='game') results = await searchRAWG(q);
+    else if(theme==='anime') results = await searchAnime(q);
+    else if(theme==='music') results = await searchMusic(q);
+    else if(theme==='book') results = await searchBooks(q);
+    if(!results.length){ res.innerHTML='<div class="sri"><div class="sri-info"><span>Ничего не найдено</span></div></div>'; return; }
+    res.innerHTML='';
+    results.forEach(r => {
+      const div = document.createElement('div'); div.className='sri';
+      div.innerHTML=`<img src="${r.img||''}" alt="" onerror="this.style.opacity=0"><div class="sri-info"><b>${r.name}</b><span>${r.sub||''}</span></div>`;
+      div.onclick = () => { addToPool(r); res.classList.remove('show'); document.getElementById('tlSearch').value=''; };
+      res.appendChild(div);
+    });
+  } catch(err) {
+    res.innerHTML=`<div class="sri"><div class="sri-info"><span style="color:#ef4444">Ошибка: ${err.message}</span></div></div>`;
+  }
+}
+
+async function searchTMDB(q, type) {
+  const r = await fetch(`https://api.themoviedb.org/3/search/${type}?api_key=${TMDB_KEY}&language=ru-RU&query=${encodeURIComponent(q)}&page=1`);
+  const d = await r.json();
+  return (d.results||[]).slice(0,8).map(item=>({
+    id: type+'_'+item.id,
+    name: item.title||item.name||'—',
+    sub: (item.release_date||item.first_air_date||'').slice(0,4),
+    img: item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : '',
+    imgFull: item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : '',
+  }));
+}
+async function searchRAWG(q) {
+  const r = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(q)}&page_size=8`);
+  const d = await r.json();
+  return (d.results||[]).slice(0,8).map(g=>({
+    id:'game_'+g.id, name:g.name, sub:g.released?g.released.slice(0,4):'',
+    img:g.background_image||'', imgFull:g.background_image||''
+  }));
+}
+async function searchAnime(q) {
+  const r = await fetch(`https://shikimori.one/api/animes?search=${encodeURIComponent(q)}&limit=8&order=popularity`);
+  const d = await r.json();
+  return (d||[]).slice(0,8).map(a=>({
+    id:'anime_'+a.id, name:a.russian||a.name,
+    sub:a.aired_on?a.aired_on.slice(0,4):'',
+    img:a.image?.preview?'https://shikimori.one'+a.image.preview:'',
+    imgFull:a.image?.original?'https://shikimori.one'+a.image.original:'',
+  }));
+}
+async function searchMusic(q) {
+  const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=8&country=us`);
+  const d = await r.json();
+  return (d.results||[]).slice(0,8).map(t=>({
+    id:'music_'+t.trackId, name:t.trackName||'—',
+    sub:t.artistName||'',
+    img:t.artworkUrl100||'', imgFull:(t.artworkUrl100||'').replace('100x100bb','300x300bb'),
+  }));
+}
+async function searchBooks(q) {
+  const r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=8&fields=key,title,author_name,first_publish_year,cover_i`);
+  const d = await r.json();
+  return (d.docs||[]).slice(0,8).map(b=>({
+    id:'book_'+b.key.replace('/works/',''),
+    name:b.title||'—',
+    sub:(b.author_name||[]).slice(0,1).join(''),
+    img:b.cover_i?`https://covers.openlibrary.org/b/id/${b.cover_i}-S.jpg`:'',
+    imgFull:b.cover_i?`https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`:'',
+  }));
+}
+
+function addToPool(item) {
+  // avoid duplicates
+  const allIds = [...poolItems.map(i=>i.id), ...tiers.flatMap(t=>t.items.map(i=>i.id))];
+  if(allIds.includes(item.id)){ toast('Уже добавлено',''); return; }
+  poolItems.push({id:item.id, img:item.imgFull||item.img, label:item.name});
+  renderCard();
+  toast('Добавлено: '+item.name,'ok');
+}
+
+// ══ DOWNLOAD ══
+async function downloadTierlist() {
+  const card = document.getElementById('card');
+  try {
+    const cv = await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#0d0d14',logging:false});
+    const a = document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='tierlist_'+Date.now()+'.png'; a.click();
+  } catch(e) { toast('Ошибка сохранения','err'); }
+}
+
+// ══ PUBLISH ══
+async function publishTierlist() {
+  const card = document.getElementById('card');
+  const title = document.getElementById('tlTitle').value.trim() || 'Тирлист';
+  const theme = document.getElementById('tlTheme').value;
+  toast('Публикуем...','');
+  try {
+    const cv = await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#0d0d14',logging:false});
+    const fullDataUrl = cv.toDataURL('image/png');
+    const th=document.createElement('canvas'); const sc=200/cv.width;
+    th.width=200; th.height=Math.round(cv.height*sc);
+    th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+    const thumbDataUrl=th.toDataURL('image/jpeg',.75);
+    const typeMap={movie:'🎬 Кино',tv:'📺 Кино',game:'🎮 Игры',anime:'🎌 Аниме',music:'🎵 Музыка',book:'📚 Книги'};
+    const queue=JSON.parse(localStorage.getItem('rc_publish_queue')||'[]');
+    queue.push({thumbDataUrl,fullDataUrl,type:typeMap[theme]||'Тирлист',title,isTierlist:true,privacy:_privMode,privacyFriends:[..._privFriends],queuedAt:Date.now()});
+    localStorage.setItem('rc_publish_queue',JSON.stringify(queue));
+    toast('Тирлист сохранён! Открой профиль для публикации 🎉','ok');
+  } catch(e) { toast('Ошибка: '+e.message,'err'); }
+}
+
+// ══ PRIVACY (same as other constructors) ══
+function openPrivSettings(){
+  document.getElementById('swPrivOverlay').style.display='flex';
+  const sess=JSON.parse(localStorage.getItem('rc_session')||'null');
+  if(!sess) return;
+  const fl=document.getElementById('swFriendsList');
+  fl.innerHTML='';
+  const friends=JSON.parse(localStorage.getItem('rc_friends_cache')||'null');
+  if(friends && Object.keys(friends).length){
+    Object.entries(friends).forEach(([uid,f])=>{
+      const lbl=document.createElement('label');
+      lbl.style.cssText='display:flex;align-items:center;gap:7px;font-size:10px;color:#bbb;cursor:pointer;padding:3px 0';
+      lbl.innerHTML=`<input type="checkbox" value="${uid}" ${_privFriends.includes(uid)?'checked':''}> @${f.nick||uid}`;
+      lbl.querySelector('input').onchange=e=>swToggleFriend(uid,e.target.checked);
+      fl.appendChild(lbl);
+    });
+  }
+}
+function swSetPriv(mode){
+  _privMode=mode;
+  ['public','friends','selected'].forEach(m=>{
+    const el=document.getElementById('swpo_'+m);
+    if(el) el.style.background=m===mode?'rgba(200,169,110,.1)':'';
+    if(el) el.style.borderColor=m===mode?'rgba(200,169,110,.25)':'transparent';
+  });
+  document.getElementById('swFriendsList').style.display=mode==='selected'?'flex':'none';
+  const icons={'public':'🌍','friends':'👥','selected':'👤'};
+  const labels={'public':'Публично','friends':'Только друзья','selected':'Избранные'};
+  document.getElementById('privPill').textContent=(icons[mode]||'🌍')+' '+(labels[mode]||'Публично');
+}
+function swToggleFriend(uid,checked){
+  if(checked)_privFriends.push(uid);
+  else _privFriends=_privFriends.filter(u=>u!==uid);
+}
+
+// ══ TOAST ══
+let toastTimer;
+function toast(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(type||'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='toast',2800);
+}
+
+// ══ INIT ══
+renderTierEditor();
+renderCard();
+</script>
+
+<!-- PRIVACY MODAL (same style as other constructors) -->
+<div id="swPrivOverlay" onclick="if(event.target===this)this.style.display='none'" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:#111118;border:1px solid #252530;border-radius:14px;width:300px;padding:20px;font-family:'Space Mono',monospace">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#6b5f4a;text-transform:uppercase;margin-bottom:14px">Видимость тирлиста</div>
+    <div id="swpo_public" onclick="swSetPriv('public')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid rgba(200,169,110,.25);background:rgba(200,169,110,.08);margin-bottom:4px;transition:all .15s">
+      <span style="font-size:18px">🌍</span><div><b style="display:block;font-size:11px;color:#ddd">Публично</b><span style="font-size:9px;color:#6b5f4a">Видят все</span></div>
+    </div>
+    <div id="swpo_friends" onclick="swSetPriv('friends')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;margin-bottom:4px;transition:all .15s">
+      <span style="font-size:18px">👥</span><div><b style="display:block;font-size:11px;color:#ddd">Только друзья</b><span style="font-size:9px;color:#6b5f4a">Видят твои друзья</span></div>
+    </div>
+    <div id="swpo_selected" onclick="swSetPriv('selected')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s">
+      <span style="font-size:18px">👤</span><div><b style="display:block;font-size:11px;color:#ddd">Выбрать друзей</b><span style="font-size:9px;color:#6b5f4a">Конкретные люди</span></div>
+    </div>
+    <div id="swFriendsList" style="display:none;flex-direction:column;gap:4px;padding:8px 12px;max-height:150px;overflow-y:auto"></div>
+    <button onclick="document.getElementById('swPrivOverlay').style.display='none'" style="width:100%;padding:9px;background:#c8a96e;border:none;border-radius:7px;color:#1a1005;font-size:11px;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;margin-top:12px">Готово ✓</button>
+  </div>
+</div>
+</body>
+</html>

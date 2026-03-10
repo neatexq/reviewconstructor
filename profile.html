@@ -307,7 +307,8 @@ body>.nav:not(#rcNav), body>nav:not(#rcNav) { display:none !important; }
     <div class="modal-body">
       <div class="modal-type" id="modalType"></div>
       <div class="modal-title" id="modalTitle"></div>
-      <div id="modalReviewText" style="font-size:13px;color:#bbb;line-height:1.7;margin:10px 0 4px;white-space:pre-wrap;display:none"></div>
+      <div id="modalSubtitle" style="font-size:13px;color:var(--txt2);margin-bottom:10px;display:none"></div>
+      <div id="modalReviewText" style="font-size:13px;color:#ccc;line-height:1.8;margin:10px 0 12px;white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:14px;display:none"></div>
       <div class="modal-date" id="modalDate"></div>
       <button class="modal-download" onclick="downloadReview()">💾 Скачать PNG</button>
     </div>
@@ -628,6 +629,11 @@ window.openReview = function(rv){
   document.getElementById('modalType').textContent = rv.type||'';
   document.getElementById('modalTitle').textContent = rv.title||'—';
   document.getElementById('modalDate').textContent = rv.date||'';
+  // Subtitle (artist / director / etc)
+  const subEl = document.getElementById('modalSubtitle');
+  const sub = rv.subtitle || rv.artist || rv.author || rv.director || '';
+  if(sub){ subEl.textContent = sub; subEl.style.display='block'; }
+  else { subEl.style.display='none'; }
   // Review text
   const rtEl = document.getElementById('modalReviewText');
   const txt = rv.reviewText || rv.text || rv.opinion || '';
@@ -920,6 +926,7 @@ async function processPublishQueue(){
         type:item.type||'Рецензия',
         title:item.title||'—',
         imgData,
+        reviewText:item.reviewText||'',
         privacy:item.privacy||'public',
         privacyFriends:item.privacyFriends||[],
         createdAt:item.queuedAt||Date.now(),
